@@ -2305,8 +2305,10 @@ function clearActivityLog() {
         }
 
         function clearAllData() {
-            if (confirm('Are you sure you want to delete ALL orders and parcels? This cannot be undone.')) {
+            if (confirm('Are you sure you want to delete ALL orders and parcels? This cannot be undone. Also, as a peabrain who cleared her own before exporting, I am going to EXPORT IT FOR YOU just in case (you have no choice)!!')) {
         // Clear all data
+        exportData();
+
         orders = [];
         parcels = [];
         activityLog = [];
@@ -2904,10 +2906,11 @@ function renderParcels() {
                         <div class="stat-label">Total USD</div>
                     </div>
                 </div>
+
                 <div style="margin-top: 12px; max-height: 120px; overflow-y: auto;">
                     ${assignedOrders.map(order => `
                         <div style="font-size: 11px; padding: 4px; background: rgba(255,255,255,0.7); margin: 2px 0; border-radius: 4px;">
-                            #${order.orderId} - ${order.title.substring(0, 30)}${order.title.length > 30 ? '...' : ''}
+                            #${order.orderId} - ${order.title.substring(0, 30)}${order.title.length > 30 ? '...' : ''} (${(order.volumes || 1) * order.quantity} total)
                         </div>
                     `).join('')}
                 </div>
