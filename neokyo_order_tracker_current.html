@@ -893,9 +893,9 @@
                     </div>
                     <div class="filter-group">
                         <label>Format</label>
-                        <div class="multi-select" id="formatMultiSelect">
-                            <div class="multi-select-trigger" onclick="toggleMultiSelect('format')" tabindex="0">
-                                <div class="multi-select-tags" id="formatTags">
+                        <div class="multi-select" id="formatsMultiSelect">
+                            <div class="multi-select-trigger" onclick="toggleMultiSelect('formats')" tabindex="0">
+                                <div class="multi-select-tags" id="formatsTags">
                                     <div class="multi-select-placeholder">All Formats</div>
                                 </div>
                             </div>
@@ -916,9 +916,9 @@
                     </div>
                     <div class="filter-group">
                         <label>Status</label>
-                        <div class="multi-select" id="statusMultiSelect">
-                            <div class="multi-select-trigger" onclick="toggleMultiSelect('status')" tabindex="0">
-                                <div class="multi-select-tags" id="statusTags">
+                        <div class="multi-select" id="statusesMultiSelect">
+                            <div class="multi-select-trigger" onclick="toggleMultiSelect('statuses')" tabindex="0">
+                                <div class="multi-select-tags" id="statusesTags">
                                     <div class="multi-select-placeholder">All Statuses</div>
                                 </div>
                             </div>
@@ -929,9 +929,9 @@
                     </div>
                     <div class="filter-group">
     <label>Parcel</label>
-    <div class="multi-select" id="parcelMultiSelect">
-        <div class="multi-select-trigger" onclick="toggleMultiSelect('parcel')" tabindex="0">
-            <div class="multi-select-tags" id="parcelTags">
+    <div class="multi-select" id="parcelsMultiSelect">
+        <div class="multi-select-trigger" onclick="toggleMultiSelect('parcels')" tabindex="0">
+            <div class="multi-select-tags" id="parcelsTags">
                 <div class="multi-select-placeholder">All Parcels</div>
             </div>
         </div>
@@ -1064,142 +1064,68 @@ function updateMultiSelectFilter(type) {
     const checkbox = event.target;
     const value = checkbox.value;
     
-    // Map the type to the actual variable names
-    let selected, excluded;
-    
     if (type === 'Statuses') {
-        selected = selectedStatuses;
-        excluded = excludedStatuses;
+        if (selectedStatuses.includes(value)) {
+            selectedStatuses = selectedStatuses.filter(v => v !== value);
+            checkbox.checked = false;
+        } else {
+            selectedStatuses.push(value);
+            checkbox.checked = true;
+        }
+        renderStatusTags();
     } else if (type === 'Formats') {
-        selected = selectedFormats;
-        excluded = excludedFormats;
+        if (selectedFormats.includes(value)) {
+            selectedFormats = selectedFormats.filter(v => v !== value);
+            checkbox.checked = false;
+        } else {
+            selectedFormats.push(value);
+            checkbox.checked = true;
+        }
+        renderFormatTags();
     } else if (type === 'Parcels') {
-        selected = selectedParcels;
-        excluded = excludedParcels;
+        if (selectedParcels.includes(value)) {
+            selectedParcels = selectedParcels.filter(v => v !== value);
+            checkbox.checked = false;
+        } else {
+            selectedParcels.push(value);
+            checkbox.checked = true;
+        }
+        renderParcelTags();
     } else if (type === 'Tags') {
-        selected = selectedTags;
-        excluded = excludedTags;
-    }
-    
-    if (selected.includes(value)) {
-        // Move from selected to excluded
-        if (type === 'Statuses') {
-            selectedStatuses = selected.filter(v => v !== value);
-            excludedStatuses.push(value);
-        } else if (type === 'Formats') {
-            selectedFormats = selected.filter(v => v !== value);
-            excludedFormats.push(value);
-        } else if (type === 'Parcels') {
-            selectedParcels = selected.filter(v => v !== value);
-            excludedParcels.push(value);
-        } else if (type === 'Tags') {
-            selectedTags = selected.filter(v => v !== value);
-            excludedTags.push(value);
+        if (selectedTags.includes(value)) {
+            selectedTags = selectedTags.filter(v => v !== value);
+            checkbox.checked = false;
+        } else {
+            selectedTags.push(value);
+            checkbox.checked = true;
         }
-        
-        checkbox.checked = false;
-        checkbox.parentElement.classList.add('excluded');
-    } else if (excluded.includes(value)) {
-        // Remove from excluded
-        if (type === 'Statuses') {
-            excludedStatuses = excluded.filter(v => v !== value);
-        } else if (type === 'Formats') {
-            excludedFormats = excluded.filter(v => v !== value);
-        } else if (type === 'Parcels') {
-            excludedParcels = excluded.filter(v => v !== value);
-        } else if (type === 'Tags') {
-            excludedTags = excluded.filter(v => v !== value);
-        }
-        
-        checkbox.parentElement.classList.remove('excluded');
-    } else {
-        // Add to selected
-        selected.push(value);
-        checkbox.checked = true;
+        renderTagsTags();
     }
-    
-    // Call the appropriate render function
-    if (type === 'Statuses') renderStatusTags();
-    else if (type === 'Formats') renderFormatTags();
-    else if (type === 'Parcels') renderParcelTags();
-    else if (type === 'Tags') renderTagsTags(); // or renderTagsMulti()
     
     applyFilters();
 }
 
 function renderMultiSelectTags(type, removeFunction) {
-    // Map the type to actual variables instead of using window[...]
-    let selected, excluded;
+    let selected;
     
-    if (type === 'Statuses') {
-        selected = selectedStatuses;
-        excluded = excludedStatuses;
-    } else if (type === 'Formats') {
-        selected = selectedFormats;
-        excluded = excludedFormats;
-    } else if (type === 'Parcels') {
-        selected = selectedParcels;
-        excluded = excludedParcels;
-    } else if (type === 'Tags') {
-        selected = selectedTags;
-        excluded = excludedTags;
-    }
-    let containerId;
-    if (type === 'Statuses') containerId = 'statusTags';
-    else if (type === 'Formats') containerId = 'formatTags'; 
-    else if (type === 'Parcels') containerId = 'parcelTags';
-    else if (type === 'Tags') containerId = 'tagsTags';
+    if (type === 'Statuses') selected = selectedStatuses;
+    else if (type === 'Formats') selected = selectedFormats;
+    else if (type === 'Parcels') selected = selectedParcels;
+    else if (type === 'Tags') selected = selectedTags;
+    
+    const containerId = `${type.toLowerCase()}Tags`;
     const container = document.getElementById(containerId);
     
-    if (selected.length === 0 && excluded.length === 0) {
+    if (selected.length === 0) {
         container.innerHTML = `<div class="multi-select-placeholder">All ${type}</div>`;
     } else {
-        const selectedHTML = selected.map(item => `
+        container.innerHTML = selected.map(item => `
             <div class="multi-select-tag">
                 ${type === 'Parcels' ? getParcelsName(item) : item}
                 <span class="remove" onclick="${removeFunction}('${item}')">&times;</span>
             </div>
         `).join('');
-        
-        const excludedHTML = excluded.map(item => `
-            <div class="multi-select-tag excluded-tag">
-                NOT ${type === 'Parcels' ? getParcelsName(item) : item}
-                <span class="remove" onclick="removeExcludedTag('${type}', '${item}')">&times;</span>
-            </div>
-        `).join('');
-        
-        container.innerHTML = selectedHTML + excludedHTML;
     }
-}
-
-function removeExcludedTag(type, value) {
-    // Remove from excluded array
-    const excludedArray = window[`excluded${type}`];
-    window[`excluded${type}`] = excludedArray.filter(item => item !== value);
-    
-    // Find and update the checkbox in dropdown
-    const dropdownId = `${type.toLowerCase()}Dropdown`;
-    let selector;
-    
-    // Handle different ID patterns
-    if (type === 'Statuses') {
-        const safeId = value.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        selector = `#${dropdownId} input[id="status-${safeId}"]`;
-    } else if (type === 'Formats') {
-        selector = `#${dropdownId} input[id="format-${value.toLowerCase()}"]`;
-    } else if (type === 'Parcels') {
-        selector = `#${dropdownId} input[id="parcel-${value}"]`;
-    } else if (type === 'Tags') {
-        const safeId = value.replace(/[^a-z0-9]/gi, '-');
-        selector = `#${dropdownId} input[id="tag-${safeId}"]`;
-    }
-    
-    const option = document.querySelector(selector);
-    if (option) option.parentElement.classList.remove('excluded');
-    
-    // Call the appropriate render function
-    window[`render${type}Tags`]();
-    applyFilters();
 }
 
 function getParcelsName(parcelId) {
@@ -1209,20 +1135,20 @@ function getParcelsName(parcelId) {
 
 // TAG FILTERS - RENDER TAGS
 function renderStatusTags() {
-    renderMultiSelectTags('Statuses', 'removeStatusTag');
+    renderMultiSelectTags('Statuses', 'removeStatusTags');
 }
 function renderFormatTags() {
-    renderMultiSelectTags('Formats', 'removeFormatTag');
+    renderMultiSelectTags('Formats', 'removeFormatTags');
 }
 function renderTagsTags() {
     renderMultiSelectTags('Tags', 'removeTagsTags');
 }
 function renderParcelTags() {
-    renderMultiSelectTags('Parcels', 'removeParcelTag');
+    renderMultiSelectTags('Parcels', 'removeParcelTags');
 }
 
 // TAG FILTERS - REMOVE TAGS
-function removeStatusTag(status) {
+function removeStatusTags(status) {
     selectedStatuses = selectedStatuses.filter(s => s !== status);
     const safeId = status.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const checkbox = document.getElementById(`status-${safeId}`);
@@ -1231,7 +1157,7 @@ function removeStatusTag(status) {
     applyFilters();
 }
 
-function removeFormatTag(tag) {
+function removeFormatTags(tag) {
     selectedFormats = selectedFormats.filter(t => t !== tag);
     const safeId = tag.replace(/[^a-z0-9]/gi, '-');
     const checkbox = document.getElementById(`tag-${safeId}`);
@@ -1240,7 +1166,7 @@ function removeFormatTag(tag) {
     applyFilters();
 }
 
-function removeParcelTag(parcelId) {
+function removeParcelTags(parcelId) {
     selectedParcels = selectedParcels.filter(id => id !== parcelId);
     document.getElementById(`parcel-${parcelId}`).checked = false;
     renderParcelTags();
@@ -2219,21 +2145,21 @@ function deleteOrder(orderId) {
             
             // Clear multi-select status filter
             selectedStatuses = [];
-            document.querySelectorAll('#statusMultiSelect input[type="checkbox"]').forEach(checkbox => {
+            document.querySelectorAll('#statusesMultiSelect input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
             renderStatusTags();
             
             // Clear multi-select format filter
             selectedFormats = [];
-            document.querySelectorAll('#formatMultiSelect input[type="checkbox"]').forEach(checkbox => {
+            document.querySelectorAll('#formatsMultiSelect input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
             renderFormatTags();
             
             // Clear multi-select parcel filter
             selectedParcels = [];
-            document.querySelectorAll('#parcelMultiSelect input[type="checkbox"]').forEach(checkbox => {
+            document.querySelectorAll('#parcelsMultiSelect input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
             renderParcelTags();
