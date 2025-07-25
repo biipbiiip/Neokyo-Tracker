@@ -1,0 +1,3335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:image" content="https://sohvi.neocities.org/ordertracker.png" />
+    <title>Neo_ Order Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            color: #374151;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            margin-left: 66px;
+        }
+        .parcel-section-active {
+            transition: margin-right 0.3s cubic-bezier(.4,0,.2,1);
+            margin-right: 330px; /* Same as #parcelSection width */
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .header h1 {
+            color: #4b5563;
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        .import-section {
+            margin-bottom: 20px;
+        }
+
+        .import-section textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .import-section textarea:focus {
+            outline: none;
+            border-color: rgb(106, 92, 201);
+        }
+
+        .btn {
+            background: rgb(106, 92, 201);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            color: rgb(106, 92, 201);
+            font-weight: 500;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: rgba(153,145,216,1);
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .view-toggle {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-toggle.active {
+            background: rgb(106, 92, 201);
+            color: white;
+        }
+
+        .totals-row {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .total-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .total-label {
+            font-size: 12px;
+            color: rgb(118, 114, 152);
+            margin-bottom: 4px;
+        }
+
+        .total-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: rgb(106, 92, 201);
+        }
+
+        /* Grid View */
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        .grid-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .grid-item h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .grid-item .order-id {
+            color: rgba(153,145,216,1);
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .grid-item .price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 8px;
+        }
+
+        .grid-item .details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgb(106, 92, 201);
+            margin-bottom: 12px;
+        }
+
+        .grid-item .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .tag {
+            background: rgba(167, 139, 250, 0.1);
+            color: rgba(153,145,216,1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .grid-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        /* Table View */
+        .table-view {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .table-view table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-view th {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .table-view th:hover {
+            background: #e5e7eb;
+        }
+
+        .table-view th::after {
+            content: '↕';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.4;
+            font-size: 10px;
+        }
+
+        .table-view th.sort-asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+
+        .table-view th.sort-desc::after {
+            content: '↓';
+            opacity: 1;
+        }
+
+        .table-view td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+        }
+
+        .table-view tr:hover {
+            background: rgba(167, 139, 250, 0.05);
+        }
+
+        /* Make Title column wider */
+        .table-view th:nth-child(3),
+        .table-view td:nth-child(3) {
+            width: 30%;
+            min-width: 200px;
+        }
+
+        .table-view img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .editable {
+            border: none;
+            background: transparent;
+            width: 100%;
+            padding: 4px;
+        }
+
+        .editable:focus {
+            background: rgba(167, 139, 250, 0.1);
+            outline: none;
+            border-radius: 4px;
+        }
+
+        /* Parcel Section */
+        .parcel-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 24px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .parcel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .parcel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .parcel-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .parcel-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: rgb(106, 92, 201);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgb(106, 92, 201);
+        }
+
+        .hidden {
+            display: none;
+            animation: fadeOutRight 0.6s;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.hidden {
+            display: none !important;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+        }
+
+        .column-controls {
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 12px;
+            margin-left: 16px;
+            display: none;
+        }
+
+        .column-controls.show {
+            display: block;
+        }
+
+        .column-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            max-width: 600px;
+        }
+
+        .column-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .column-item input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        .multi-select {
+            position: relative;
+            display: inline-block;
+            min-width: 160px;
+        }
+
+        .multi-select-trigger {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 20px;
+        }
+
+        .multi-select-trigger:focus,
+        .multi-select.open .multi-select-trigger {
+            border-color: rgba(153,145,216,1);
+            outline: none;
+        }
+
+        .multi-select-trigger::after {
+            content: '▼';
+            font-size: 10px;
+            color: rgb(106, 92, 201);
+            transition: transform 0.2s;
+        }
+
+        .multi-select.open .multi-select-trigger::after {
+            transform: rotate(180deg);
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid rgba(153,145,216,1);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .multi-select.open .multi-select-dropdown {
+            display: block;
+        }
+
+        .multi-select-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .multi-select-option:hover {
+            background: #f3f4f6;
+        }
+
+        .multi-select-option input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .multi-select-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: 20px;
+        }
+
+        .multi-select-tag {
+            background: rgba(167, 139, 250, 0.1);
+            color: rgba(153,145,216,1);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .multi-select-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .multi-select-tag .remove:hover {
+            color: rgb(235, 137, 137);
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: rgba(153,145,216,1);
+            background: rgb(244,242,254);
+        }
+
+        .multi-select-placeholder {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .table-view th.hidden-column,
+        .table-view td.hidden-column {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container" class="container parcel-section-active">
+        <h1 id="header" style="font-size:16px !important; font-weight:800; padding-bottom:15px">Neo_ Order Tracker</h1>
+        <div class="header">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn btn-instructions" onclick="toggleInstructionsSection()">How to Use</button>
+                <button class="btn" onclick="toggleImportSection()">Import HTML</button>
+                <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Data</button>
+                <button class="btn btn-secondary" onclick="clearAllData()" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137);color:white">Clear Data</button>
+            </div>
+                    <div class="neokyo-note" style="font-size:12px !important; margin:10px; margin-top:20px; display:flex; align-items: center"><div><img src="https://sohvi.neocities.org/cookie.png" width="35px"/></div><div style="margin-left:5px; padding:10px">🍪 All data is saved on your own browser and not a server. Refreshing the page won't delete anything <u>unless</u> you clear browser cache/cookies/etc. If you do, just remember to export your data and re-import after. also this isn't an official neokyo tool but one i made to keep track of my own things i,, hope this is ok idk it's usable if it's not lmk!! - nini</div></div>
+            
+            <div id="importSection" class="import-section hidden" style="margin-top: 20px;">
+                <textarea id="htmlInput" placeholder="Paste the HTML code here..."></textarea>
+                <br><br>
+                <button class="btn" onclick="parseHTML()">Import Orders</button>
+                <button class="btn btn-secondary" onclick="toggleImportSection()">Cancel</button>
+            </div>
+                    <div id="instructionsSection" class="import-section hidden">
+
+                <h1 style="font-weight:600">Demo/Example</h1>
+                        <img src="https://sohvi.neocities.org/ordertracker.png" width="600px"/><br />
+                <ol style="padding:25px 35px">
+                        You can download <a href="https://sohvi.neocities.org/order_tracker_export_2025-07-22.json" style="font-weight:800">my Neokyo data</a>, then import it (Import Data button above), and play around with it.
+                </ol>
+                <h1 style="font-weight:600">Instructions</h1>
+                <ol type="1" style="padding:25px 35px">
+                    <li>Go to your <a href="https://neokyo.com/en/my-account/orders">Neokyo Orders</a></li>
+                    <li>Right click in any empty space in your orders page, and click "Inspect" / "Inspect element"</li>
+                    <li>Resize your browser until you can see all four columns!</li>
+                    <li>Ctrl-F (or Cmd+F), and type in <b style="font-family:monospace; color:red">portlet light </b></li>
+                    <li>It'll highlight the line in the code window above. Click on that line, then Ctrl+C (or Cmd+F) to copy it.</li>
+                    <li>Go back to this tab, click <b>Import HTML</b>, and paste the code into the window.</li>
+                    <li>Press Import Orders.</li>
+                    <li>If you have several pages of orders, just click on the next page in Neokyo.</li>
+                    <li>Click into the code window <b style="font-family:monospace; color:red">where the letters look like this</b>.</li>
+                    <li>Then just repeat steps 4-7.</li>
+                </ol>
+
+                <h1>Other notes</h1>
+                <ol style="padding:25px 35px">
+                    <li>
+                        You can specify an item's dimensions and weight in the "Manage Formats" section, and assign them to orders.
+                    </li>
+                    <li>
+                        When filtering, the totals row on the top right will reflect what's in your filters.
+                    </li>
+                    <li>
+                        All your data is saved locally in your browser, so if you refresh it won't go away unless you clear cache/cookies. You can simply export/import your data to a file and re-import it in a click. NOTE: Again it's highly recommended to export your data if you frequently do so.
+                    </li>
+                    <li>
+                        Add, edit, and remove custom tags for orders; and filter by tags in the filters dropdown. It's inclusive of all tags, so if you have items tagged "manga", and others tagged "movies", checking both will show all of them.
+                    </li>
+                    <li>
+                        You can search several terms in filters by separating them with commas. For example, if you search for "123,456", it will match orders with either "123" or "456" in the order ID or title.
+                    </li>
+                    <li>
+                        You can manage and edit item formats (size/weight) and assign them to orders for parcel calculation estimates.
+                    </li>
+                    <li>
+                        Use the Parcel Calculator to group orders into parcels and see total weight. You can look on the Neokyo Discord's "shipping-sample" channel to gauge what size box you might need, and this for further weight calculations/keeping notes.
+                    </li>
+                    <li>
+                        Switch between grid and table views in View Controls, and customize which columns are visible in the table.
+                    </li>
+                    <li>
+                        In table view, quickly edit order details inline, including tags, parcel assignment etc.
+                    </li>
+                </ol>
+                <button class="btn btn-secondary" onclick="toggleInstructionsSection()">Close</button>
+            </div>
+        </div>
+
+        <!--- if anyone is looking at this pls dont laugh omfg i know. i KNOW IT'S ROAST MATERIAL spare me i'm not a dev i am an analyst w two peas for brains assisted by the bff we can always talk to at like 2:33AM w/ showerthoughts and receive affirmations from instead of yelling  :( -->
+
+        <!---<div id="parcelSection" class="parcel-section" style="margin-bottom: 24px;">
+            <div class="parcel-header">
+                <h2>Parcel Calculator</h2>
+                <h3>✋‼️ NOTE: Space Used/Space Left is ONLY a simple calculation.<br />It can't play Tetris to account for the various box sizes, it's only to gauge.</h3>
+                
+                <button class="btn" onclick="openParcelModal()">Add Parcel</button>
+            </div>
+            <div id="parcelGrid" class="parcel-grid"></div>
+        </div>--->
+        <div id="parcelSection" style="
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 330px;
+            height: 100vh;
+            background: rgba(255,255,255,0.98);
+            border-left: 1px solid #e5e7eb;
+            box-shadow: -2px 0 16px rgba(0,0,0,0.07);
+            z-index: 999;
+            overflow-y: auto;
+            padding: 24px 18px 24px 18px;
+            transform: translateX(0);
+                animation: fadeInRight 0.6s;
+        ">
+            <div class="parcel-header" style="margin-bottom: 18px;">
+                <h2>Parcel Calculator</h2>
+                <button class="btn" onclick="openParcelModal()">Add Parcel</button>
+                <button class="btn" onclick="toggleParcelSection()">Close</button>
+            </div>
+            <div id="parcelGrid" class="parcel-grid"></div>
+        </div>
+
+        <!-- Hamburger Menus for Filters, Totals, and View Controls -->
+        <style>
+            .hamburger-menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 65px;
+        height: 100vh;
+        background: rgba(255,255,255,0.98);
+        border-right: 1px solid #e5e7eb;
+        box-shadow: 2px 0 16px rgba(0,0,0,0.07);
+        z-index: 1001;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 0;
+        gap: 8px;
+    
+            }
+            .hamburger-btn {
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                width: 48px;
+                height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+                transition: background 0.2s;
+                font-size: 22px;
+            }
+            .hamburger-btn.active {
+                background: rgb(84 151 221);
+                color: white;
+            }
+            .floating-panel {
+                position: fixed;
+                top: 20px;
+                left: 70px;
+                z-index: 1002;
+                min-width: 320px;
+                max-width: 90vw;
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+                padding: 18px 18px 12px 18px;
+                display: none;
+                animation: fadeIn 0.2s;
+            }
+
+            .floating-panel.show {
+                display: block;
+            }
+            @media (max-width: 600px) {
+                .floating-panel { left: 60px; min-width: 220px; }
+                .hamburger-menu { left: 8px; }
+            }
+            @keyframes fadeInRight {
+                from { opacity: 0; transform: translateX(10px);}
+                to { opacity: 1; transform: translateX(0);}
+            }
+            @keyframes fadeOutRight {
+                from { opacity: 1; transform: translateX(0px);}
+                to { opacity: 0; transform: translateX(10);}
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px);}
+                to { opacity: 1; transform: translateY(0);}
+            }
+        </style>
+
+        <div class="hamburger-menu">
+            <button class="hamburger-btn active" id="filtersHamburger" aria-label="Filters" onclick="toggleFiltersSection()">
+                <span>&#128202;</span>
+                <span class="tooltip">Toggle Filters</span>
+            </button>
+            <button class="hamburger-btn active" id="parcelHamburger" aria-label="Parcel Calculator" onclick="toggleParcelSection()">
+                <span>📦</span>
+                <span class="tooltip">Parcel Calculator</span>
+            </button>
+            <button class="hamburger-btn" id="formatsHamburger" aria-label="Manage Formats" onclick="toggleFormatsSection()">
+                <span>📚</span>
+                <span class="tooltip">Manage Formats</span>
+            </button>
+            <button class="hamburger-btn" id="tagsHamburger" aria-label="Tag Manager" onclick="toggleTagManager()">
+                <span>🏷️</span>
+                <span class="tooltip">Manage Tags</span>
+            </button>
+            <button class="hamburger-btn" id="viewHamburger" aria-label="View Controls" onclick="toggleFloatingPanel('viewPanel', this)">
+                <span>&#9881;</span>
+                <span class="tooltip">Grid/Table View</span>
+            </button>
+            <button class="hamburger-btn active" id="activityHamburger" aria-label="Activity Log" onclick="showActivityLog()">
+                <span>&#128202;</span>
+                <span class="tooltip">Import Activity Log</span>
+            </button>
+            <style>
+                .hamburger-btn {
+                    position: relative;
+                }
+                .hamburger-btn .tooltip {
+                    display: none;
+                    position: absolute;
+                    left: 110%;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: rgb(84 151 221);
+                    color: #fff;
+                    padding: 8px 12px;
+                    border-radius: 5px;
+                    font-size: 11px !important;
+                    white-space: nowrap;
+                    z-index: 1003;
+                    pointer-events: none;
+                    font-family:"Manrope";
+                    font-weight:600
+                }
+                .hamburger-btn:hover .tooltip {
+                    display: block;
+                }
+            </style>
+        </div>
+
+        <!-- Floating Panels -->
+        <div id="filtersPanel" class="">
+            <div id="headerSection" class="filter-header">
+                <strong id="filtersTitle">Filters / </strong>
+                            <div id="totalsRow" class="totals-row" style="">
+                <div class="total-item">
+                    <div class="total-label">Total Orders</div>
+                    <div class="total-value" id="totalItems">0</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">Total Items</div>
+                    <div class="total-value" id="totalVolumes">0</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">Total Yen</div>
+                    <div class="total-value" id="totalYen">¥0</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">Total USD</div>
+                    <div class="total-value" id="totalUSD">$0</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">Total Weight</div>
+                    <div class="total-value" id="totalWeight">0g</div>
+                </div>
+            </div>
+            </div>
+            <div id="filtersSection" class="filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Search Items</label>
+                        <input type="text" id="searchInput" placeholder="Search by order ID or title..." oninput="applyFilters()">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Tags</label>
+                        <div class="multi-select" id="tagsMultiSelect">
+                            <div class="multi-select-trigger" onclick="toggleMultiSelect('tags')" tabindex="0">
+                                <div class="multi-select-tags" id="TagsMulti">
+                                    <div class="multi-select-placeholder">All Tags</div>
+                                </div>
+                            </div>
+                            <div class="multi-select-dropdown" id="tagsDropdown">
+                                <!-- Tags options will be dynamically generated -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Format</label>
+                        <div class="multi-select" id="formatMultiSelect">
+                            <div class="multi-select-trigger" onclick="toggleMultiSelect('format')" tabindex="0">
+                                <div class="multi-select-tags" id="formatTags">
+                                    <div class="multi-select-placeholder">All Formats</div>
+                                </div>
+                            </div>
+                            <div class="multi-select-dropdown" id="formatDropdown">
+                                <!-- Format options will be dynamically generated -->
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="filter-group">
+                        <label>Min Price (¥)</label>
+                        <input type="number" id="minPrice" oninput="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Max Price (¥)</label>
+                        <input type="number" id="maxPrice" oninput="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <div class="multi-select" id="statusMultiSelect">
+                            <div class="multi-select-trigger" onclick="toggleMultiSelect('status')" tabindex="0">
+                                <div class="multi-select-tags" id="statusTags">
+                                    <div class="multi-select-placeholder">All Statuses</div>
+                                </div>
+                            </div>
+                            <div class="multi-select-dropdown" id="statusDropdown">
+                                <!-- Status options will be dynamically generated -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+    <label>Parcel</label>
+    <div class="multi-select" id="parcelMultiSelect">
+        <div class="multi-select-trigger" onclick="toggleMultiSelect('parcel')" tabindex="0">
+            <div class="multi-select-tags" id="parcelTags">
+                <div class="multi-select-placeholder">All Parcels</div>
+            </div>
+        </div>
+        <div class="multi-select-dropdown" id="parcelDropdown">
+            <!-- Parcel options will be dynamically generated -->
+        </div>
+    </div>
+</div>
+                    <button class="btn btn-secondary" onclick="clearFilters()" style="scale:.9">Clear Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="totalsPanel" class="floating-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong>Totals</strong>
+                <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
+            </div>
+        </div>
+
+        <div id="viewPanel" class="floating-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong>View Controls</strong>
+                <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
+            </div>
+            <div class="view-controls" style="margin-top:10px;">
+                <button class="view-toggle active" onclick="setView('grid')">Grid View</button>
+                <button class="view-toggle" onclick="setView('table')">Table View</button>
+                <button id="columnToggleBtn" class="view-toggle" onclick="toggleColumnControls()" style="display: none;">Columns</button>
+                <div id="columnControls" class="column-controls">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #4b5563;">Show/Hide Columns</div>
+                    <div class="column-grid">
+                        <div class="column-item">
+                            <input type="checkbox" id="col-image" checked onchange="toggleColumn('image')">
+                            <label for="col-image">Image</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-orderId" checked onchange="toggleColumn('orderId')">
+                            <label for="col-orderId">Order #</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-title" checked onchange="toggleColumn('title')">
+                            <label for="col-title">Title</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-quantity" checked onchange="toggleColumn('quantity')">
+                            <label for="col-quantity">Quantity</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-yen" checked onchange="toggleColumn('yen')">
+                            <label for="col-yen">Yen</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-usd" checked onchange="toggleColumn('usd')">
+                            <label for="col-usd">USD</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-created" checked onchange="toggleColumn('created')">
+                            <label for="col-created">Created</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-storageDays" checked onchange="toggleColumn('storageDays')">
+                            <label for="col-storageDays">Storage Days</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-status" checked onchange="toggleColumn('status')">
+                            <label for="col-status">Status</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-neokyoNotes" checked onchange="toggleColumn('neokyoNotes')">
+                            <label for="col-neokyoNotes">Neokyo Notes</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-bookFormat" checked onchange="toggleColumn('bookFormat')">
+                            <label for="col-bookFormat">Format</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-volumes" checked onchange="toggleColumn('volumes')">
+                            <label for="col-volumes">Items</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-parcel" checked onchange="toggleColumn('parcel')">
+                            <label for="col-parcel">Parcel</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-tags" checked onchange="toggleColumn('tags')">
+                            <label for="col-tags">Tags</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-url" checked onchange="toggleColumn('url')">
+                            <label for="col-url">URL</label>
+                        </div>
+                        <div class="column-item">
+                            <input type="checkbox" id="col-actions" checked onchange="toggleColumn('actions')">
+                            <label for="col-actions">Actions</label>
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <button class="btn btn-secondary btn-small" onclick="showAllColumns()">Show All</button>
+                        <button class="btn btn-secondary btn-small" onclick="hideAllColumns()">Hide All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Hamburger floating panel logic
+            function closeAllPanels() {
+                document.querySelectorAll('.floating-panel').forEach(panel => panel.classList.remove('show'));
+                document.querySelectorAll('.hamburger-btn').forEach(btn => btn.classList.remove('active'));
+            }
+            function toggleFloatingPanel(panelId, btn) {
+                const panel = document.getElementById(panelId);
+                const isOpen = panel.classList.contains('show');
+                closeAllPanels();
+                if (!isOpen) {
+                        panel.classList.add('show');
+                        btn.classList.add('active');
+
+                }
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeAllPanels();
+            });
+        </script>
+        <div id="gridView" class="grid-view"></div>
+        <div id="tableView" class="table-view hidden"></div>
+    </div>
+
+    </div>
+
+    <!-- Formats Modal -->
+    <div id="formatsModal" class="modal hidden" onclick="toggleFormatsSection(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Manage Formats</h3>
+                <button class="btn btn-secondary" onclick="toggleFormatsSection()">×</button>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <button class="btn" onclick="addNewFormat()">Add New Format</button>
+                <button class="btn btn-secondary" onclick="resetToDefaults()">Delete All Formats</button>
+            </div>
+            
+            <div id="formatsTable" class="table-view" style="margin-bottom: 20px; max-height: 250px; overflow-y: scroll;">
+                <!-- Formats table will be inserted here -->
+            </div>
+            
+            <div style="text-align: right;">
+                <button class="btn" onclick="saveFormats()">Save Changes</button>
+                <button class="btn btn-secondary" onclick="toggleFormatsSection()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Tag Manager Modal -->
+<div id="tagManagerModal" class="modal hidden" onclick="toggleTagManager(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Manage Tags</h3>
+            <button class="btn btn-secondary" onclick="toggleTagManager()">×</button>
+        </div>
+        
+        <div id="tagManagerContent">
+            <!-- Tag content will be inserted here -->
+        </div>
+        
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn" onclick="toggleTagManager()">Close</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Edit Parcel Modal -->
+    <div id="editParcelModal" class="modal hidden" onclick="closeEditParcelModalOnOutsideClick(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3>Edit Parcel</h3>
+            <span></span>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="editParcelName" placeholder="Parcel 1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Length (cm)</label>
+                    <input type="number" id="editParcelLength" step="1" value="60">
+                </div>
+                <div class="form-group">
+                    <label>Width (cm)</label>
+                    <input type="number" id="editParcelWidth" step="1" value="45">
+                </div>
+                <div class="form-group">
+                    <label>Height (cm)</label>
+                    <input type="number" id="editParcelHeight" step="1" value="62">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Padding/Safe Zone (cm)</label>
+                    <input type="number" id="editParcelPadding" step="1" value="5">
+                </div>
+                <div class="form-group">
+                    <label>Package Materials/Box Weight (g)</label>
+                    <input type="number" id="editParcelBoxWeight" value="2000">
+                </div>
+            </div>
+            <div class="form-row">
+                <button class="btn" onclick="saveParcelEdit()">Save Changes</button>
+                <button class="btn btn-secondary" onclick="closeEditParcelModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parcel Modal -->
+    <div id="parcelModal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3>Add New Parcel</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="parcelName" placeholder="Parcel 1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Length (cm)</label>
+                    <input type="number" id="parcelLength" step="1" value="60">
+                </div>
+                <div class="form-group">
+                    <label>Width (cm)</label>
+                    <input type="number" id="parcelWidth" step="1" value="45">
+                </div>
+                <div class="form-group">
+                    <label>Height (cm)</label>
+                    <input type="number" id="parcelHeight" step="1" value="62">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Padding/Save Zone (cm)</label>
+                    <input type="number" id="parcelPadding" step="1" value="20">
+                </div>
+                <div class="form-group">
+                    <label>Package Materials/Box Weight (g)</label>
+                    <input type="number" id="parcelBoxWeight" value="2000">
+                </div>
+            </div>
+            <div class="form-row">
+                <button class="btn" onclick="addParcel()">Add Parcel</button>
+                <button class="btn btn-secondary" onclick="closeParcelModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let orders = [];
+        let parcels = [];
+
+        // for logging import changes (in parseHTML())
+        let activityLog = [];
+
+        // Safe loading of activity log
+        try {
+            activityLog = JSON.parse(localStorage.getItem('activityLog') || '[]');
+        } catch (e) {
+            console.error('Error loading activity log:', e);
+            activityLog = [];
+        }
+
+        let newOrderCount = 0; // Track new orders added from HTML parsing
+        
+        // Safe data loading with error handling
+        try {
+            orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            // Ensure all orders have proper tags field
+            orders = orders.map(order => ({
+                ...order,
+                tags: order.tags || ''
+            }));
+        } catch (e) {
+            console.error('Error loading orders:', e);
+            orders = [];
+        }
+        
+        try {
+            parcels = JSON.parse(localStorage.getItem('parcels') || '[]');
+        } catch (e) {
+            console.error('Error loading parcels:', e);
+            parcels = [];
+        }
+        let currentView = 'grid';
+        let showTotals = true;
+        let sortState = { field: null, direction: 'asc' }; // Track sort state
+        let currentEditingParcel = null; // Track which parcel is being edited
+        
+        // Multi-select filter states
+        let selectedStatuses = [];
+        let selectedFormats = [];
+        let selectedParcels = [];
+        let selectedTags = [];
+        
+        // Column visibility state
+        let columnVisibility = {
+            image: true,
+            orderId: true,
+            title: true,
+            quantity: true,
+            yen: true,
+            usd: true,
+            created: true,
+            storageDays: true,
+            status: true,
+            neokyoNotes: true,
+            bookFormat: true,
+            volumes: true,
+            parcel: true,
+            tags: true,
+            url: true,
+            actions: true
+        };
+
+        // Book format specifications - now editable
+        let bookFormats = JSON.parse(localStorage.getItem('bookFormats') || JSON.stringify({
+            'Default': { width: 10, height: 10, thickness: 10, weight: 10 },
+            'A5 Wideban': { width: 14.8, height: 21.0, thickness: 2.25, weight: 310 },
+            'A5 Doujinshi': { width: 14.8, height: 21.0, thickness: 0.4, weight: 100 },
+            'B6 Standard': { width: 12.8, height: 18.2, thickness: 1.7, weight: 190 },
+            'B5 Artbook': { width: 18.2, height: 25.7, thickness: 1.5, weight: 310 },
+            'B5 Doujinshi': { width: 18.2, height: 25.7, thickness: 0.3, weight: 100 },
+            'A4 Artbook': { width: 21.0, height: 29.7, thickness: 1.5, weight: 350 },
+            'A4 Doujinshi': { width: 21.0, height: 29.7, thickness: 0.4, weight: 80 },
+            'A6 Bunkoban': { width: 10.5, height: 14.8, thickness: 1.4, weight: 150 },
+            'A6 Shinshoban': { width: 11.0, height: 17.0, thickness: 1.4, weight: 150 }
+        }));
+
+        // Default formats for reset function
+        const defaultFormats = {
+            'Default': { width: 10, height: 10, thickness: 10, weight: 10 },
+            'A5 Wideban': { width: 14.8, height: 21.0, thickness: 2.25, weight: 310 },
+            'A5 Doujinshi': { width: 14.8, height: 21.0, thickness: 0.4, weight: 100 },
+            'B6 Standard': { width: 12.8, height: 18.2, thickness: 1.7, weight: 190 },
+            'B5 Artbook': { width: 18.2, height: 25.7, thickness: 1.5, weight: 310 },
+            'B5 Doujinshi': { width: 18.2, height: 25.7, thickness: 0.3, weight: 100 },
+            'A4 Artbook': { width: 21.0, height: 29.7, thickness: 1.5, weight: 350 },
+            'A4 Doujinshi': { width: 21.0, height: 29.7, thickness: 0.4, weight: 80 },
+            'A6 Bunkoban': { width: 10.5, height: 14.8, thickness: 1.4, weight: 150 },
+            'A6 Shinshoban': { width: 11.0, height: 17.0, thickness: 1.4, weight: 150 }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load column visibility preferences
+            try {
+                const savedVisibility = localStorage.getItem('columnVisibility');
+                if (savedVisibility) {
+                    columnVisibility = { ...columnVisibility, ...JSON.parse(savedVisibility) };
+                    // Update checkboxes
+                    Object.keys(columnVisibility).forEach(col => {
+                        const checkbox = document.getElementById(`col-${col}`);
+                        if (checkbox) {
+                            checkbox.checked = columnVisibility[col];
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading column visibility:', e);
+            }
+
+            renderTagsDropdown(); // Initialize tags dropdown
+            renderFormatDropdown(); // Initialize format dropdown
+            renderStatusDropdown(); // Initialize status dropdown
+            renderParcelDropdown(); // Initialize parcel dropdown
+            renderView();
+            renderParcels();
+            updateTotals();
+        });
+
+function parseHTML() {
+    const htmlInput = document.getElementById('htmlInput').value;
+    if (!htmlInput.trim()) {
+        alert('Please paste HTML code first');
+        return;
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlInput, 'text/html');
+    const rows = doc.querySelectorAll('tr');
+
+    newOrderCount = 0;
+    let updatedOrderCount = 0;
+    let unchangedOrderCount = 0;
+    const importSession = {
+        timestamp: new Date().toISOString(),
+        newOrders: [],
+        updatedOrders: [],
+        unchangedOrders: []
+    };
+
+    // ALWAYS load the full dataset from localStorage first
+    let allOrders = [];
+    try {
+        allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    } catch (e) {
+        console.error('Error loading orders:', e);
+        allOrders = [];
+    }
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            const imgDiv = cells[0].querySelector('.img-holder');
+            const imgUrl = imgDiv ? imgDiv.style.backgroundImage.replace(/url\(['"]?(.+?)['"]?\)/, '$1') : '';
+            
+            const detailsCell = cells[1];
+            const orderIdMatch = detailsCell.innerHTML.match(/#(\d+)/);
+            const titleMatch = detailsCell.innerHTML.match(/<b>(.*?)<\/b>/g);
+            const quantityMatch = detailsCell.innerHTML.match(/Quantity\s*:\s*(\d+)/);
+            const createdMatch = detailsCell.innerHTML.match(/Created:\s*(\d{2}\/\d{2}\/\d{4})/);
+            
+            const statusCell = cells[2];
+            const storageDaysMatch = statusCell.innerHTML.match(/<b>(\d+)<\/b>\s*Storage day/);
+            
+            // Parse status and notes
+            const statusParagraphs = statusCell.querySelectorAll('p');
+            let status = '';
+            let neokyoNotes = '';
+            
+            if (statusParagraphs.length > 0) {
+                const firstP = statusParagraphs[0];
+                const statusText = firstP.textContent.trim();
+                if (statusText.includes('In storage')) {
+                    status = 'In Storage';
+                } else if (statusText.includes('Arrived') || statusText.includes('soon in storage')) {
+                    status = 'Arrived';
+                } else if (statusText.includes('Awaiting delivery')) {
+                    status = 'Awaiting Delivery';
+                } else if (statusText.includes('Cancelled')) {
+                    status = 'Cancelled';
+                } else {
+                    status = statusText.replace(/\s+/g, ' ').trim();
+                }
+                
+                if (statusParagraphs.length > 1) {
+                    const secondP = statusParagraphs[1];
+                    neokyoNotes = secondP.textContent.replace(/\s+/g, ' ').trim();
+                }
+            }
+            
+            const billingCell = cells[3];
+            const yenMatch = billingCell.innerHTML.match(/(\d+)\s*yen/);
+            const usdMatch = billingCell.innerHTML.match(/US\$\s*([\d.]+)/);
+            
+            const actionsCell = cells[4];
+            const linkMatch = actionsCell.innerHTML.match(/href=['"]([^'"]+)['"]/);
+
+            if (orderIdMatch && titleMatch && quantityMatch) {
+                const orderId = orderIdMatch[1];
+                const title = titleMatch[titleMatch.length - 1].replace(/<\/?b>/g, '');
+                
+                // Check if order already exists in the FULL dataset
+                const existingOrder = allOrders.find(order => order.orderId === orderId);
+                
+                if (existingOrder) {
+                    // Track what changed
+                    const changes = {};
+                    const newStorageDays = storageDaysMatch ? parseInt(storageDaysMatch[1]) : existingOrder.storageDays;
+                    const newStatus = status || existingOrder.status;
+                    const newNeokyoNotes = neokyoNotes || existingOrder.neokyoNotes;
+                    
+                    // Check for changes
+                    if (existingOrder.storageDays !== newStorageDays) {
+                        changes.storageDays = {
+                            from: existingOrder.storageDays,
+                            to: newStorageDays
+                        };
+                    }
+                    
+                    if (existingOrder.status !== newStatus) {
+                        changes.status = {
+                            from: existingOrder.status || 'None',
+                            to: newStatus
+                        };
+                    }
+                    
+                    if (existingOrder.neokyoNotes !== newNeokyoNotes) {
+                        changes.neokyoNotes = {
+                            from: existingOrder.neokyoNotes || 'None',
+                            to: newNeokyoNotes
+                        };
+                    }
+                    
+                    if (Object.keys(changes).length > 0) {
+                        // UPDATE existing order with changes
+                        existingOrder.storageDays = newStorageDays;
+                        existingOrder.status = newStatus;
+                        existingOrder.neokyoNotes = newNeokyoNotes;
+                        updatedOrderCount++;
+                        
+                        // Log the changes
+                        importSession.updatedOrders.push({
+                            orderId: orderId,
+                            title: title,
+                            changes: changes
+                        });
+                    } else {
+                        // No changes detected
+                        unchangedOrderCount++;
+                        importSession.unchangedOrders.push({
+                            orderId: orderId,
+                            title: title
+                        });
+                    }
+                } else {
+                    // CREATE new order
+                    const order = {
+                        id: Date.now() + Math.random(),
+                        image: imgUrl,
+                        orderId: orderId,
+                        title: title,
+                        quantity: parseInt(quantityMatch[1]),
+                        yen: yenMatch ? parseInt(yenMatch[1]) : 0,
+                        usd: usdMatch ? parseFloat(usdMatch[1]) : 0,
+                        created: createdMatch ? createdMatch[1] : '',
+                        storageDays: storageDaysMatch ? parseInt(storageDaysMatch[1]) : 0,
+                        status: status,
+                        neokyoNotes: neokyoNotes,
+                        url: linkMatch ? linkMatch[1] : '',
+                        tags: '',
+                        bookFormat: 'Default',
+                        volumes: 0,
+                        parcel: ''
+                    };
+                    newOrderCount++;
+                    allOrders.push(order);
+                    
+                    // Log new order
+                    importSession.newOrders.push({
+                        orderId: orderId,
+                        title: title
+                    });
+                }
+            }
+        }
+    });
+
+    // Save the complete dataset
+    localStorage.setItem('orders', JSON.stringify(allOrders));
+    
+    // Add import session to activity log if there were any changes
+    if (importSession.newOrders.length > 0 || importSession.updatedOrders.length > 0) {
+        activityLog.unshift(importSession); // Add to beginning of array
+        // Keep only last 50 import sessions to prevent memory bloat
+        if (activityLog.length > 50) {
+            activityLog = activityLog.slice(0, 50);
+        }
+        localStorage.setItem('activityLog', JSON.stringify(activityLog));
+    }
+    
+    // Clear filters and show/reload all orders after import
+    clearFilters();
+    renderStatusDropdown();
+    
+    document.getElementById('htmlInput').value = '';
+    
+    // Build detailed message
+    let message = '';
+    if (newOrderCount > 0) {
+        message += `✅ Imported ${newOrderCount} new orders\n`;
+    }
+    if (unchangedOrderCount > 0) {
+        message += `📊 ${unchangedOrderCount} existing orders remained the same\n`;
+    }
+    if (updatedOrderCount > 0) {
+        message += `🔄 ${updatedOrderCount} existing orders were updated\n`;
+        
+        // Add details about changes
+        const changeDetails = importSession.updatedOrders.map(order => {
+            const changeStrings = Object.entries(order.changes).map(([field, change]) => {
+                const fieldName = field === 'storageDays' ? 'Storage Days' : 
+                                field === 'neokyoNotes' ? 'Notes' : 
+                                field.charAt(0).toUpperCase() + field.slice(1);
+                return `   • ${fieldName}: "${change.from}" → "${change.to}"`;
+            });
+            return `  #${order.orderId}: ${order.title.substring(0, 30)}${order.title.length > 30 ? '...' : ''}\n${changeStrings.join('\n')}`;
+        }).join('\n\n');
+        
+        message += '\nChanges made:\n' + changeDetails;
+    }
+    
+    if (message) {
+        // For long messages, show a summary alert and offer to view full log
+        if (message.length > 300) {
+            const summary = `Import completed!\n• ${newOrderCount} new orders\n• ${unchangedOrderCount} unchanged\n• ${updatedOrderCount} updated\n\nView Activity Log for full details?`;
+            if (confirm(summary)) {
+                showActivityLog();
+            }
+        } else {
+            alert(message);
+        }
+    } else {
+        alert('No new or updated orders found.');
+    }
+}
+
+        function renderView() {
+            if (currentView === 'grid') {
+                renderGridView();
+            } else {
+                renderTableView();
+            }
+        }
+
+        function renderGridView() {
+            const gridView = document.getElementById('gridView');
+            const tableView = document.getElementById('tableView');
+            
+            gridView.classList.remove('hidden');
+            tableView.classList.add('hidden');
+            
+            gridView.innerHTML = orders.map(order => `
+                <div class="grid-item">
+                    <img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='">
+                    <div class="order-id">#${order.orderId}</div>
+                    <h3>${order.title}</h3>
+                    <div class="price">¥${order.yen} (${order.usd})</div>
+                    <div class="details">
+                        <span>Qty <span class="detail-val">${order.quantity}</span></span>
+                        <span>Days <span class="detail-val">${order.storageDays}</span></span>
+                        <span>Status <span class="detail-val">${order.status || 'Unknown'}</span></span>
+                    </div>
+                    <div class="details">
+                        <span>Items <input type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)" style="width: 50px;"></span>
+                        <span>Format 
+                            <select onchange="updateOrder('${order.id}', 'bookFormat', this.value)" style="width: 60px;">
+                                ${Object.keys(bookFormats).map(format => 
+                                    `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
+                                ).join('')}
+                            </select>
+                        </span>
+                        <span>Parcel 
+                            <select onchange="updateOrder('${order.id}', 'parcel', this.value)" style="width: 80px;">
+                                <option value="">None</option>
+                                ${parcels.map(parcel => 
+                                    `<option value="${parcel.id}" ${order.parcel === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
+                                ).join('')}
+                            </select>
+                        </span>
+                    </div>
+                    ${order.neokyoNotes ? `<div class="neokyo-note">${order.neokyoNotes}</div>` : ''}
+                    <div class="tags">
+                        ${String(order.tags || '').split(' ').filter(tag => tag).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    <input type="text" value="${order.tags || ''}" placeholder="Add tags (separate by spaces)..." onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')" style="width: 100%; margin: 8px 0; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    <div class="actions">
+                        <a href="${order.url}" class="btn btn-small" target="_blank">Open</a>
+                        <button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTableView() {
+            const gridView = document.getElementById('gridView');
+            const tableView = document.getElementById('tableView');
+            
+            gridView.classList.add('hidden');
+            tableView.classList.remove('hidden');
+            
+            // Helper function to get sort class for a field
+            const getSortClass = (field) => {
+                if (sortState.field === field) {
+                    return sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc';
+                }
+                return '';
+            };
+            
+            tableView.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortBy('image')" class="${columnVisibility.image ? '' : 'hidden-column'} ${getSortClass('image')}">Image</th>
+                            <th onclick="sortBy('orderId')" class="${columnVisibility.orderId ? '' : 'hidden-column'} ${getSortClass('orderId')}">Order #</th>
+                            <th onclick="sortBy('title')" class="${columnVisibility.title ? '' : 'hidden-column'} ${getSortClass('title')}">Title</th>
+                            <th onclick="sortBy('quantity')" class="${columnVisibility.quantity ? '' : 'hidden-column'} ${getSortClass('quantity')}">Qty</th>
+                            <th onclick="sortBy('yen')" class="${columnVisibility.yen ? '' : 'hidden-column'} ${getSortClass('yen')}">Yen</th>
+                            <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">USD</th>
+                            <th onclick="sortBy('created')" class="${columnVisibility.created ? '' : 'hidden-column'} ${getSortClass('created')}">Created</th>
+                            <th onclick="sortBy('storageDays')" class="${columnVisibility.storageDays ? '' : 'hidden-column'} ${getSortClass('storageDays')}">Storage Days</th>
+                            <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
+                            <th onclick="sortBy('neokyoNotes')" class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'} ${getSortClass('neokyoNotes')}">Neokyo Notes</th>
+                            <th onclick="sortBy('bookFormat')" class="${columnVisibility.bookFormat ? '' : 'hidden-column'} ${getSortClass('bookFormat')}">Format</th>
+                            <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Volumes</th>
+                            <th onclick="sortBy('parcel')" class="${columnVisibility.parcel ? '' : 'hidden-column'} ${getSortClass('parcel')}">Parcel</th>
+                            <th onclick="sortBy('tags')" class="${columnVisibility.tags ? '' : 'hidden-column'} ${getSortClass('tags')}">Tags</th>
+                            <th class="${columnVisibility.url ? '' : 'hidden-column'}">URL</th>
+                            <th class="${columnVisibility.actions ? '' : 'hidden-column'}">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(order => `
+                            <tr>
+                                <td class="${columnVisibility.image ? '' : 'hidden-column'}"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMjYgMzBIMjRWMjZIMjZWMzBaTTM0IDMwSDMyVjI2SDM0VjMwWk0zMiAzNkgzMFYzMEgzMlYzNloiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4='"></td>
+                                <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><input class="editable" value="${order.orderId}" onchange="updateOrder('${order.id}', 'orderId', this.value)"></td>
+                                <td class="${columnVisibility.title ? '' : 'hidden-column'}"><input class="editable" value="${order.title}" onchange="updateOrder('${order.id}', 'title', this.value)"></td>
+                                <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.quantity}" onchange="updateOrder('${order.id}', 'quantity', this.value)"></td>
+                                <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.yen}" onchange="updateOrder('${order.id}', 'yen', this.value)"></td>
+                                <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><input class="editable" type="number" step="0.01" value="${order.usd}" onchange="updateOrder('${order.id}', 'usd', this.value)"></td>
+                                <td class="${columnVisibility.created ? '' : 'hidden-column'}"><input class="editable" value="${order.created}" onchange="updateOrder('${order.id}', 'created', this.value)"></td>
+                                <td class="${columnVisibility.storageDays ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.storageDays}" onchange="updateOrder('${order.id}', 'storageDays', this.value)"></td>
+                                <td class="${columnVisibility.status ? '' : 'hidden-column'}"><input class="editable" value="${order.status || ''}" onchange="updateOrder('${order.id}', 'status', this.value)"></td>
+                                <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><input class="editable" value="${order.neokyoNotes || ''}" onchange="updateOrder('${order.id}', 'neokyoNotes', this.value)"></td>
+                                <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}">
+                                    <select class="editable" onchange="updateOrder('${order.id}', 'bookFormat', this.value)">
+                                        ${Object.keys(bookFormats).map(format => 
+                                            `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
+                                        ).join('')}
+                                    </select>
+                                </td>
+                                <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)"></td>
+                                <td class="${columnVisibility.parcel ? '' : 'hidden-column'}">
+                                    <select class="editable" onchange="updateOrder('${order.id}', 'parcel', this.value)">
+                                        <option value="">None</option>
+                                        ${parcels.map(parcel => 
+                                            `<option value="${parcel.id}" ${order.parcel === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
+                                        ).join('')}
+                                    </select>
+                                </td>
+                                <td class="${columnVisibility.tags ? '' : 'hidden-column'}"><input class="editable" value="${order.tags || ''}" onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')"></td>
+                                <td class="${columnVisibility.url ? '' : 'hidden-column'}"><a href="${order.url}" target="_blank" class="btn btn-small">Open</a></td>
+                                <td class="${columnVisibility.actions ? '' : 'hidden-column'}"><button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function updateOrder(orderId, field, value) {
+            // Find order in the original data stored in localStorage
+            let allOrders = [];
+            try {
+                allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+            } catch (e) {
+                console.error('Error loading orders:', e);
+                return;
+            }
+            
+            const order = allOrders.find(o => o.id == orderId);
+            if (order) {
+                if (field === 'quantity' || field === 'yen' || field === 'storageDays' || field === 'volumes') {
+                    order[field] = parseInt(value) || 0;
+                } else if (field === 'usd') {
+                    order[field] = parseFloat(value) || 0;
+                } else {
+                    order[field] = value;
+                }
+                
+                // Save back to localStorage
+                localStorage.setItem('orders', JSON.stringify(allOrders));
+                
+                // Update the currently displayed orders array
+                const displayedOrder = orders.find(o => o.id == orderId);
+                if (displayedOrder) {
+                    Object.assign(displayedOrder, order);
+                }
+                
+                updateTotals();
+                renderParcels(); // Update parcel calculations
+                
+                    updateTotals();
+    renderParcels();
+    
+    // Check if the new value matches or doesn't match the filter
+    let matches = true;
+    
+    if (field === 'parcel' && selectedParcels.length > 0) {
+        matches = selectedParcels.includes(value);
+    } else if (field === 'bookFormat' && selectedFormats.length > 0) {
+        matches = selectedFormats.includes(value);
+    } else if (field === 'status' && selectedStatuses.length > 0) {
+        matches = selectedStatuses.some(s => value.toLowerCase().includes(s.toLowerCase()));
+    } else if (field === 'tags' && selectedTags.length > 0) {
+        const orderTags = value.split(' ').filter(t => t.trim());
+        matches = selectedTags.every(t => orderTags.includes(t));
+    }
+    
+    // Update the visual state
+    updateItemHighlight(orderId, matches);
+}
+
+function updateItemHighlight(orderId, matches) {
+    // Find the element in the current view
+    if (currentView === 'grid') {
+        const gridItems = document.querySelectorAll('.grid-item');
+        gridItems.forEach(item => {
+            if (item.innerHTML.includes(`updateOrder('${orderId}'`)) {
+                if (matches) {
+                    item.classList.remove('filter-mismatch');
+                } else {
+                    item.classList.add('filter-mismatch');
+                }
+            }
+        });
+    } else {
+        const tableRows = document.querySelectorAll('.table-view tbody tr');
+        tableRows.forEach(row => {
+            if (row.innerHTML.includes(`updateOrder('${orderId}'`)) {
+                if (matches) {
+                    row.classList.remove('filter-mismatch');
+                } else {
+                    row.classList.add('filter-mismatch');
+                }
+            }
+        });
+    }
+}
+
+                
+            }
+
+        function handleTagInput(event, orderId) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                updateOrder(orderId, 'tags', event.target.value);
+                event.target.blur();
+                renderView();
+                renderTagsDropdown(); // Update the dropdown with any new tags
+            }
+        }
+
+function deleteOrder(orderId) {
+    if (confirm('Are you sure you want to delete this order?')) {
+        // Load ALL orders from localStorage
+        let allOrders = [];
+        try {
+            allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        } catch (e) {
+            console.error('Error loading orders:', e);
+            return;
+        }
+        
+        // Remove the order from the full dataset
+        allOrders = allOrders.filter(o => o.id != orderId);
+        
+        // Save the updated full dataset back to localStorage
+        localStorage.setItem('orders', JSON.stringify(allOrders));
+        
+        // Also remove from the currently displayed orders
+        orders = orders.filter(o => o.id != orderId);
+        
+        renderView();
+        updateTotals();
+        renderParcels();
+    }
+}
+
+        function setView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-toggle').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide column controls button
+            const columnBtn = document.getElementById('columnToggleBtn');
+            const columnControls = document.getElementById('columnControls');
+            if (view === 'table') {
+                columnBtn.style.display = 'block';
+            } else {
+                columnBtn.style.display = 'none';
+                columnControls.classList.remove('show');
+            }
+            
+            renderView();
+        }
+
+        function toggleColumnControls() {
+            const columnControls = document.getElementById('columnControls');
+            columnControls.classList.toggle('show');
+        }
+
+        function toggleColumn(columnName) {
+            columnVisibility[columnName] = document.getElementById(`col-${columnName}`).checked;
+            localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility));
+            renderView();
+        }
+
+        function showAllColumns() {
+            Object.keys(columnVisibility).forEach(col => {
+                columnVisibility[col] = true;
+                document.getElementById(`col-${col}`).checked = true;
+            });
+            localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility));
+            renderView();
+        }
+
+        function hideAllColumns() {
+            Object.keys(columnVisibility).forEach(col => {
+                columnVisibility[col] = false;
+                document.getElementById(`col-${col}`).checked = false;
+            });
+            localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility));
+            renderView();
+        }
+
+        function sortBy(field) {
+            // Toggle sort direction if clicking same field, otherwise start with ascending
+            if (sortState.field === field) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.field = field;
+                sortState.direction = 'asc';
+            }
+            
+            // Sort the orders
+            orders.sort((a, b) => {
+                let aVal = a[field];
+                let bVal = b[field];
+                
+                // Handle special cases
+                if (field === 'parcel') {
+                    // Convert parcel ID to parcel name for sorting
+                    const parcelA = parcels.find(p => p.id === aVal);
+                    const parcelB = parcels.find(p => p.id === bVal);
+                    aVal = parcelA ? parcelA.name : '';
+                    bVal = parcelB ? parcelB.name : '';
+                }
+                
+                // Handle null/undefined values
+                if (aVal == null) aVal = '';
+                if (bVal == null) bVal = '';
+                
+                // Numeric comparison
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return sortState.direction === 'asc' ? aVal - bVal : bVal - aVal;
+                }
+                
+                // String comparison
+                const aStr = String(aVal).toLowerCase();
+                const bStr = String(bVal).toLowerCase();
+                
+                if (sortState.direction === 'asc') {
+                    return aStr.localeCompare(bStr);
+                } else {
+                    return bStr.localeCompare(aStr);
+                }
+            });
+            
+            renderView();
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const searchTerms = search.split(',').map(term => term.trim()).filter(Boolean);
+            // const tags = document.getElementById('tagsInput').value.toLowerCase();
+            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+
+            const filteredOrders = JSON.parse(localStorage.getItem('orders') || '[]').filter(order => {
+                const matchesSearch = searchTerms.length === 0 || 
+                    searchTerms.some(term =>
+                        order.orderId.toLowerCase().includes(term) ||
+                        order.title.toLowerCase().includes(term)
+                    );
+                
+                const matchesTags = selectedTags.length === 0 || 
+                    selectedTags.some(selectedTag => {
+                        const orderTags = String(order.tags || '').split(' ').filter(t => t.trim());
+                        return orderTags.includes(selectedTag);
+                    });
+
+                
+                const matchesPrice = order.yen >= minPrice && order.yen <= maxPrice;
+                
+                const matchesFormat = selectedFormats.length === 0 || 
+                    selectedFormats.includes(order.bookFormat);
+                
+                const matchesStatus = selectedStatuses.length === 0 || 
+                    selectedStatuses.some(selectedStatus => 
+                        (order.status || '').toLowerCase().includes(selectedStatus.toLowerCase()));
+
+                const matchesParcel = selectedParcels.length === 0 || 
+                selectedParcels.includes(order.parcel);
+
+                return matchesSearch && matchesTags && matchesPrice && matchesFormat && matchesStatus && matchesParcel;
+            });
+
+            orders = filteredOrders;
+            renderView();
+            updateTotals();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            // document.getElementById('tagsInput').value = '';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            
+            // Clear multi-select status filter
+            selectedStatuses = [];
+            document.querySelectorAll('#statusMultiSelect input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            renderStatusTags();
+            
+            // Clear multi-select format filter
+            selectedFormats = [];
+            document.querySelectorAll('#formatMultiSelect input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            renderFormatTags();
+            
+            // Clear multi-select parcel filter
+            selectedParcels = [];
+            document.querySelectorAll('#parcelMultiSelect input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            renderParcelTags();
+
+            // Clear multi-select tags filter
+            selectedTags = [];
+            document.querySelectorAll('#tagsMultiSelect input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            renderTagsMulti();
+
+            // Reset orders to original data from localStorage
+            try {
+                orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                // Ensure all orders have proper tags field
+                orders = orders.map(order => ({
+                    ...order,
+                    tags: order.tags || ''
+                }));
+            } catch (e) {
+                console.error('Error loading orders:', e);
+                orders = [];
+            }
+            
+            renderView();
+            updateTotals();
+        }
+
+        function toggleTotals() {
+            showTotals = !showTotals;
+            const totalsRow = document.getElementById('totalsRow');
+            if (showTotals) {
+                totalsRow.classList.remove('hidden');
+            } else {
+                totalsRow.classList.add('hidden');
+            }
+        }
+
+function updateTotals() {
+    const totalItems = orders.length;
+    const totalYen = orders.reduce((sum, order) => sum + order.yen, 0);
+    const totalUSD = orders.reduce((sum, order) => sum + order.usd, 0);
+    
+    // Get a default format to use as fallback
+    const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
+    const defaultFormat = bookFormats[defaultFormatName] || { weight: 190 };
+    
+    let totalWeight = 0;
+    let totalVolumes = 0;
+    
+    orders.forEach(order => {
+        const format = bookFormats[order.bookFormat] || defaultFormat;
+        const itemWeight = format.weight * (order.volumes || 1);
+        totalWeight += itemWeight * order.quantity;
+        
+        // Add up total volumes
+        totalVolumes += (order.volumes || 1) * order.quantity;
+    });
+
+    document.getElementById('totalItems').textContent = totalItems;
+    document.getElementById('totalYen').textContent = `¥${totalYen.toLocaleString()}`;
+    document.getElementById('totalUSD').textContent = `$${totalUSD.toFixed(2)}`;
+    document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(0)}g`;
+    document.getElementById('totalVolumes').textContent = totalVolumes;
+}
+
+        // Parcel functions
+        function openParcelModal() {
+            document.getElementById('parcelModal').classList.remove('hidden');
+        }
+
+        function closeParcelModal() {
+            document.getElementById('parcelModal').classList.add('hidden');
+        }
+
+        function closeModalOnOutsideClick(event) {
+            if (event.target.classList.contains('modal')) {
+                closeParcelModal();
+            }
+        }
+
+        function toggleImportSection() {
+            const importSection = document.getElementById('importSection');
+            importSection.classList.toggle('hidden');
+        }
+
+        function toggleInstructionsSection() {
+            const instructionsSection = document.getElementById('instructionsSection');
+            instructionsSection.classList.toggle('hidden');
+        }
+
+        function toggleParcelSection() {
+            const parcelSection = document.getElementById('parcelSection');
+            parcelSection.classList.toggle('hidden');
+            // const filtersPanel = document.getElementById('filtersPanel');
+            // filtersPanel.classList.toggle('parcel-section-active');
+            const pageContainer = document.getElementById('container');
+            pageContainer.classList.toggle('parcel-section-active');
+            const parcelHamburger= document.getElementById('parcelHamburger');
+            parcelHamburger.classList.toggle('active');
+        }
+
+        function toggleFormatsSection() {
+            const formatsSection = document.getElementById('formatsModal');
+            formatsSection.classList.toggle('hidden');
+            const formatsHamburger = document.getElementById('formatsHamburger');
+            formatsHamburger.classList.toggle('active');
+            renderFormatsTable();
+        }
+        function toggleFiltersSection() {
+            const filtersSection = document.getElementById('filtersSection');
+            filtersSection.classList.toggle('hidden');
+            const filtersHamburger = document.getElementById('filtersHamburger');
+            filtersHamburger.classList.toggle('active');
+            // const filtersPanel = document.getElementById('filtersPanel');
+            // filtersPanel.classList.toggle('parcel-section-active');
+        }
+        function toggleHeaderSection() {
+            const headerSection = document.getElementById('headerSection');
+            headerSection.classList.toggle('hidden');
+            const headerHamburger = document.getElementById('headerHamburger');
+            headerHamburger.classList.toggle('active');
+        }
+
+function saveFormats() {
+    const rows = document.querySelectorAll('#formatsTable tbody tr');
+    const newFormats = {};
+    const oldFormats = { ...bookFormats }; // Keep track of old formats
+    
+    // First, collect all the new formats
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const name = inputs[0].value.trim();
+        const width = parseFloat(inputs[1].value) || 0;
+        const height = parseFloat(inputs[2].value) || 0;
+        const thickness = parseFloat(inputs[3].value) || 0;
+        const weight = parseFloat(inputs[4].value) || 0;
+        
+        if (name && width > 0 && height > 0 && thickness > 0 && weight > 0) {
+            newFormats[name] = { width, height, thickness, weight };
+        }
+    });
+    
+    // Find renamed formats by comparing dimensions
+    const formatMapping = {};
+    Object.entries(oldFormats).forEach(([oldName, oldFormat]) => {
+        if (!newFormats[oldName]) {
+            // Format name changed or deleted, try to find it by matching dimensions
+            const matchingFormat = Object.entries(newFormats).find(([newName, newFormat]) => 
+                newFormat.width === oldFormat.width &&
+                newFormat.height === oldFormat.height &&
+                newFormat.thickness === oldFormat.thickness &&
+                newFormat.weight === oldFormat.weight
+            );
+            
+            if (matchingFormat) {
+                // This is a rename
+                formatMapping[oldName] = matchingFormat[0];
+            } else {
+                // This format was deleted
+                formatMapping[oldName] = null;
+            }
+        }
+    });
+    
+    // Update all orders with the new format names
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    let defaultFormat = Object.keys(newFormats)[0] || 'Default';
+    
+    allOrders.forEach(order => {
+        if (formatMapping.hasOwnProperty(order.bookFormat)) {
+            if (formatMapping[order.bookFormat]) {
+                // Renamed format
+                order.bookFormat = formatMapping[order.bookFormat];
+            } else {
+                // Deleted format - set to default
+                order.bookFormat = defaultFormat;
+            }
+        }
+        // If format still doesn't exist in newFormats, set to default
+        if (!newFormats[order.bookFormat]) {
+            order.bookFormat = defaultFormat;
+        }
+    });
+    
+    // Save everything
+    bookFormats = newFormats;
+    localStorage.setItem('bookFormats', JSON.stringify(bookFormats));
+    localStorage.setItem('orders', JSON.stringify(allOrders));
+    
+    // Update the currently displayed orders
+    orders = allOrders.filter(order => {
+        // Reapply any current filters
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const matchesSearch = !search || 
+            order.orderId.toLowerCase().includes(search) || 
+            order.title.toLowerCase().includes(search);
+        // Add other filter conditions as needed
+        return matchesSearch;
+    });
+    
+    toggleFormatsSection();
+    renderFormatDropdown(); // Update the format filter dropdown
+    renderView(); // Refresh dropdowns
+    updateTotals(); // Recalculate weights
+    renderParcels(); // Update parcel calculations
+    alert('Format changes saved successfully!');
+    
+    // Alert user about any changes
+    if (Object.keys(formatMapping).length > 0) {
+        const renames = Object.entries(formatMapping)
+            .filter(([old, new_]) => new_)
+            .map(([old, new_]) => `"${old}" → "${new_}"`);
+        const deletions = Object.entries(formatMapping)
+            .filter(([old, new_]) => !new_)
+            .map(([old]) => old);
+        
+        let message = 'Format changes saved successfully!\n';
+        if (renames.length > 0) {
+            message += `\nRenamed: ${renames.join(', ')}`;
+        }
+        if (deletions.length > 0) {
+            message += `\nDeleted: "${deletions.join('", "')}". Orders using these formats were set to "${defaultFormat}".`;
+        }
+        alert(message);
+    } else {
+        alert('Format changes saved successfully!');
+    }
+}
+
+function showActivityLog() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Import Activity Log</h3>
+                <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <button class="btn btn-secondary" onclick="clearActivityLog(); this.closest('.modal').remove();" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Clear Log</button>
+            </div>
+            ${activityLog.length === 0 ? 
+                '<p style="color: #9ca3af; text-align: center; padding: 40px;">No import activity yet</p>' :
+                activityLog.map(session => `
+                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
+                        <div style="font-weight: 600; color: #374151; margin-bottom: 12px;">
+                            ${new Date(session.timestamp).toLocaleString()}
+                        </div>
+                        
+                        ${session.newOrders.length > 0 ? `
+                            <div style="margin-bottom: 12px;">
+                                <strong style="color: #059669;">✅ ${session.newOrders.length} New Orders:</strong>
+                                <div style="margin-left: 16px; font-size: 11px;">
+                                    ${session.newOrders.map(order => 
+                                        `• #${order.orderId}: ${order.title.substring(0, 40)}${order.title.length > 40 ? '...' : ''}`
+                                    ).join('<br>')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${session.updatedOrders.length > 0 ? `
+                            <div style="margin-bottom: 12px;">
+                                <strong style="color: #d97706;">🔄 ${session.updatedOrders.length} Updated Orders:</strong>
+                                <div style="margin-left: 16px; font-size: 11px;">
+                                    ${session.updatedOrders.map(order => `
+                                        <div style="margin-bottom: 8px;">
+                                            <strong>#${order.orderId}:</strong> ${order.title.substring(0, 30)}${order.title.length > 30 ? '...' : ''}
+                                            <div style="margin-left: 12px; color: #6b7280;">
+                                                ${Object.entries(order.changes).map(([field, change]) => {
+                                                    const fieldName = field === 'storageDays' ? 'Storage Days' : 
+                                                                    field === 'neokyoNotes' ? 'Notes' : 
+                                                                    field.charAt(0).toUpperCase() + field.slice(1);
+                                                    return `${fieldName}: "${change.from}" → "${change.to}"`;
+                                                }).join('<br>')}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${session.unchangedOrders.length > 0 ? `
+                            <div>
+                                <strong style="color: #6b7280;">📊 ${session.unchangedOrders.length} Unchanged Orders</strong>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')
+            }
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// Function to clear activity log
+function clearActivityLog() {
+    if (confirm('Clear all import activity history?')) {
+        activityLog = [];
+        localStorage.removeItem('activityLog');
+        alert('Activity log cleared.');
+    }
+}
+
+
+        function openFormatsModal() {
+            document.getElementById('formatsModal').classList.remove('hidden');
+            renderFormatsTable();
+        }
+
+        function closeFormatsModal() {
+            document.getElementById('formatsModal').classList.add('hidden');
+        }
+
+        function closeFormatsModalOnOutsideClick(event) {
+            if (event.target.classList.contains('modal')) {
+                closeFormatsModal();
+            }
+        }
+
+        function renderFormatsTable() {
+            const formatsTable = document.getElementById('formatsTable');
+            
+            formatsTable.innerHTML = `
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Format Name</th>
+                            <th>Width (cm)</th>
+                            <th>Height (cm)</th>
+                            <th>Thickness (cm)</th>
+                            <th>Weight (grams)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(bookFormats).map(([name, format]) => `
+                            <tr>
+                                <td><input type="text" value="${name}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" step="1" value="${format.width}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" step="1" value="${format.height}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" step="1" value="${format.thickness}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" value="${format.weight}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><button class="btn btn-small btn-secondary" onclick="deleteFormatRow(this)" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete ALL orders and parcels? This cannot be undone.')) {
+        // Clear all data
+        orders = [];
+        parcels = [];
+        activityLog = [];
+        bookFormats = { ...defaultFormats }; // Reset to defaults instead of empty
+        columnVisibility = { // Reset to defaults
+            image: true, orderId: true, title: true, quantity: true,
+            yen: true, usd: true, created: true, storageDays: true,
+            status: true, neokyoNotes: true, bookFormat: true,
+            volumes: true, parcel: true, tags: true, url: true, actions: true
+        };
+        
+        // Clear localStorage
+        localStorage.removeItem('orders');
+        localStorage.removeItem('parcels');
+        localStorage.removeItem('activityLog');
+        localStorage.removeItem('bookFormats');
+        localStorage.removeItem('columnVisibility');
+        
+        // Reset UI
+        clearFilters();
+        renderView();
+        renderParcels();
+        renderStatusDropdown();
+        renderFormatDropdown();
+        renderParcelDropdown();
+        renderTagsDropdown();
+        updateTotals();
+                alert('All data has been cleared.');
+            }
+        }
+
+        
+        function renderParcelDropdown() {
+            const dropdown = document.getElementById('parcelDropdown');
+            dropdown.innerHTML = parcels.map(parcel => `
+                <div class="multi-select-option">
+                    <input type="checkbox" id="parcel-${parcel.id}" value="${parcel.id}" onchange="updateParcelFilter()">
+                    <label for="parcel-${parcel.id}">${parcel.name}</label>
+                </div>
+            `).join('');
+        }
+
+        function closeFormatsModalOnOutsideClick(event) {
+            if (event.target.classList.contains('modal')) {
+                closeFormatsModal();
+            }
+        }
+
+        function renderFormatsTable() {
+            const formatsTable = document.getElementById('formatsTable');
+            
+            formatsTable.innerHTML = `
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Format Name</th>
+                            <th>Width (cm)</th>
+                            <th>Height (cm)</th>
+                            <th>Thickness (cm)</th>
+                            <th>Weight (grams)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(bookFormats).map(([name, format]) => `
+                            <tr>
+                                <td><input type="text" value="${name}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" step="1" value="${format.width}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" step="1" value="${format.height}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" step="1" value="${format.thickness}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><input type="number" value="${format.weight}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                                <td><button class="btn btn-small btn-secondary" onclick="deleteFormatRow(this)" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function addNewFormat() {
+            const tbody = document.querySelector('#formatsTable tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" placeholder="Format Name" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                <td><input type="number" step="1" placeholder="Width" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                <td><input type="number" step="1" placeholder="Height" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                <td><input type="number" step="1" placeholder="Thickness" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                <td><input type="number" placeholder="Weight" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                <td><button class="btn btn-small btn-secondary" onclick="deleteFormatRow(this)" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button></td>
+            `;
+            tbody.appendChild(newRow);
+        }
+
+        function deleteFormatRow(button) {
+            if (confirm('Are you sure you want to delete this format?')) {
+                button.closest('tr').remove();
+            }
+        }
+
+        function toggleMultiSelect(type) {
+            const multiSelect = document.getElementById(`${type}MultiSelect`);
+            const isOpen = multiSelect.classList.contains('open');
+            
+            // Close all other multi-selects
+            document.querySelectorAll('.multi-select').forEach(ms => ms.classList.remove('open'));
+            
+            // Toggle current one
+            if (!isOpen) {
+                multiSelect.classList.add('open');
+            }
+        }
+
+        function updateStatusFilter() {
+            selectedStatuses = [];
+            document.querySelectorAll('#statusMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedStatuses.push(checkbox.value);
+            });
+            
+            renderStatusTags();
+            applyFilters();
+        }
+
+        function renderStatusTags() {
+            const tagsContainer = document.getElementById('statusTags');
+            
+            if (selectedStatuses.length === 0) {
+                tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Statuses</div>';
+            } else {
+                tagsContainer.innerHTML = selectedStatuses.map(status => `
+                    <div class="multi-select-tag">
+                        ${status}
+                        <span class="remove" onclick="removeStatusTag('${status}')">&times;</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateFormatFilter() {
+            selectedFormats = [];
+            document.querySelectorAll('#formatMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedFormats.push(checkbox.value);
+            });
+            
+            renderFormatTags();
+            applyFilters();
+        }
+        
+
+        function renderFormatTags() {
+            const tagsContainer = document.getElementById('formatTags');
+            
+            if (selectedFormats.length === 0) {
+                tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Formats</div>';
+            } else {
+                tagsContainer.innerHTML = selectedFormats.map(format => `
+                    <div class="multi-select-tag">
+                        ${format}
+                        <span class="remove" onclick="removeFormatTag('${format}')">&times;</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+
+
+function removeFormatTag(tag) {
+    selectedFormats = selectedFormats.filter(t => t !== tag);
+    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
+    const checkbox = document.getElementById(`tag-${safeId}`);
+    if (checkbox) checkbox.checked = false;
+    renderFormatTags();
+    applyFilters();
+}
+
+        function updateParcelFilter() {
+            selectedParcels = [];
+            document.querySelectorAll('#parcelMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedParcels.push(checkbox.value);
+            });
+            
+            renderParcelTags();
+            applyFilters();
+        }
+
+        function renderParcelTags() {
+            const tagsContainer = document.getElementById('parcelTags');
+            
+            if (selectedParcels.length === 0) {
+                tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Parcels</div>';
+            } else {
+                tagsContainer.innerHTML = selectedParcels.map(parcelId => {
+                    const parcel = parcels.find(p => p.id === parcelId);
+                    return `
+                        <div class="multi-select-tag">
+                            ${parcel ? parcel.name : 'Unknown'}
+                            <span class="remove" onclick="removeParcelTag('${parcelId}')">&times;</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function removeParcelTag(parcelId) {
+            selectedParcels = selectedParcels.filter(id => id !== parcelId);
+            document.getElementById(`parcel-${parcelId}`).checked = false;
+            renderParcelTags();
+            applyFilters();
+        }
+
+        function getUniqueStatuses() {
+            try {
+                const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+                const statuses = new Set();
+                
+                allOrders.forEach(order => {
+                    if (order.status && order.status.trim()) {
+                        statuses.add(order.status.trim());
+                    }
+                });
+                
+                return Array.from(statuses).sort();
+            } catch (e) {
+                console.error('Error getting unique statuses:', e);
+                return [];
+            }
+        }
+
+        function renderStatusDropdown() {
+            const dropdown = document.getElementById('statusDropdown');
+            const uniqueStatuses = getUniqueStatuses();
+            
+            dropdown.innerHTML = uniqueStatuses.map(status => {
+                const safeId = status.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                return `
+                    <div class="multi-select-option">
+                        <input type="checkbox" id="status-${safeId}" value="${status}" onchange="updateStatusFilter()">
+                        <label for="status-${safeId}">${status}</label>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderFormatDropdown() {
+            const dropdown = document.getElementById('formatDropdown');
+            dropdown.innerHTML = Object.keys(bookFormats).map(format => `
+                <div class="multi-select-option">
+                    <input type="checkbox" id="format-${format.toLowerCase()}" value="${format}" onchange="updateFormatFilter()">
+                    <label for="format-${format.toLowerCase()}">${format}</label>
+                </div>
+            `).join('');
+        }
+
+        function getUniqueTags() {
+            const allTags = new Set();
+            const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+            
+            allOrders.forEach(order => {
+                if (order.tags) {
+                    order.tags.split(' ').filter(tag => tag.trim()).forEach(tag => {
+                        allTags.add(tag.trim());
+                    });
+                }
+            });
+            
+            return Array.from(allTags).sort();
+        }
+
+function renderTagsDropdown() {
+    const dropdown = document.getElementById('tagsDropdown');
+    const uniqueTags = getUniqueTags();
+    
+    if (uniqueTags.length === 0) {
+        dropdown.innerHTML = '<div style="padding: 8px; color: #9ca3af;">No tags found</div>';
+        return;
+    }
+    
+    dropdown.innerHTML = uniqueTags.map(tag => `
+        <div class="multi-select-option">
+            <input type="checkbox" id="tag-${tag.replace(/[^a-z0-9]/gi, '-')}" value="${tag}" onchange="updateTagsFilter()">
+            <label for="tag-${tag.replace(/[^a-z0-9]/gi, '-')}">${tag}</label>
+        </div>
+    `).join('');
+}
+
+function updateTagsFilter() {
+    selectedTags = [];
+    document.querySelectorAll('#tagsMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
+        selectedTags.push(checkbox.value);
+    });
+    
+    renderTagsMulti();
+    applyFilters();
+}
+
+function renderTagsMulti() {
+    const tagsContainer = document.getElementById('TagsMulti');
+    
+    if (selectedTags.length === 0) {
+        tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Tags</div>';
+    } else {
+        tagsContainer.innerHTML = selectedTags.map(tag => `
+            <div class="multi-select-tag">
+                ${tag}
+                <span class="remove" onclick="removeTagsMulti('${tag}')">&times;</span>
+            </div>
+        `).join('');
+    }
+}
+
+function removeTagsMulti(tag) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
+    const checkbox = document.getElementById(`tag-${safeId}`);
+    if (checkbox) checkbox.checked = false;
+    renderTagsMulti();
+    applyFilters();
+}
+
+
+        // Close multi-selects when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.multi-select')) {
+                document.querySelectorAll('.multi-select').forEach(ms => ms.classList.remove('open'));
+            }
+        });
+
+        function resetToDefaults() {
+            if (confirm('This will delete ALL the formats you have created except for manga (sorry).')) {
+                bookFormats = { ...defaultFormats };
+                renderFormatsTable();
+                renderFormatDropdown(); // Update filter dropdown with reset formats
+            }
+        }
+
+        function addParcel() {
+            const name = document.getElementById('parcelName').value || `Parcel ${parcels.length + 1}`;
+            const length = parseFloat(document.getElementById('parcelLength').value) || 60;
+            const width = parseFloat(document.getElementById('parcelWidth').value) || 45;
+            const height = parseFloat(document.getElementById('parcelHeight').value) || 62;
+            const padding = parseFloat(document.getElementById('parcelPadding').value) || 2;
+            const boxWeight = parseFloat(document.getElementById('parcelBoxWeight').value) || 2000;
+
+            const parcel = {
+                id: Date.now().toString(),
+                name,
+                length,
+                width,
+                height,
+                padding,
+                boxWeight
+            };
+
+            parcels.push(parcel);
+            localStorage.setItem('parcels', JSON.stringify(parcels));
+            
+            // Clear form
+            document.getElementById('parcelName').value = '';
+            document.getElementById('parcelLength').value = '60';
+            document.getElementById('parcelWidth').value = '45';
+            document.getElementById('parcelHeight').value = '62';
+            document.getElementById('parcelPadding').value = '2';
+            document.getElementById('parcelBoxWeight').value = '2000';
+            
+            closeParcelModal();
+            renderParcels();
+            renderParcelDropdown(); // Update dropdowns
+            renderView(); // Update dropdowns
+        }
+
+        function editParcel(parcelId) {
+            const parcel = parcels.find(p => p.id === parcelId);
+            if (!parcel) return;
+            
+            currentEditingParcel = parcelId;
+            
+            // Populate form with current values
+            document.getElementById('editParcelName').value = parcel.name;
+            document.getElementById('editParcelLength').value = parcel.length;
+            document.getElementById('editParcelWidth').value = parcel.width;
+            document.getElementById('editParcelHeight').value = parcel.height;
+            document.getElementById('editParcelPadding').value = parcel.padding;
+            document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
+            
+            // Open modal
+            document.getElementById('editParcelModal').classList.remove('hidden');
+        }
+
+        function closeEditParcelModal() {
+            document.getElementById('editParcelModal').classList.add('hidden');
+            currentEditingParcel = null;
+        }
+
+        function closeEditParcelModalOnOutsideClick(event) {
+            if (event.target.classList.contains('modal')) {
+                closeEditParcelModal();
+            }
+        }
+
+        function deleteParcel(parcelId) {
+            if (confirm('Are you sure you want to delete this parcel?')) {
+                parcels = parcels.filter(p => p.id !== parcelId);
+                localStorage.setItem('parcels', JSON.stringify(parcels));
+                
+                // Remove parcel assignment from ALL orders in localStorage, not just filtered ones
+                let allOrders = [];
+                try {
+                    allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+                } catch (e) {
+                    console.error('Error loading orders:', e);
+                    allOrders = [];
+                }
+                
+                // Update all orders
+                allOrders.forEach(order => {
+                    if (order.parcel === parcelId) {
+                        order.parcel = '';
+                    }
+                });
+                
+                // Save back to localStorage
+                localStorage.setItem('orders', JSON.stringify(allOrders));
+                
+                // Update the currently displayed orders array as well
+                orders.forEach(order => {
+                    if (order.parcel === parcelId) {
+                        order.parcel = '';
+                    }
+                });
+                
+                renderParcels();
+                renderView();
+            }
+        }
+
+        function editParcel(parcelId) {
+            const parcel = parcels.find(p => p.id === parcelId);
+            if (!parcel) return;
+            
+            currentEditingParcel = parcelId;
+            
+            // Populate form with current values
+            document.getElementById('editParcelName').value = parcel.name;
+            document.getElementById('editParcelLength').value = parcel.length;
+            document.getElementById('editParcelWidth').value = parcel.width;
+            document.getElementById('editParcelHeight').value = parcel.height;
+            document.getElementById('editParcelPadding').value = parcel.padding;
+            document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
+            
+            // Open modal
+            document.getElementById('editParcelModal').classList.remove('hidden');
+        }
+
+        function closeEditParcelModal() {
+            document.getElementById('editParcelModal').classList.add('hidden');
+            currentEditingParcel = null;
+        }
+
+        function closeEditParcelModalOnOutsideClick(event) {
+            if (event.target.classList.contains('modal')) {
+                closeEditParcelModal();
+            }
+        }
+
+        function saveParcelEdit() {
+            if (!currentEditingParcel) return;
+            
+            const parcelIndex = parcels.findIndex(p => p.id === currentEditingParcel);
+            if (parcelIndex === -1) return;
+            
+            const oldName = parcels[parcelIndex].name;
+            const newName = document.getElementById('editParcelName').value || `Parcel ${parcels.length}`;
+            const length = parseFloat(document.getElementById('editParcelLength').value) || 12;
+            const width = parseFloat(document.getElementById('editParcelWidth').value) || 8;
+            const height = parseFloat(document.getElementById('editParcelHeight').value) || 6;
+            const padding = parseFloat(document.getElementById('editParcelPadding').value) || 0.5;
+            const boxWeight = parseFloat(document.getElementById('editParcelBoxWeight').value) || 100;
+            
+            // Update parcel
+            parcels[parcelIndex] = {
+                ...parcels[parcelIndex],
+                name: newName,
+                length,
+                width,
+                height,
+                padding,
+                boxWeight
+            };
+            
+            localStorage.setItem('parcels', JSON.stringify(parcels));
+            
+            // If name changed, we don't need to update orders since they store parcel ID, not name
+            // The parcel dropdowns will automatically show the new name
+            
+            closeEditParcelModal();
+            renderParcels();
+            renderView(); // Update dropdowns with new parcel name
+            
+            if (oldName !== newName) {
+                alert(`Parcel renamed from "${oldName}" to "${newName}" and updated successfully!`);
+            } else {
+                alert('Parcel updated successfully!');
+            }
+        }
+
+function renderParcels() {
+    const parcelGrid = document.getElementById('parcelGrid');
+    
+    // Always get ALL orders from localStorage, not the filtered ones
+    let allOrders = [];
+    try {
+        allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    } catch (e) {
+        console.error('Error loading orders:', e);
+        allOrders = [];
+    }
+    
+    parcelGrid.innerHTML = parcels.map(parcel => {
+        // Use allOrders instead of the filtered orders array
+        const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
+        
+        let totalWeight = parcel.boxWeight;
+        let totalVolume = 0;
+        let totalOrderVolumes = 0;
+        let totalValueYen = 0;
+        let totalValueUSD = 0;
+        
+        assignedOrders.forEach(order => {
+            // Get a default format if the order's format doesn't exist
+            const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
+            const defaultFormat = bookFormats[defaultFormatName] || {
+                width: 12.8,
+                height: 18.2,
+                thickness: 1.7,
+                weight: 190
+            };
+            
+            const format = bookFormats[order.bookFormat] || defaultFormat;
+            const volumes = order.volumes || 1;
+            const itemWeight = format.weight * volumes * order.quantity;
+            const itemVolume = format.width * format.height * (format.thickness * volumes) * order.quantity;
+            
+            totalWeight += itemWeight;
+            totalVolume += itemVolume;
+            totalOrderVolumes += volumes * order.quantity;
+            
+            // Add up the values
+            totalValueYen += order.yen || 0;
+            totalValueUSD += order.usd || 0;
+        });
+
+        const availableLength = parcel.length - (parcel.padding * 2);
+        const availableWidth = parcel.width - (parcel.padding * 2);
+        const availableHeight = parcel.height - (parcel.padding * 2);
+        const maxVolume = availableLength * availableWidth * availableHeight;
+        
+        const spaceUsed = (totalVolume / maxVolume * 100).toFixed(1);
+        const spaceRemaining = Math.max(0, maxVolume - totalVolume).toFixed(2);
+
+        return `
+            <div class="parcel-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3>${parcel.name}</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-small btn-secondary" onclick="editParcel('${parcel.id}')">Edit</button>
+                        <button class="btn btn-small btn-secondary" onclick="deleteParcel('${parcel.id}')" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button>
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: rgb(106, 92, 201); margin-bottom: 8px;">
+                    Dimensions: ${parcel.length}cm × ${parcel.width}cm × ${parcel.height}cm<br>
+                    Available (After Padding): ${availableLength.toFixed(1)}cm × ${availableWidth.toFixed(1)}cm × ${availableHeight.toFixed(1)}cm
+                </div>
+                <div class="parcel-stats">
+                    <div class="stat">
+                        <div class="stat-value">${assignedOrders.length}</div>
+                        <div class="stat-label">Orders</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${totalOrderVolumes}</div>
+                        <div class="stat-label">Items</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${totalWeight.toFixed(0)}g</div>
+                        <div class="stat-label">Weight</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${spaceUsed}%</div>
+                        <div class="stat-label">Space Used</div>
+                    </div>
+                    <!--- <div class="stat">
+                        <div class="stat-value">¥${totalValueYen.toLocaleString()}</div>
+                        <div class="stat-label">Total Yen</div>
+                    </div> -->
+                    <div class="stat">
+                        <div class="stat-value">$${totalValueUSD.toFixed(2)}</div>
+                        <div class="stat-label">Total USD</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px; max-height: 120px; overflow-y: auto;">
+                    ${assignedOrders.map(order => `
+                        <div style="font-size: 11px; padding: 4px; background: rgba(255,255,255,0.7); margin: 2px 0; border-radius: 4px;">
+                            #${order.orderId} - ${order.title.substring(0, 30)}${order.title.length > 30 ? '...' : ''} (${(order.volumes || 1) * order.quantity} total)
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+    function exportData() {
+        // Get ALL orders from localStorage, not just filtered ones
+        let allOrders = [];
+        try {
+            allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        } catch (e) {
+            console.error('Error loading orders:', e);
+            allOrders = [];
+        }
+        
+        const data = {
+            orders: allOrders,  // Export ALL orders, not just filtered ones
+            parcels: parcels,
+            bookFormats: bookFormats,  // Now including formats!
+            exportDate: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `order_tracker_export_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                // Import orders if present
+                if (data.orders && Array.isArray(data.orders)) {
+                    // Save directly to localStorage, don't use the filtered array
+                    localStorage.setItem('orders', JSON.stringify(data.orders));
+                }
+                
+                // Import parcels if present
+                if (data.parcels && Array.isArray(data.parcels)) {
+                    parcels = data.parcels;
+                    localStorage.setItem('parcels', JSON.stringify(parcels));
+                }
+                
+                // Import book formats if present
+                if (data.bookFormats && typeof data.bookFormats === 'object') {
+                    bookFormats = data.bookFormats;
+                    localStorage.setItem('bookFormats', JSON.stringify(bookFormats));
+                    renderFormatDropdown();
+                }
+                
+                // Clear filters to show all imported data
+                clearFilters(); // This will reload orders from localStorage and show everything
+                renderStatusDropdown(); // Initialize status dropdown
+                renderTagsDropdown(); // Initialize tags dropdown
+                renderParcelDropdown(); // Initialize parcel dropdown
+                renderView();
+                renderParcels();
+                updateTotals();
+                alert('Data imported successfully!');
+            } catch (error) {
+                alert('Error importing data: ' + error.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.target.classList.contains('editable') && e.key === 'Enter') {
+                e.target.blur();
+            }
+        });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const filtersPanel = document.querySelector('#header');
+  const filtersTitle = document.querySelector('#filtersTitle');
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.intersectionRatio < 1) {
+        // Sticky kicked in
+        filtersTitle.textContent = 'Neo_ Order Tracker';
+      } else {
+        // Back to normal flow
+        filtersTitle.textContent = 'Filters';
+      }
+    },
+    {
+      threshold: [1.0], // Triggers when filtersPanel is no longer fully visible
+      rootMargin: '0px 0px 0px 0px',
+    }
+  );
+
+  observer.observe(filtersPanel);
+});
+
+function validateOrderFormats() {
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const defaultFormat = Object.keys(bookFormats)[0] || 'Default';
+    let fixedCount = 0;
+    
+    allOrders.forEach(order => {
+        if (!bookFormats[order.bookFormat]) {
+            order.bookFormat = defaultFormat;
+            fixedCount++;
+        }
+    });
+    
+    if (fixedCount > 0) {
+        localStorage.setItem('orders', JSON.stringify(allOrders));
+        console.log(`Fixed ${fixedCount} orders with invalid formats`);
+    }
+    
+    return fixedCount;
+}
+
+// Call this on page load or after importing data
+document.addEventListener('DOMContentLoaded', function() {
+    validateOrderFormats();
+});
+
+
+function toggleTagManager() {
+    const tagManagerModal = document.getElementById('tagManagerModal');
+    tagManagerModal.classList.toggle('hidden');
+    const tagsHamburger= document.getElementById('tagsHamburger');
+    tagsHamburger.classList.toggle('active');
+    
+    // Only render content when opening (not closing)
+    if (!tagManagerModal.classList.contains('hidden')) {
+        renderTagManagerContent();
+    }
+}
+
+function closeTagManagerModalOnOutsideClick(event) {
+    if (event.target.classList.contains('modal')) {
+        closeTagManagerModal();
+    }
+}
+
+function renderTagManagerContent() {
+    const uniqueTags = getUniqueTags();
+    const tagContent = document.getElementById('tagManagerContent');
+    
+    tagContent.innerHTML = `
+        <div style="margin-bottom: 20px;">
+            <p style="color: #6b7280; margin-bottom: 12px;">Found ${uniqueTags.length} unique tags across all orders:</p>
+            ${uniqueTags.length > 0 ? `
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${uniqueTags.map(tag => `
+                        <div class="tag" style="display: flex; align-items: center; gap: 6px; background: rgba(167, 139, 250, 0.1); padding: 6px 12px; border-radius: 16px;">
+                            <span style="color: #6b5b95;">${tag}</span>
+                            <span class="remove" onclick="deleteTagGlobally('${tag}')" style="cursor: pointer; color: #dc2626; font-weight: bold;">&times;</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="if(confirm('Delete ALL tags from ALL orders?')) { deleteAllTags(); }" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">
+                        Delete All Tags
+                    </button>
+                </div>
+            ` : `
+                <p style="color: #9ca3af; font-style: italic;">No tags found. Add tags to your orders to see them here.</p>
+            `}
+        </div>
+        
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;">
+            <h4 style="margin-bottom: 12px;">Tag Statistics</h4>
+            ${uniqueTags.length > 0 ? `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    ${uniqueTags.map(tag => {
+                        const count = orders.filter(order => 
+                            order.tags && order.tags.split(' ').includes(tag)
+                        ).length;
+                        return `
+                            <div style="background: #f9fafb; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between;">
+                                <span>${tag}</span>
+                                <span style="color: #6b5b95; font-weight: 600;">${count} orders</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function deleteTagGlobally(tagToDelete) {
+    if (confirm(`Delete tag "${tagToDelete}" from all orders?`)) {
+        let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        allOrders.forEach(order => {
+            if (order.tags) {
+                const tags = order.tags.split(' ').filter(tag => tag.trim() && tag !== tagToDelete);
+                order.tags = tags.join(' ');
+            }
+        });
+        localStorage.setItem('orders', JSON.stringify(allOrders));
+        orders = allOrders;
+        renderView();
+        renderTagsDropdown();
+        renderTagManagerContent(); // Refresh the modal content
+        alert(`Tag "${tagToDelete}" removed from all orders.`);
+    }
+}
+
+function deleteAllTags() {
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    allOrders.forEach(order => {
+        order.tags = '';
+    });
+    localStorage.setItem('orders', JSON.stringify(allOrders));
+    orders = allOrders;
+    renderView();
+    renderTagsDropdown();
+    renderTagManagerContent();
+    alert('All tags have been removed from all orders.');
+}
+
+    </script>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
+* {font-family:"Manrope", sans-serif; font-weight:500; font-size:12px !important}</style>
+    <style>.btn, button {padding: 6px 12px; font-weight:600 !important}
+    .parcel-header h2, .header h1 {font-weight: 800 !important}
+    .btn, .view-toggle.active {background: rgb(143 134 205);}
+    .view-toggle {border: none;}
+    .filter-group label {font-weight:600}
+    .btn-secondary {background:rgba(244, 242, 254, 1);
+    border: 0px solid rgba(153, 145, 216, 1);}
+    .table-view th {font-size:11px !important}
+    .grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:15px}
+    input, select, .details span {font-size: 10px!important; border:0; padding:3px; color: #374151}
+    .details span {font-weight:800}
+    .neokyo-note {
+    color: #dc2626;
+    background: #fef2f2;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px !important;}
+
+    .filter-group input, .filter-group select {
+        padding: 8px 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 11px !important;
+    }
+
+    .multi-select-dropdown {margin-top:5px}
+
+    .multi-select-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        min-height: 11px;
+        font-size:12px !important
+    }
+
+    .multi-select-placeholder {
+        font-size:11px !important}
+
+    #formatTags .multi-select-tag, #statusTags .multi-select-tag {
+        font-size:11px !important}
+
+    .detail-val {font-weight:400 !important}
+
+    .multi-select-tag {padding: 0px 4px; font-size:11px}
+
+    .multi-select-trigger {padding: 8px 12px}
+
+
+    .filter-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 0px;
+        padding: 0px;
+        flex-wrap: wrap;
+    }
+
+    .filter-row:nth-child(2) {
+    margin-top: 15px;
+    }
+
+    #minPrice, #maxPrice {max-width:100px !important}
+
+    .parcel-header h3 {font-weight:600}
+
+    .parcel-card {border:1px solid #e5e7eb;}
+    .parcel-card div {color: #374151 !important}
+
+    .btn-instructions {
+    background: rgb(84 151 221);}
+
+    .parcel-stats {
+    grid-auto-flow: column;
+    grid-template-columns: auto}
+    
+    .parcel-card div {font-size: 10px !important;}
+
+    .filter-grip {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 330px;
+    /* height: 100vh; */
+    background: rgba(255, 255, 255, 0.98);
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -2px 0 16px rgba(0, 0, 0, 0.07);
+    z-index: 999;
+    overflow-y: auto;
+    padding: 24px 18px 24px 18px;
+    transform: translateX(0);
+    animation: fadeInRight 0.6s;
+    margin-right: 0;
+    left: initial;
+    max-width: initial;}
+
+    .filter-section-active {margin-right:330px;}
+
+    .parcel-section-active.filter-grip {
+    position: fixed;
+    top: initial;
+    bottom: 0;
+    right: 0;
+    width: 330px;
+    /* height: 100vh; */
+    background: rgba(255, 255, 255, 0.98);
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -2px 0 16px rgba(0, 0, 0, 0.07);
+    z-index: 999;
+    overflow-y: auto;
+    padding: 24px 18px 24px 18px;
+    transform: translateX(0);
+    animation: fadeInRight 0.6s;
+    margin-right: 0;
+    left: initial;
+    max-width: initial;}
+
+    .tag {font-size:11px !important}
+
+    .filter-group {display:initial}
+    .filter-group label {margin-right:3px}
+    .filter-group  * {font-size:10px !important;}
+    .filter-group input,
+    .filter-group .multi-select-trigger {padding:6px 12px}
+    #formatTags .multi-select-tag, #statusTags .multi-select-tag, .filter-group input, .filter-group select {font-size:10px !important}
+
+    #columnControls  {
+        position: fixed;
+        top: initial;
+        bottom: 0;
+        right: 0;
+        width: 330px;
+        /* height: 100vh; */
+        background: rgba(255, 255, 255, 0.98);
+        border-left: 1px solid #e5e7eb;
+        box-shadow: -2px 0 16px rgba(0, 0, 0, 0.07);
+        z-index: 999;
+        overflow-y: auto;
+        padding: 24px 18px 24px 18px;
+        transform: translateX(0);
+        animation: fadeInRight 0.6s;
+        margin-right: 0;
+        left: initial;
+        max-width: initial;}
+    /* .parcel-section-active {background:0} */
+        .active {
+            background: rgb(143 134 205);
+            color: white;
+        }
+
+    #filtersPanel {
+    position: sticky;
+    z-index: 998;
+    margin: 0;
+    top: 0px;}
+
+    .filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f7f8f9f7;
+    padding-top: 10px;
+    padding-bottom: 13px;}
+
+    .filters {
+    margin-top:-6px;
+    background: rgb(255 255 255 / 92%);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+}
+
+.actions .btn {scale:.9}
+
+.totals-row {margin:0}
+.totals-row * {display:inline}
+
+.filters-section .remove {display:none}
+
+.filter-mismatch {
+    opacity: 0.7;
+    outline: 3px dashed #ef4444 !important;
+    outline-offset: -3px;
+}
+    </style>
+</body>
+</html>
