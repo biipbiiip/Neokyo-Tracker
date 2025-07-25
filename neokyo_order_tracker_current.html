@@ -257,11 +257,11 @@
             gap: 8px;
         }
 
-        .btn-small {
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-        }
+.btn-small {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    border-radius: 4px;
+}
 
         /* Table View */
         .table-view {
@@ -321,12 +321,15 @@
             background: rgba(167, 139, 250, 0.05);
         }
 
-        /* Make Title column wider */
-        .table-view th:nth-child(3),
-        .table-view td:nth-child(3) {
-            width: 30%;
-            min-width: 200px;
-        }
+/* Make Title column wider */
+.editable-cell {
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-size:11px !important
+}
 
         .table-view img {
             width: 60px;
@@ -335,17 +338,38 @@
             border-radius: 6px;
         }
 
-        .editable {
-            border: none;
-            background: transparent;
-            width: 100%;
-            padding: 4px;
-        }
+        /* Editable Cells in Table View */
+.editable-cell {
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-size:11px !important
+}
 
-        .editable:focus {
-            background: rgba(167, 139, 250, 0.1);
-            outline: none;
-            border-radius: 4px;
+.editable-cell:hover {
+    background-color: rgba(167, 139, 250, 0.05);
+}
+
+.editable-cell.editing {
+    padding: 0;
+}
+
+.editable-cell input, .editable-cell select, .editable-cell textarea {
+    width: 100%;
+    border: 2px solid #3b82f6;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+}
+
+.editable-cell textarea {
+    min-height: 40px;
+    resize: vertical;
+    font-family: inherit;
+}order-radius: 4px;
         }
 
         /* Parcel Section */
@@ -2123,6 +2147,9 @@ function renderGridView() {
     `).join('');
 }
 
+
+
+
 function renderTableView() {
     const gridView = document.getElementById('gridView');
     const tableView = document.getElementById('tableView');
@@ -2154,7 +2181,7 @@ function renderTableView() {
                     <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
                     <th onclick="sortBy('neokyoNotes')" class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'} ${getSortClass('neokyoNotes')}">Neokyo Notes</th>
                     <th onclick="sortBy('bookFormat')" class="${columnVisibility.bookFormat ? '' : 'hidden-column'} ${getSortClass('bookFormat')}">Format</th>
-                    <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Volumes</th>
+                    <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Items</th>
                     <th onclick="sortBy('parcel')" class="${columnVisibility.parcel ? '' : 'hidden-column'} ${getSortClass('parcel')}">Parcel</th>
                     <th onclick="sortBy('tags')" class="${columnVisibility.tags ? '' : 'hidden-column'} ${getSortClass('tags')}">Tags</th>
                     <th class="${columnVisibility.url ? '' : 'hidden-column'}">URL</th>
@@ -2162,44 +2189,115 @@ function renderTableView() {
                 </tr>
             </thead>
             <tbody>
-                ${orders.map(order => `
+                ${orders.map(order => {
+                    const parcelName = order.parcel ? (parcels.find(p => p.id === order.parcel)?.name || 'Unknown') : '';
+                    return `
                     <tr class="${selectedOrders.has(order.id) ? 'batch-mode-active' : ''}">
                         ${batchMode ? `<td class="batch-checkbox-cell"><input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(order.id) ? 'checked' : ''} onchange="toggleOrderSelection('${order.id}', this)"></td>` : ''}
                         <td class="${columnVisibility.image ? '' : 'hidden-column'}"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMjYgMzBIMjRWMjZIMjZWMzBaTTM0IDMwSDMyVjI2SDM0VjMwWk0zMiAzNkgzMFYzMEgzMlYzNloiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4='"></td>
-                        <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><input class="editable" value="${order.orderId}" onchange="updateOrder('${order.id}', 'orderId', this.value)"></td>
-                        <td class="${columnVisibility.title ? '' : 'hidden-column'}"><input class="editable" value="${order.title}" onchange="updateOrder('${order.id}', 'title', this.value)"></td>
-                        <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.quantity}" onchange="updateOrder('${order.id}', 'quantity', this.value)"></td>
-                        <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.yen}" onchange="updateOrder('${order.id}', 'yen', this.value)"></td>
-                        <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><input class="editable" type="number" step="0.01" value="${order.usd}" onchange="updateOrder('${order.id}', 'usd', this.value)"></td>
-                        <td class="${columnVisibility.created ? '' : 'hidden-column'}"><input class="editable" value="${order.created}" onchange="updateOrder('${order.id}', 'created', this.value)"></td>
-                        <td class="${columnVisibility.storageDays ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.storageDays}" onchange="updateOrder('${order.id}', 'storageDays', this.value)"></td>
-                        <td class="${columnVisibility.status ? '' : 'hidden-column'}"><input class="editable" value="${order.status || ''}" onchange="updateOrder('${order.id}', 'status', this.value)"></td>
-                        <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><input class="editable" value="${order.neokyoNotes || ''}" onchange="updateOrder('${order.id}', 'neokyoNotes', this.value)"></td>
-                        <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}">
-                            <select class="editable" onchange="updateOrder('${order.id}', 'bookFormat', this.value)">
-                                ${Object.keys(bookFormats).map(format => 
-                                    `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
-                                ).join('')}
-                            </select>
-                        </td>
-                        <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)"></td>
-                        <td class="${columnVisibility.parcel ? '' : 'hidden-column'}">
-                            <select class="editable" onchange="updateOrder('${order.id}', 'parcel', this.value)">
-                                <option value="">None</option>
-                                ${parcels.map(parcel => 
-                                    `<option value="${parcel.id}" ${order.parcel === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
-                                ).join('')}
-                            </select>
-                        </td>
-                        <td class="${columnVisibility.tags ? '' : 'hidden-column'}"><input class="editable" value="${order.tags || ''}" onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')"></td>
+                        <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'orderId', '${order.orderId}')">${order.orderId}</div></td>
+                        <td class="${columnVisibility.title ? '' : 'hidden-column'}"><div class="editable-cell title" onclick="makeEditable(this, '${order.id}', 'title', '${order.title}')">${order.title}</div></td>
+                        <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'quantity', '${order.quantity}', 'number')">${order.quantity}</div></td>
+                        <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'yen', '${order.yen}', 'number')">${order.yen}</div></td>
+                        <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'usd', '${order.usd}', 'number')">${order.usd}</div></td>
+                        <td class="${columnVisibility.created ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'created', '${order.created}')">${order.created}</div></td>
+                        <td class="${columnVisibility.storageDays ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'storageDays', '${order.storageDays}', 'number')">${order.storageDays}</div></td>
+                        <td class="${columnVisibility.status ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'status', '${order.status || ''}')">${order.status || ''}</div></td>
+                        <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'neokyoNotes', '${order.neokyoNotes || ''}', 'textarea')">${order.neokyoNotes || ''}</div></td>
+                        <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'bookFormat', '${order.bookFormat}', 'select')">${order.bookFormat}</div></td>
+                        <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'volumes', '${order.volumes}', 'number')">${order.volumes}</div></td>
+                        <td class="${columnVisibility.parcel ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'parcel', '${order.parcel}', 'select')">${parcelName}</div></td>
+                        <td class="${columnVisibility.tags ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'tags', '${order.tags || ''}')">${order.tags || ''}</div></td>
                         <td class="${columnVisibility.url ? '' : 'hidden-column'}"><a href="${order.url}" target="_blank" class="btn btn-small">Open</a></td>
                         <td class="${columnVisibility.actions ? '' : 'hidden-column'}"><button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button></td>
                     </tr>
-                `).join('')}
+                `;}).join('')}
             </tbody>
         </table>
     `;
 }
+
+// for table view - make cells editable
+function makeEditable(cell, orderId, field, value, type = 'text') {
+    if (cell.classList.contains('editing')) return;
+    
+    cell.classList.add('editing');
+    const originalText = cell.innerHTML;
+    
+    let input;
+    if (type === 'select') {
+        input = document.createElement('select');
+        if (field === 'bookFormat') {
+            input.innerHTML = Object.keys(bookFormats).map(format => 
+                `<option value="${format}" ${value === format ? 'selected' : ''}>${format}</option>`
+            ).join('');
+        } else if (field === 'parcel') {
+            input.innerHTML = '<option value="">None</option>' + 
+                parcels.map(parcel => 
+                    `<option value="${parcel.id}" ${value === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
+                ).join('');
+        }
+    } else if (type === 'textarea') {
+        input = document.createElement('textarea');
+        input.value = value || '';
+    } else {
+        input = document.createElement('input');
+        input.type = type;
+        input.value = value || '';
+        if (type === 'number') {
+            input.step = field === 'usd' ? '0.01' : '1';
+        }
+    }
+    
+    cell.innerHTML = '';
+    cell.appendChild(input);
+    input.focus();
+    if (input.select) input.select();
+    
+    function saveEdit() {
+        const newValue = input.value;
+        cell.classList.remove('editing');
+        
+        // Update display based on field type
+        if (field === 'parcel' && newValue) {
+            const parcel = parcels.find(p => p.id === newValue);
+            cell.textContent = parcel ? parcel.name : 'None';
+        } else {
+            cell.textContent = newValue || '';
+        }
+        
+        updateOrder(orderId, field, newValue);
+        
+        // Handle tags special case
+        if (field === 'tags') {
+            renderTagsDropdown();
+        }
+    }
+    
+    function cancelEdit() {
+        cell.classList.remove('editing');
+        cell.innerHTML = originalText;
+    }
+    
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && type !== 'textarea') {
+            e.preventDefault();
+            saveEdit();
+        }
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEdit();
+        }
+        
+        // Handle tags special case
+        if (field === 'tags' && e.key === 'Enter') {
+            e.preventDefault();
+            saveEdit();
+        }
+    });
+}
+
 
         function updateOrder(orderId, field, value) {
             // Find order in the original data stored in localStorage
@@ -2253,6 +2351,7 @@ function renderTableView() {
     // Update the visual state
     updateItemHighlight(orderId, matches);
 }
+        }
 
 function updateItemHighlight(orderId, matches) {
     // Find the element in the current view
@@ -2282,8 +2381,6 @@ function updateItemHighlight(orderId, matches) {
 }
 
                 
-            }
-
         function handleTagInput(event, orderId) {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -2293,6 +2390,7 @@ function updateItemHighlight(orderId, matches) {
                 renderTagsDropdown(); // Update the dropdown with any new tags
             }
         }
+
 
 function deleteOrder(orderId) {
     if (confirm('Are you sure you want to delete this order?')) {
@@ -3599,10 +3697,6 @@ function makeHeaderEditable() {
         flex-wrap: wrap;
     }
 
-    .filter-row:nth-child(2) {
-    margin-top: 15px;
-    }
-
     #minPrice, #maxPrice {max-width:100px !important}
 
     .parcel-header h3 {font-weight:600}
@@ -3716,8 +3810,6 @@ function makeHeaderEditable() {
     border: 1px solid #e5e7eb;
 }
 
-.actions .btn {scale:.9}
-
 .totals-row {margin:0}
 .totals-row * {display:inline}
 
@@ -3758,7 +3850,12 @@ function makeHeaderEditable() {
     height: 20px;
     z-index: 10;
     cursor: pointer;
-    transform: scale(1.3);
+}
+
+.table-view .batch-checkbox {
+    position: initial;
+    z-index: 10;
+    cursor: pointer;
 }
 
 .grid-item {
