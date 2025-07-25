@@ -381,7 +381,7 @@
         .parcel-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 3px;
             margin-top: 12px;
         }
 
@@ -1430,6 +1430,26 @@ function parseHTML() {
                             to: newNeokyoNotes
                         };
                     }
+
+                    const newYen = yenMatch ? parseInt(yenMatch[1]) : existingOrder.yen;
+                    const newUsd = usdMatch ? parseFloat(usdMatch[1]) : existingOrder.usd;
+
+                    if (existingOrder.yen !== newYen) {
+                        changes.yen = {
+                            from: existingOrder.yen,
+                            to: newYen
+                        };
+                    }
+
+                    if (existingOrder.usd !== newUsd) {
+                        changes.usd = {
+                            from: existingOrder.usd,
+                            to: newUsd
+                        };
+                    }
+
+                    existingOrder.yen = newYen;
+                    existingOrder.usd = newUsd;
                     
                     if (Object.keys(changes).length > 0) {
                         // UPDATE existing order with changes
@@ -2231,6 +2251,8 @@ function showActivityLog() {
                                                 ${Object.entries(order.changes).map(([field, change]) => {
                                                     const fieldName = field === 'storageDays' ? 'Storage Days' : 
                                                                     field === 'neokyoNotes' ? 'Notes' : 
+                                                                    field === 'yen' ? 'Yen Price' :
+                                                                    field === 'usd' ? 'USD Price' :
                                                                     field.charAt(0).toUpperCase() + field.slice(1);
                                                     return `${fieldName}: "${change.from}" → "${change.to}"`;
                                                 }).join('<br>')}
