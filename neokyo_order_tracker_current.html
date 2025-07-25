@@ -814,6 +814,14 @@
                 <span>&#128202;</span>
                 <span class="tooltip">Import Activity Log</span>
             </button>
+                <button class="hamburger-btn" id="batchModeHamburger" aria-label="Toggle Batch Mode" onclick="toggleBatchMode()">
+                    <span>☑️</span>
+                    <span class="tooltip">Toggle Batch Mode</span>
+                </button>
+                <button class="hamburger-btn" id="batchControlsHamburger" aria-label="Batch Controls" onclick="toggleFloatingPanel('batchPanel', this)" style="display: none;">
+                    <span>⚙️</span>
+                    <span class="tooltip">Batch Controls</span>
+                </button>
             <style>
                 .hamburger-btn {
                     position: relative;
@@ -1038,6 +1046,48 @@
             </div>
         </div>
 
+
+<div id="batchPanel" class="floating-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>Batch Assign (<span id="selectedCount">0</span> selected)</strong>
+        <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
+    </div>
+    
+    <div style="margin-top: 15px;">
+        <div class="form-row" style="margin-bottom: 12px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Assign Format</label>
+                <select id="batchFormat" style="width: 100%;">
+                    <option value="">Keep existing formats</option>
+                    <!-- Format options will be populated by JavaScript -->
+                </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Assign Parcel</label>
+                <select id="batchParcel" style="width: 100%;">
+                    <option value="">Keep existing parcels</option>
+                    <!-- Parcel options will be populated by JavaScript -->
+                </select>
+            </div>
+        </div>
+        <div class="form-row" style="margin-bottom: 12px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Add Tags (space-separated)</label>
+                <input type="text" id="batchTags" placeholder="tag1 tag2 tag3" style="width: 100%;">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Set Volumes/Items</label>
+                <input type="number" id="batchVolumes" min="0" placeholder="Keep existing" style="width: 100%;">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;">
+            <button class="btn btn-small" onclick="applyBatchChanges()">Apply Changes</button>
+            <button class="btn btn-small btn-secondary" onclick="clearBatchSelection()">Clear Selection</button>
+        </div>
+    </div>
+</div>
+
         <script>
             // Hamburger floating panel logic
             function closeAllPanels() {
@@ -1237,6 +1287,268 @@ function renderTagsDropdown() {
 }
 
         </script>
+<script>
+let batchMode = false;
+let selectedOrders = new Set();
+
+function toggleBatchMode() {
+    batchMode = !batchMode;
+    const batchModeHamburger = document.getElementById('batchModeHamburger');
+    const batchControlsHamburger = document.getElementById('batchControlsHamburger');
+    
+    if (batchMode) {
+        batchModeHamburger.classList.add('active');
+        batchControlsHamburger.style.display = 'flex'; // Show the controls button
+        document.body.classList.add('batch-mode');
+        renderView(); // Re-render to show checkboxes
+        showBatchControls();
+    } else {
+        closeBatchMode();
+    }
+}
+
+function closeBatchMode() {
+    batchMode = false;
+    selectedOrders.clear();
+    const batchModeHamburger = document.getElementById('batchModeHamburger');
+    const batchControlsHamburger = document.getElementById('batchControlsHamburger');
+    
+    batchModeHamburger.classList.remove('active');
+    batchControlsHamburger.classList.remove('active');
+    batchControlsHamburger.style.display = 'none'; // Hide the controls button
+    document.body.classList.remove('batch-mode');
+    hideBatchControls();
+    closeAllPanels(); // Close the batch panel if open
+    renderView(); // Re-render to hide checkboxes
+    updateSelectedCount();
+}
+
+function showBatchControls() {
+    let controls = document.getElementById('batchControls');
+    if (!controls) {
+        controls = document.createElement('div');
+        controls.id = 'batchControls';
+        controls.className = 'batch-controls';
+        controls.innerHTML = `
+            <span id="batchControlsCount">0 orders selected</span>
+            <button class="btn btn-small" onclick="selectAllVisible()">Select All Visible</button>
+            <button class="btn btn-small btn-secondary" onclick="clearBatchSelection()">Clear Selection</button>
+            <button class="btn btn-small" onclick="toggleFloatingPanel('batchPanel', document.getElementById('batchControlsHamburger'))">Open Controls</button>
+        `;
+        document.body.appendChild(controls);
+    }
+    controls.classList.add('show');
+}
+
+function hideBatchControls() {
+    const controls = document.getElementById('batchControls');
+    if (controls) {
+        controls.classList.remove('show');
+    }
+}
+
+function populateBatchOptions() {
+    // Populate format options
+    const formatSelect = document.getElementById('batchFormat');
+    if (formatSelect) {
+        formatSelect.innerHTML = '<option value="">Keep existing formats</option>' +
+            Object.keys(bookFormats).map(format => 
+                `<option value="${format}">${format}</option>`
+            ).join('');
+    }
+    
+    // Populate parcel options
+    const parcelSelect = document.getElementById('batchParcel');
+    if (parcelSelect) {
+        parcelSelect.innerHTML = '<option value="">Keep existing parcels</option>' +
+            parcels.map(parcel => 
+                `<option value="${parcel.id}">${parcel.name}</option>`
+            ).join('');
+    }
+}
+
+function toggleOrderSelection(orderId, checkbox) {
+    if (checkbox.checked) {
+        selectedOrders.add(orderId);
+    } else {
+        selectedOrders.delete(orderId);
+    }
+    updateSelectedCount();
+    updateOrderHighlight(orderId);
+}
+
+function updateSelectedCount() {
+    const count = selectedOrders.size;
+    const selectedCountEl = document.getElementById('selectedCount');
+    if (selectedCountEl) {
+        selectedCountEl.textContent = count;
+    }
+    const controlsCount = document.getElementById('batchControlsCount');
+    if (controlsCount) {
+        controlsCount.textContent = `${count} orders selected`;
+    }
+}
+
+function updateOrderHighlight(orderId) {
+    const isSelected = selectedOrders.has(orderId);
+    
+    if (currentView === 'grid') {
+        const gridItems = document.querySelectorAll('.grid-item');
+        gridItems.forEach(item => {
+            if (item.innerHTML.includes(`updateOrder('${orderId}'`)) {
+                if (isSelected) {
+                    item.classList.add('batch-mode-active');
+                } else {
+                    item.classList.remove('batch-mode-active');
+                }
+            }
+        });
+    } else {
+        const tableRows = document.querySelectorAll('.table-view tbody tr');
+        tableRows.forEach(row => {
+            if (row.innerHTML.includes(`updateOrder('${orderId}'`)) {
+                if (isSelected) {
+                    row.classList.add('batch-mode-active');
+                } else {
+                    row.classList.remove('batch-mode-active');
+                }
+            }
+        });
+    }
+}
+
+function selectAllVisible() {
+    orders.forEach(order => {
+        selectedOrders.add(order.id);
+        const checkbox = document.getElementById(`batch-${order.id}`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+        updateOrderHighlight(order.id);
+    });
+    updateSelectedCount();
+}
+
+function clearBatchSelection() {
+    selectedOrders.clear();
+    document.querySelectorAll('.batch-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.querySelectorAll('.batch-mode-active').forEach(item => {
+        item.classList.remove('batch-mode-active');
+    });
+    updateSelectedCount();
+}
+
+function applyBatchChanges() {
+    console.log('=== SIMPLE DEBUG VERSION ===');
+    
+    if (selectedOrders.size === 0) {
+        alert('Please select at least one order first.');
+        return;
+    }
+    
+    const format = document.getElementById('batchFormat').value;
+    const parcel = document.getElementById('batchParcel').value;
+    const tags = document.getElementById('batchTags').value.trim();
+    const volumes = document.getElementById('batchVolumes').value;
+    
+    if (!format && !parcel && !tags && !volumes) {
+        alert('Please specify at least one change to apply.');
+        return;
+    }
+    
+    console.log('Selected orders:', Array.from(selectedOrders));
+    console.log('Changes to apply:', { format, parcel, tags, volumes });
+    
+    // Load ALL orders from localStorage
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    console.log('Total orders in localStorage:', allOrders.length);
+    
+    let changesApplied = 0;
+    
+    // Try multiple comparison methods to find matches
+    allOrders.forEach((order, index) => {
+        const orderId = order.id;
+        const orderIdStr = String(orderId);
+        
+        // Check if this order is selected using multiple methods
+        const isSelected = selectedOrders.has(orderId) || 
+                          selectedOrders.has(orderIdStr) ||
+                          selectedOrders.has(String(orderId)) ||
+                          Array.from(selectedOrders).includes(String(orderId));
+        
+        if (isSelected) {
+            console.log(`✓ FOUND MATCH: Order #${order.orderId} (id: ${orderId})`);
+            
+            if (format && order.bookFormat !== format) {
+                order.bookFormat = format;
+                changesApplied++;
+                console.log(`  - Format changed to: ${format}`);
+            }
+            
+            if (parcel && order.parcel !== parcel) {
+                order.parcel = parcel;
+                changesApplied++;
+                console.log(`  - Parcel changed to: ${parcel}`);
+            }
+            
+            if (tags) {
+                const existingTags = order.tags ? order.tags.split(' ').filter(t => t.trim()) : [];
+                const newTags = tags.split(' ').filter(t => t.trim());
+                const allTags = [...new Set([...existingTags, ...newTags])];
+                order.tags = allTags.join(' ');
+                changesApplied++;
+                console.log(`  - Tags updated to: ${order.tags}`);
+            }
+            
+            if (volumes) {
+                order.volumes = parseInt(volumes);
+                changesApplied++;
+                console.log(`  - Volumes changed to: ${volumes}`);
+            }
+        }
+    });
+    
+    console.log(`Total changes applied: ${changesApplied}`);
+    
+    if (changesApplied > 0) {
+        // Save changes
+        localStorage.setItem('orders', JSON.stringify(allOrders));
+        
+        // Reload and refresh
+        orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        applyFilters();
+        renderView();
+        renderParcels();
+        updateTotals();
+        renderTagsDropdown();
+        
+        alert(`Success! Applied ${changesApplied} changes to ${selectedOrders.size} selected orders.`);
+    } else {
+        alert('No changes were applied. Could not find matching orders.');
+    }
+    
+    // Clear form and selection
+    document.getElementById('batchFormat').value = '';
+    document.getElementById('batchParcel').value = '';
+    document.getElementById('batchTags').value = '';
+    document.getElementById('batchVolumes').value = '';
+    clearBatchSelection();
+}
+
+// Populate batch options when the panel is opened
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener to populate options when batch panel is opened
+    const originalTogglePanel = window.toggleFloatingPanel;
+    window.toggleFloatingPanel = function(panelId, btn) {
+        if (panelId === 'batchPanel') {
+            populateBatchOptions();
+        }
+        return originalTogglePanel(panelId, btn);
+    };
+});
+</script>
         <div id="gridView" class="grid-view"></div>
         <div id="tableView" class="table-view hidden"></div>
     </div>
@@ -1761,130 +2073,133 @@ function parseHTML() {
             }
         }
 
-        function renderGridView() {
-            const gridView = document.getElementById('gridView');
-            const tableView = document.getElementById('tableView');
-            
-            gridView.classList.remove('hidden');
-            tableView.classList.add('hidden');
-            
-            gridView.innerHTML = orders.map(order => `
-                <div class="grid-item">
-                    <img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='">
-                    <div class="order-id">#${order.orderId}</div>
-                    <h3>${order.title}</h3>
-                    <div class="price">¥${order.yen} (${order.usd})</div>
-                    <div class="details">
-                        <span>Qty <span class="detail-val">${order.quantity}</span></span>
-                        <span>Days <span class="detail-val">${order.storageDays}</span></span>
-                        <span>Status <span class="detail-val">${order.status || 'Unknown'}</span></span>
-                    </div>
-                    <div class="details">
-                        <span>Items <input type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)" style="width: 50px;"></span>
-                        <span>Format 
-                            <select onchange="updateOrder('${order.id}', 'bookFormat', this.value)" style="width: 60px;">
+function renderGridView() {
+    const gridView = document.getElementById('gridView');
+    const tableView = document.getElementById('tableView');
+    
+    gridView.classList.remove('hidden');
+    tableView.classList.add('hidden');
+    
+    gridView.innerHTML = orders.map(order => `
+        <div class="grid-item ${selectedOrders.has(order.id) ? 'batch-mode-active' : ''}">
+            ${batchMode ? `<input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(order.id) ? 'checked' : ''} onchange="toggleOrderSelection('${order.id}', this)">` : ''}
+            <img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='">
+            <div class="order-id">#${order.orderId}</div>
+            <h3>${order.title}</h3>
+            <div class="price">¥${order.yen} (${order.usd})</div>
+            <div class="details">
+                <span>Qty <span class="detail-val">${order.quantity}</span></span>
+                <span>Days <span class="detail-val">${order.storageDays}</span></span>
+                <span>Status <span class="detail-val">${order.status || 'Unknown'}</span></span>
+            </div>
+            <div class="details">
+                <span>Items <input type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)" style="width: 50px;"></span>
+                <span>Format 
+                    <select onchange="updateOrder('${order.id}', 'bookFormat', this.value)" style="width: 60px;">
+                        ${Object.keys(bookFormats).map(format => 
+                            `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
+                        ).join('')}
+                    </select>
+                </span>
+                <span>Parcel 
+                    <select onchange="updateOrder('${order.id}', 'parcel', this.value)" style="width: 80px;">
+                        <option value="">None</option>
+                        ${parcels.map(parcel => 
+                            `<option value="${parcel.id}" ${order.parcel === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
+                        ).join('')}
+                    </select>
+                </span>
+            </div>
+            ${order.neokyoNotes ? `<div class="neokyo-note">${order.neokyoNotes}</div>` : ''}
+            <div class="tags">
+                ${String(order.tags || '').split(' ').filter(tag => tag).map(tag => `<span class="tag">${tag}</span>`).join('')}
+            </div>
+            <input type="text" value="${order.tags || ''}" placeholder="Add tags (separate by spaces)..." onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')" style="width: 100%; margin: 8px 0; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;">
+            <div class="actions">
+                <a href="${order.url}" class="btn btn-small" target="_blank">Open</a>
+                <button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderTableView() {
+    const gridView = document.getElementById('gridView');
+    const tableView = document.getElementById('tableView');
+    
+    gridView.classList.add('hidden');
+    tableView.classList.remove('hidden');
+    
+    // Helper function to get sort class for a field
+    const getSortClass = (field) => {
+        if (sortState.field === field) {
+            return sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc';
+        }
+        return '';
+    };
+    
+    tableView.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    ${batchMode ? '<th class="batch-checkbox-cell">Select</th>' : ''}
+                    <th onclick="sortBy('image')" class="${columnVisibility.image ? '' : 'hidden-column'} ${getSortClass('image')}">Image</th>
+                    <th onclick="sortBy('orderId')" class="${columnVisibility.orderId ? '' : 'hidden-column'} ${getSortClass('orderId')}">Order #</th>
+                    <th onclick="sortBy('title')" class="${columnVisibility.title ? '' : 'hidden-column'} ${getSortClass('title')}">Title</th>
+                    <th onclick="sortBy('quantity')" class="${columnVisibility.quantity ? '' : 'hidden-column'} ${getSortClass('quantity')}">Qty</th>
+                    <th onclick="sortBy('yen')" class="${columnVisibility.yen ? '' : 'hidden-column'} ${getSortClass('yen')}">Yen</th>
+                    <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">USD</th>
+                    <th onclick="sortBy('created')" class="${columnVisibility.created ? '' : 'hidden-column'} ${getSortClass('created')}">Created</th>
+                    <th onclick="sortBy('storageDays')" class="${columnVisibility.storageDays ? '' : 'hidden-column'} ${getSortClass('storageDays')}">Storage Days</th>
+                    <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
+                    <th onclick="sortBy('neokyoNotes')" class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'} ${getSortClass('neokyoNotes')}">Neokyo Notes</th>
+                    <th onclick="sortBy('bookFormat')" class="${columnVisibility.bookFormat ? '' : 'hidden-column'} ${getSortClass('bookFormat')}">Format</th>
+                    <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Volumes</th>
+                    <th onclick="sortBy('parcel')" class="${columnVisibility.parcel ? '' : 'hidden-column'} ${getSortClass('parcel')}">Parcel</th>
+                    <th onclick="sortBy('tags')" class="${columnVisibility.tags ? '' : 'hidden-column'} ${getSortClass('tags')}">Tags</th>
+                    <th class="${columnVisibility.url ? '' : 'hidden-column'}">URL</th>
+                    <th class="${columnVisibility.actions ? '' : 'hidden-column'}">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${orders.map(order => `
+                    <tr class="${selectedOrders.has(order.id) ? 'batch-mode-active' : ''}">
+                        ${batchMode ? `<td class="batch-checkbox-cell"><input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(order.id) ? 'checked' : ''} onchange="toggleOrderSelection('${order.id}', this)"></td>` : ''}
+                        <td class="${columnVisibility.image ? '' : 'hidden-column'}"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMjYgMzBIMjRWMjZIMjZWMzBaTTM0IDMwSDMyVjI2SDM0VjMwWk0zMiAzNkgzMFYzMEgzMlYzNloiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4='"></td>
+                        <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><input class="editable" value="${order.orderId}" onchange="updateOrder('${order.id}', 'orderId', this.value)"></td>
+                        <td class="${columnVisibility.title ? '' : 'hidden-column'}"><input class="editable" value="${order.title}" onchange="updateOrder('${order.id}', 'title', this.value)"></td>
+                        <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.quantity}" onchange="updateOrder('${order.id}', 'quantity', this.value)"></td>
+                        <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.yen}" onchange="updateOrder('${order.id}', 'yen', this.value)"></td>
+                        <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><input class="editable" type="number" step="0.01" value="${order.usd}" onchange="updateOrder('${order.id}', 'usd', this.value)"></td>
+                        <td class="${columnVisibility.created ? '' : 'hidden-column'}"><input class="editable" value="${order.created}" onchange="updateOrder('${order.id}', 'created', this.value)"></td>
+                        <td class="${columnVisibility.storageDays ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.storageDays}" onchange="updateOrder('${order.id}', 'storageDays', this.value)"></td>
+                        <td class="${columnVisibility.status ? '' : 'hidden-column'}"><input class="editable" value="${order.status || ''}" onchange="updateOrder('${order.id}', 'status', this.value)"></td>
+                        <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><input class="editable" value="${order.neokyoNotes || ''}" onchange="updateOrder('${order.id}', 'neokyoNotes', this.value)"></td>
+                        <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}">
+                            <select class="editable" onchange="updateOrder('${order.id}', 'bookFormat', this.value)">
                                 ${Object.keys(bookFormats).map(format => 
                                     `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
                                 ).join('')}
                             </select>
-                        </span>
-                        <span>Parcel 
-                            <select onchange="updateOrder('${order.id}', 'parcel', this.value)" style="width: 80px;">
+                        </td>
+                        <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)"></td>
+                        <td class="${columnVisibility.parcel ? '' : 'hidden-column'}">
+                            <select class="editable" onchange="updateOrder('${order.id}', 'parcel', this.value)">
                                 <option value="">None</option>
                                 ${parcels.map(parcel => 
                                     `<option value="${parcel.id}" ${order.parcel === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
                                 ).join('')}
                             </select>
-                        </span>
-                    </div>
-                    ${order.neokyoNotes ? `<div class="neokyo-note">${order.neokyoNotes}</div>` : ''}
-                    <div class="tags">
-                        ${String(order.tags || '').split(' ').filter(tag => tag).map(tag => `<span class="tag">${tag}</span>`).join('')}
-                    </div>
-                    <input type="text" value="${order.tags || ''}" placeholder="Add tags (separate by spaces)..." onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')" style="width: 100%; margin: 8px 0; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;">
-                    <div class="actions">
-                        <a href="${order.url}" class="btn btn-small" target="_blank">Open</a>
-                        <button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderTableView() {
-            const gridView = document.getElementById('gridView');
-            const tableView = document.getElementById('tableView');
-            
-            gridView.classList.add('hidden');
-            tableView.classList.remove('hidden');
-            
-            // Helper function to get sort class for a field
-            const getSortClass = (field) => {
-                if (sortState.field === field) {
-                    return sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc';
-                }
-                return '';
-            };
-            
-            tableView.innerHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th onclick="sortBy('image')" class="${columnVisibility.image ? '' : 'hidden-column'} ${getSortClass('image')}">Image</th>
-                            <th onclick="sortBy('orderId')" class="${columnVisibility.orderId ? '' : 'hidden-column'} ${getSortClass('orderId')}">Order #</th>
-                            <th onclick="sortBy('title')" class="${columnVisibility.title ? '' : 'hidden-column'} ${getSortClass('title')}">Title</th>
-                            <th onclick="sortBy('quantity')" class="${columnVisibility.quantity ? '' : 'hidden-column'} ${getSortClass('quantity')}">Qty</th>
-                            <th onclick="sortBy('yen')" class="${columnVisibility.yen ? '' : 'hidden-column'} ${getSortClass('yen')}">Yen</th>
-                            <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">USD</th>
-                            <th onclick="sortBy('created')" class="${columnVisibility.created ? '' : 'hidden-column'} ${getSortClass('created')}">Created</th>
-                            <th onclick="sortBy('storageDays')" class="${columnVisibility.storageDays ? '' : 'hidden-column'} ${getSortClass('storageDays')}">Storage Days</th>
-                            <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
-                            <th onclick="sortBy('neokyoNotes')" class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'} ${getSortClass('neokyoNotes')}">Neokyo Notes</th>
-                            <th onclick="sortBy('bookFormat')" class="${columnVisibility.bookFormat ? '' : 'hidden-column'} ${getSortClass('bookFormat')}">Format</th>
-                            <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Volumes</th>
-                            <th onclick="sortBy('parcel')" class="${columnVisibility.parcel ? '' : 'hidden-column'} ${getSortClass('parcel')}">Parcel</th>
-                            <th onclick="sortBy('tags')" class="${columnVisibility.tags ? '' : 'hidden-column'} ${getSortClass('tags')}">Tags</th>
-                            <th class="${columnVisibility.url ? '' : 'hidden-column'}">URL</th>
-                            <th class="${columnVisibility.actions ? '' : 'hidden-column'}">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orders.map(order => `
-                            <tr>
-                                <td class="${columnVisibility.image ? '' : 'hidden-column'}"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMjYgMzBIMjRWMjZIMjZWMzBaTTM0IDMwSDMyVjI2SDM0VjMwWk0zMiAzNkgzMFYzMEgzMlYzNloiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4='"></td>
-                                <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><input class="editable" value="${order.orderId}" onchange="updateOrder('${order.id}', 'orderId', this.value)"></td>
-                                <td class="${columnVisibility.title ? '' : 'hidden-column'}"><input class="editable" value="${order.title}" onchange="updateOrder('${order.id}', 'title', this.value)"></td>
-                                <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.quantity}" onchange="updateOrder('${order.id}', 'quantity', this.value)"></td>
-                                <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.yen}" onchange="updateOrder('${order.id}', 'yen', this.value)"></td>
-                                <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><input class="editable" type="number" step="0.01" value="${order.usd}" onchange="updateOrder('${order.id}', 'usd', this.value)"></td>
-                                <td class="${columnVisibility.created ? '' : 'hidden-column'}"><input class="editable" value="${order.created}" onchange="updateOrder('${order.id}', 'created', this.value)"></td>
-                                <td class="${columnVisibility.storageDays ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.storageDays}" onchange="updateOrder('${order.id}', 'storageDays', this.value)"></td>
-                                <td class="${columnVisibility.status ? '' : 'hidden-column'}"><input class="editable" value="${order.status || ''}" onchange="updateOrder('${order.id}', 'status', this.value)"></td>
-                                <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><input class="editable" value="${order.neokyoNotes || ''}" onchange="updateOrder('${order.id}', 'neokyoNotes', this.value)"></td>
-                                <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}">
-                                    <select class="editable" onchange="updateOrder('${order.id}', 'bookFormat', this.value)">
-                                        ${Object.keys(bookFormats).map(format => 
-                                            `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
-                                        ).join('')}
-                                    </select>
-                                </td>
-                                <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><input class="editable" type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)"></td>
-                                <td class="${columnVisibility.parcel ? '' : 'hidden-column'}">
-                                    <select class="editable" onchange="updateOrder('${order.id}', 'parcel', this.value)">
-                                        <option value="">None</option>
-                                        ${parcels.map(parcel => 
-                                            `<option value="${parcel.id}" ${order.parcel === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
-                                        ).join('')}
-                                    </select>
-                                </td>
-                                <td class="${columnVisibility.tags ? '' : 'hidden-column'}"><input class="editable" value="${order.tags || ''}" onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')"></td>
-                                <td class="${columnVisibility.url ? '' : 'hidden-column'}"><a href="${order.url}" target="_blank" class="btn btn-small">Open</a></td>
-                                <td class="${columnVisibility.actions ? '' : 'hidden-column'}"><button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
+                        </td>
+                        <td class="${columnVisibility.tags ? '' : 'hidden-column'}"><input class="editable" value="${order.tags || ''}" onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')"></td>
+                        <td class="${columnVisibility.url ? '' : 'hidden-column'}"><a href="${order.url}" target="_blank" class="btn btn-small">Open</a></td>
+                        <td class="${columnVisibility.actions ? '' : 'hidden-column'}"><button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
 
         function updateOrder(orderId, field, value) {
             // Find order in the original data stored in localStorage
@@ -3429,5 +3744,58 @@ function makeHeaderEditable() {
     border: 1px solid #fca5a5;
 }
     </style>
+    <style>
+.batch-mode-active {
+    border: 2px solid #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.05) !important;
+}
+
+.batch-checkbox {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    z-index: 10;
+    cursor: pointer;
+    transform: scale(1.3);
+}
+
+.grid-item {
+    position: relative;
+}
+
+.table-view .batch-checkbox-cell {
+    width: 40px;
+    text-align: center;
+}
+
+.batch-mode .grid-item:hover {
+    transform: none !important;
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.batch-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    z-index: 1001;
+    display: none;
+}
+
+.batch-controls.show {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+
+</style>
 </body>
 </html>
