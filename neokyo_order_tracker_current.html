@@ -2020,7 +2020,7 @@ function updateTotals() {
         order.status !== 'Cancelled'
     );
     
-    const totalItems = activeOrders.length; // Changed from orders.length
+    const totalItems = orders.length; // For cancelled orders, only keeping this for the orig total items count
     const totalYen = activeOrders.reduce((sum, order) => sum + order.yen, 0);
     const totalUSD = activeOrders.reduce((sum, order) => sum + order.usd, 0);
     
