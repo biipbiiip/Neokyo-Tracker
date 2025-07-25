@@ -882,7 +882,7 @@
                         <label>Tags</label>
                         <div class="multi-select" id="tagsMultiSelect">
                             <div class="multi-select-trigger" onclick="toggleMultiSelect('tags')" tabindex="0">
-                                <div class="multi-select-tags" id="TagsMulti">
+                                <div class="multi-select-tags" id="tagsTags">
                                     <div class="multi-select-placeholder">All Tags</div>
                                 </div>
                             </div>
@@ -1057,6 +1057,258 @@
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') closeAllPanels();
             });
+
+
+// TAG FILTERS!!!11 multiselect filter logic
+function updateMultiSelectFilter(type) {
+    const checkbox = event.target;
+    const value = checkbox.value;
+    
+    // Map the type to the actual variable names
+    let selected, excluded;
+    
+    if (type === 'Statuses') {
+        selected = selectedStatuses;
+        excluded = excludedStatuses;
+    } else if (type === 'Formats') {
+        selected = selectedFormats;
+        excluded = excludedFormats;
+    } else if (type === 'Parcels') {
+        selected = selectedParcels;
+        excluded = excludedParcels;
+    } else if (type === 'Tags') {
+        selected = selectedTags;
+        excluded = excludedTags;
+    }
+    
+    if (selected.includes(value)) {
+        // Move from selected to excluded
+        if (type === 'Statuses') {
+            selectedStatuses = selected.filter(v => v !== value);
+            excludedStatuses.push(value);
+        } else if (type === 'Formats') {
+            selectedFormats = selected.filter(v => v !== value);
+            excludedFormats.push(value);
+        } else if (type === 'Parcels') {
+            selectedParcels = selected.filter(v => v !== value);
+            excludedParcels.push(value);
+        } else if (type === 'Tags') {
+            selectedTags = selected.filter(v => v !== value);
+            excludedTags.push(value);
+        }
+        
+        checkbox.checked = false;
+        checkbox.parentElement.classList.add('excluded');
+    } else if (excluded.includes(value)) {
+        // Remove from excluded
+        if (type === 'Statuses') {
+            excludedStatuses = excluded.filter(v => v !== value);
+        } else if (type === 'Formats') {
+            excludedFormats = excluded.filter(v => v !== value);
+        } else if (type === 'Parcels') {
+            excludedParcels = excluded.filter(v => v !== value);
+        } else if (type === 'Tags') {
+            excludedTags = excluded.filter(v => v !== value);
+        }
+        
+        checkbox.parentElement.classList.remove('excluded');
+    } else {
+        // Add to selected
+        selected.push(value);
+        checkbox.checked = true;
+    }
+    
+    // Call the appropriate render function
+    if (type === 'Statuses') renderStatusTags();
+    else if (type === 'Formats') renderFormatTags();
+    else if (type === 'Parcels') renderParcelTags();
+    else if (type === 'Tags') renderTagsTags(); // or renderTagsMulti()
+    
+    applyFilters();
+}
+
+function renderMultiSelectTags(type, removeFunction) {
+    // Map the type to actual variables instead of using window[...]
+    let selected, excluded;
+    
+    if (type === 'Statuses') {
+        selected = selectedStatuses;
+        excluded = excludedStatuses;
+    } else if (type === 'Formats') {
+        selected = selectedFormats;
+        excluded = excludedFormats;
+    } else if (type === 'Parcels') {
+        selected = selectedParcels;
+        excluded = excludedParcels;
+    } else if (type === 'Tags') {
+        selected = selectedTags;
+        excluded = excludedTags;
+    }
+    let containerId;
+    if (type === 'Statuses') containerId = 'statusTags';
+    else if (type === 'Formats') containerId = 'formatTags'; 
+    else if (type === 'Parcels') containerId = 'parcelTags';
+    else if (type === 'Tags') containerId = 'tagsTags';
+    const container = document.getElementById(containerId);
+    
+    if (selected.length === 0 && excluded.length === 0) {
+        container.innerHTML = `<div class="multi-select-placeholder">All ${type}</div>`;
+    } else {
+        const selectedHTML = selected.map(item => `
+            <div class="multi-select-tag">
+                ${type === 'Parcels' ? getParcelsName(item) : item}
+                <span class="remove" onclick="${removeFunction}('${item}')">&times;</span>
+            </div>
+        `).join('');
+        
+        const excludedHTML = excluded.map(item => `
+            <div class="multi-select-tag excluded-tag">
+                NOT ${type === 'Parcels' ? getParcelsName(item) : item}
+                <span class="remove" onclick="removeExcludedTag('${type}', '${item}')">&times;</span>
+            </div>
+        `).join('');
+        
+        container.innerHTML = selectedHTML + excludedHTML;
+    }
+}
+
+function removeExcludedTag(type, value) {
+    // Remove from excluded array
+    const excludedArray = window[`excluded${type}`];
+    window[`excluded${type}`] = excludedArray.filter(item => item !== value);
+    
+    // Find and update the checkbox in dropdown
+    const dropdownId = `${type.toLowerCase()}Dropdown`;
+    let selector;
+    
+    // Handle different ID patterns
+    if (type === 'Statuses') {
+        const safeId = value.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        selector = `#${dropdownId} input[id="status-${safeId}"]`;
+    } else if (type === 'Formats') {
+        selector = `#${dropdownId} input[id="format-${value.toLowerCase()}"]`;
+    } else if (type === 'Parcels') {
+        selector = `#${dropdownId} input[id="parcel-${value}"]`;
+    } else if (type === 'Tags') {
+        const safeId = value.replace(/[^a-z0-9]/gi, '-');
+        selector = `#${dropdownId} input[id="tag-${safeId}"]`;
+    }
+    
+    const option = document.querySelector(selector);
+    if (option) option.parentElement.classList.remove('excluded');
+    
+    // Call the appropriate render function
+    window[`render${type}Tags`]();
+    applyFilters();
+}
+
+function getParcelsName(parcelId) {
+    const parcel = parcels.find(p => p.id === parcelId);
+    return parcel ? parcel.name : 'Unknown';
+}
+
+// TAG FILTERS - RENDER TAGS
+function renderStatusTags() {
+    renderMultiSelectTags('Statuses', 'removeStatusTag');
+}
+function renderFormatTags() {
+    renderMultiSelectTags('Formats', 'removeFormatTag');
+}
+function renderTagsTags() {
+    renderMultiSelectTags('Tags', 'removeTagsTags');
+}
+function renderParcelTags() {
+    renderMultiSelectTags('Parcels', 'removeParcelTag');
+}
+
+// TAG FILTERS - REMOVE TAGS
+function removeStatusTag(status) {
+    selectedStatuses = selectedStatuses.filter(s => s !== status);
+    const safeId = status.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const checkbox = document.getElementById(`status-${safeId}`);
+    if (checkbox) checkbox.checked = false;
+    renderStatusTags();
+    applyFilters();
+}
+
+function removeFormatTag(tag) {
+    selectedFormats = selectedFormats.filter(t => t !== tag);
+    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
+    const checkbox = document.getElementById(`tag-${safeId}`);
+    if (checkbox) checkbox.checked = false;
+    renderFormatTags();
+    applyFilters();
+}
+
+function removeParcelTag(parcelId) {
+    selectedParcels = selectedParcels.filter(id => id !== parcelId);
+    document.getElementById(`parcel-${parcelId}`).checked = false;
+    renderParcelTags();
+    applyFilters();
+}
+
+function removeTagsTags(tag) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
+    const checkbox = document.getElementById(`tag-${safeId}`);
+    if (checkbox) checkbox.checked = false;
+    renderTagsTags();
+    applyFilters();
+}
+
+// TAG FILTERS - RENDER TAG DROPDOWNS
+function renderStatusDropdown() {
+    const dropdown = document.getElementById('statusDropdown');
+    const uniqueStatuses = getUniqueStatuses();
+    
+    dropdown.innerHTML = uniqueStatuses.map(status => {
+        const safeId = status.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        return `
+            <div class="multi-select-option">
+                <input type="checkbox" id="status-${safeId}" value="${status}" onchange="updateMultiSelectFilter('Statuses')">
+                <label for="status-${safeId}">${status}</label>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderFormatDropdown() {
+    const dropdown = document.getElementById('formatDropdown');
+    dropdown.innerHTML = Object.keys(bookFormats).map(format => `
+        <div class="multi-select-option">
+            <input type="checkbox" id="format-${format.toLowerCase()}" value="${format}" onchange="updateMultiSelectFilter('Formats')">
+            <label for="format-${format.toLowerCase()}">${format}</label>
+        </div>
+    `).join('');
+}
+
+function renderParcelDropdown() {
+    const dropdown = document.getElementById('parcelDropdown');
+    dropdown.innerHTML = parcels.map(parcel => `
+        <div class="multi-select-option">
+            <input type="checkbox" id="parcel-${parcel.id}" value="${parcel.id}" onchange="updateMultiSelectFilter('Parcels')">
+            <label for="parcel-${parcel.id}">${parcel.name}</label>
+        </div>
+    `).join('');
+}
+
+function renderTagsDropdown() {
+    const dropdown = document.getElementById('tagsDropdown');
+    const uniqueTags = getUniqueTags();
+    
+    if (uniqueTags.length === 0) {
+        dropdown.innerHTML = '<div style="padding: 8px; color: #9ca3af;">No tags found</div>';
+        return;
+    }
+    
+    dropdown.innerHTML = uniqueTags.map(tag => `
+        <div class="multi-select-option">
+            <input type="checkbox" id="tag-${tag.replace(/[^a-z0-9]/gi, '-')}" value="${tag}" onchange="updateMultiSelectFilter('Tags')">
+            <label for="tag-${tag.replace(/[^a-z0-9]/gi, '-')}">${tag}</label>
+        </div>
+    `).join('');
+}
+
         </script>
         <div id="gridView" class="grid-view"></div>
         <div id="tableView" class="table-view hidden"></div>
@@ -1239,6 +1491,11 @@
         let selectedFormats = [];
         let selectedParcels = [];
         let selectedTags = [];
+        let excludedStatuses = [];
+        let excludedFormats = [];
+        let excludedParcels = [];
+        let excludedTags = [];
+        
         
         // Column visibility state
         let columnVisibility = {
@@ -1986,7 +2243,7 @@ function deleteOrder(orderId) {
             document.querySelectorAll('#tagsMultiSelect input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
-            renderTagsMulti();
+            renderTagsTags();
 
             // Reset orders to original data from localStorage
             try {
@@ -2321,37 +2578,6 @@ function clearActivityLog() {
             }
         }
 
-        function renderFormatsTable() {
-            const formatsTable = document.getElementById('formatsTable');
-            
-            formatsTable.innerHTML = `
-                <table style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th>Format Name</th>
-                            <th>Width (cm)</th>
-                            <th>Height (cm)</th>
-                            <th>Thickness (cm)</th>
-                            <th>Weight (grams)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${Object.entries(bookFormats).map(([name, format]) => `
-                            <tr>
-                                <td><input type="text" value="${name}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" step="1" value="${format.width}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" step="1" value="${format.height}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" step="1" value="${format.thickness}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" value="${format.weight}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><button class="btn btn-small btn-secondary" onclick="deleteFormatRow(this)" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
-
         function clearAllData() {
             if (confirm('Are you sure you want to delete ALL orders and parcels? This cannot be undone. Also, as a peabrain who cleared her own before exporting, I am going to EXPORT IT FOR YOU just in case (you have no choice)!!')) {
         // Clear all data
@@ -2386,17 +2612,6 @@ function clearActivityLog() {
         updateTotals();
                 alert('All data has been cleared.');
             }
-        }
-
-        
-        function renderParcelDropdown() {
-            const dropdown = document.getElementById('parcelDropdown');
-            dropdown.innerHTML = parcels.map(parcel => `
-                <div class="multi-select-option">
-                    <input type="checkbox" id="parcel-${parcel.id}" value="${parcel.id}" onchange="updateParcelFilter()">
-                    <label for="parcel-${parcel.id}">${parcel.name}</label>
-                </div>
-            `).join('');
         }
 
         function closeFormatsModalOnOutsideClick(event) {
@@ -2469,102 +2684,9 @@ function clearActivityLog() {
             }
         }
 
-        function updateStatusFilter() {
-            selectedStatuses = [];
-            document.querySelectorAll('#statusMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
-                selectedStatuses.push(checkbox.value);
-            });
-            
-            renderStatusTags();
-            applyFilters();
-        }
-
-        function renderStatusTags() {
-            const tagsContainer = document.getElementById('statusTags');
-            
-            if (selectedStatuses.length === 0) {
-                tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Statuses</div>';
-            } else {
-                tagsContainer.innerHTML = selectedStatuses.map(status => `
-                    <div class="multi-select-tag">
-                        ${status}
-                        <span class="remove" onclick="removeStatusTag('${status}')">&times;</span>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function updateFormatFilter() {
-            selectedFormats = [];
-            document.querySelectorAll('#formatMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
-                selectedFormats.push(checkbox.value);
-            });
-            
-            renderFormatTags();
-            applyFilters();
-        }
-        
-
-        function renderFormatTags() {
-            const tagsContainer = document.getElementById('formatTags');
-            
-            if (selectedFormats.length === 0) {
-                tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Formats</div>';
-            } else {
-                tagsContainer.innerHTML = selectedFormats.map(format => `
-                    <div class="multi-select-tag">
-                        ${format}
-                        <span class="remove" onclick="removeFormatTag('${format}')">&times;</span>
-                    </div>
-                `).join('');
-            }
-        }
 
 
 
-function removeFormatTag(tag) {
-    selectedFormats = selectedFormats.filter(t => t !== tag);
-    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
-    const checkbox = document.getElementById(`tag-${safeId}`);
-    if (checkbox) checkbox.checked = false;
-    renderFormatTags();
-    applyFilters();
-}
-
-        function updateParcelFilter() {
-            selectedParcels = [];
-            document.querySelectorAll('#parcelMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
-                selectedParcels.push(checkbox.value);
-            });
-            
-            renderParcelTags();
-            applyFilters();
-        }
-
-        function renderParcelTags() {
-            const tagsContainer = document.getElementById('parcelTags');
-            
-            if (selectedParcels.length === 0) {
-                tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Parcels</div>';
-            } else {
-                tagsContainer.innerHTML = selectedParcels.map(parcelId => {
-                    const parcel = parcels.find(p => p.id === parcelId);
-                    return `
-                        <div class="multi-select-tag">
-                            ${parcel ? parcel.name : 'Unknown'}
-                            <span class="remove" onclick="removeParcelTag('${parcelId}')">&times;</span>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-
-        function removeParcelTag(parcelId) {
-            selectedParcels = selectedParcels.filter(id => id !== parcelId);
-            document.getElementById(`parcel-${parcelId}`).checked = false;
-            renderParcelTags();
-            applyFilters();
-        }
 
         function getUniqueStatuses() {
             try {
@@ -2584,31 +2706,6 @@ function removeFormatTag(tag) {
             }
         }
 
-        function renderStatusDropdown() {
-            const dropdown = document.getElementById('statusDropdown');
-            const uniqueStatuses = getUniqueStatuses();
-            
-            dropdown.innerHTML = uniqueStatuses.map(status => {
-                const safeId = status.toLowerCase().replace(/[^a-z0-9]/g, '-');
-                return `
-                    <div class="multi-select-option">
-                        <input type="checkbox" id="status-${safeId}" value="${status}" onchange="updateStatusFilter()">
-                        <label for="status-${safeId}">${status}</label>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderFormatDropdown() {
-            const dropdown = document.getElementById('formatDropdown');
-            dropdown.innerHTML = Object.keys(bookFormats).map(format => `
-                <div class="multi-select-option">
-                    <input type="checkbox" id="format-${format.toLowerCase()}" value="${format}" onchange="updateFormatFilter()">
-                    <label for="format-${format.toLowerCase()}">${format}</label>
-                </div>
-            `).join('');
-        }
-
         function getUniqueTags() {
             const allTags = new Set();
             const allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -2624,56 +2721,6 @@ function removeFormatTag(tag) {
             return Array.from(allTags).sort();
         }
 
-function renderTagsDropdown() {
-    const dropdown = document.getElementById('tagsDropdown');
-    const uniqueTags = getUniqueTags();
-    
-    if (uniqueTags.length === 0) {
-        dropdown.innerHTML = '<div style="padding: 8px; color: #9ca3af;">No tags found</div>';
-        return;
-    }
-    
-    dropdown.innerHTML = uniqueTags.map(tag => `
-        <div class="multi-select-option">
-            <input type="checkbox" id="tag-${tag.replace(/[^a-z0-9]/gi, '-')}" value="${tag}" onchange="updateTagsFilter()">
-            <label for="tag-${tag.replace(/[^a-z0-9]/gi, '-')}">${tag}</label>
-        </div>
-    `).join('');
-}
-
-function updateTagsFilter() {
-    selectedTags = [];
-    document.querySelectorAll('#tagsMultiSelect input[type="checkbox"]:checked').forEach(checkbox => {
-        selectedTags.push(checkbox.value);
-    });
-    
-    renderTagsMulti();
-    applyFilters();
-}
-
-function renderTagsMulti() {
-    const tagsContainer = document.getElementById('TagsMulti');
-    
-    if (selectedTags.length === 0) {
-        tagsContainer.innerHTML = '<div class="multi-select-placeholder">All Tags</div>';
-    } else {
-        tagsContainer.innerHTML = selectedTags.map(tag => `
-            <div class="multi-select-tag">
-                ${tag}
-                <span class="remove" onclick="removeTagsMulti('${tag}')">&times;</span>
-            </div>
-        `).join('');
-    }
-}
-
-function removeTagsMulti(tag) {
-    selectedTags = selectedTags.filter(t => t !== tag);
-    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
-    const checkbox = document.getElementById(`tag-${safeId}`);
-    if (checkbox) checkbox.checked = false;
-    renderTagsMulti();
-    applyFilters();
-}
 
 
         // Close multi-selects when clicking outside
@@ -3246,6 +3293,7 @@ function makeHeaderEditable() {
     header.addEventListener('keydown', handleKeydown);
     header.addEventListener('blur', handleBlur);
 }
+
     </script>
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
@@ -3436,6 +3484,21 @@ function makeHeaderEditable() {
     opacity: 0.7;
     outline: 3px dashed #ef4444 !important;
     outline-offset: -3px;
+}
+.multi-select-option.excluded {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.multi-select-option.excluded label {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.excluded-tag {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
 }
     </style>
 </body>
