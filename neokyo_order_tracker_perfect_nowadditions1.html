@@ -607,7 +607,7 @@
 </head>
 <body>
     <div id="container" class="container parcel-section-active">
-        <h1 id="header" style="font-size:16px !important; font-weight:800; padding-bottom:15px">Neo_ Order Tracker</h1>
+        <h1 id="header" style="font-size:16px !important; font-weight:800; padding-bottom:15px; cursor: pointer;" onclick="makeHeaderEditable()" title="Click to edit">Neo_ Order Tracker</h1>
         <div class="header">
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn btn-instructions" onclick="toggleInstructionsSection()">How to Use</button>
@@ -864,6 +864,10 @@
                 <div class="total-item">
                     <div class="total-label">Total Weight</div>
                     <div class="total-value" id="totalWeight">0g</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">USD per Item</div>
+                    <div class="total-value" id="avgUSDPerItem">$0.00</div>
                 </div>
             </div>
             </div>
@@ -1190,6 +1194,9 @@
         let orders = [];
         let parcels = [];
 
+        // Custom header text from localStorage or default
+        let customHeaderText = localStorage.getItem('customHeaderText') || 'Neo_ Order Tracker';
+
         // for logging import changes (in parseHTML())
         let activityLog = [];
 
@@ -1283,6 +1290,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('header').textContent = customHeaderText;
             // Load column visibility preferences
             try {
                 const savedVisibility = localStorage.getItem('columnVisibility');
@@ -2004,11 +2012,17 @@ function updateTotals() {
         totalVolumes += (order.volumes || 1) * order.quantity;
     });
 
+    // Calculate USD per item (this is new)
+    const avgUSDPerItem = totalVolumes > 0 ? (totalUSD / totalVolumes) : 0;
+    
+
     document.getElementById('totalItems').textContent = totalItems;
     document.getElementById('totalYen').textContent = `¥${totalYen.toLocaleString()}`;
     document.getElementById('totalUSD').textContent = `$${totalUSD.toFixed(2)}`;
     document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(0)}g`;
     document.getElementById('totalVolumes').textContent = totalVolumes;
+    document.getElementById('avgUSDPerItem').textContent = `$${avgUSDPerItem.toFixed(2)}`;
+
 }
 
         // Parcel functions
@@ -2932,7 +2946,8 @@ function renderParcels() {
         const data = {
             orders: allOrders,  // Export ALL orders, not just filtered ones
             parcels: parcels,
-            bookFormats: bookFormats,  // Now including formats!
+            bookFormats: bookFormats,
+            customHeaderText: customHeaderText,
             exportDate: new Date().toISOString()
         };
         
@@ -2973,6 +2988,13 @@ function renderParcels() {
                     renderFormatDropdown();
                 }
                 
+                // Import custom header if present
+                if (data.customHeaderText) {
+                    customHeaderText = data.customHeaderText;
+                    localStorage.setItem('customHeaderText', customHeaderText);
+                    document.getElementById('header').textContent = customHeaderText;
+                }
+
                 // Clear filters to show all imported data
                 clearFilters(); // This will reload orders from localStorage and show everything
                 renderStatusDropdown(); // Initialize status dropdown
@@ -3004,14 +3026,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ([entry]) => {
       if (entry.intersectionRatio < 1) {
         // Sticky kicked in
-        filtersTitle.textContent = 'Neo_ Order Tracker';
+        filtersTitle.textContent = customHeaderText;
       } else {
         // Back to normal flow
-        filtersTitle.textContent = 'Filters';
+        filtersTitle.textContent = 'Filters /';
       }
     },
     {
-      threshold: [1.0], // Triggers when filtersPanel is no longer fully visible
+      threshold: [1.0],
       rootMargin: '0px 0px 0px 0px',
     }
   );
@@ -3141,6 +3163,55 @@ function deleteAllTags() {
     alert('All tags have been removed from all orders.');
 }
 
+function makeEditable(element) {
+    if (element.isContentEditable) return; // Already editing
+
+    element.contentEditable = true;
+    element.classList.add('editing');
+    element.focus();
+
+    // Select all text
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
+
+function makeHeaderEditable() {
+    const header = document.getElementById('header');
+    makeEditable(header);
+    
+    // Add header-specific save logic
+    const saveHeaderEdit = () => {
+        customHeaderText = header.textContent.trim() || 'Neo_ Order Tracker';
+        localStorage.setItem('customHeaderText', customHeaderText);
+        header.textContent = customHeaderText; // Clean up any HTML that might have been pasted
+    };
+    
+    // Handle Enter key
+    const handleKeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            header.blur(); // This will trigger the blur event
+        }
+        if (e.key === 'Escape') {
+            header.textContent = customHeaderText; // Reset to original
+            header.contentEditable = false;
+            header.classList.remove('editing');
+        }
+    };
+    
+    // Handle blur (when user clicks away or presses Enter)
+    const handleBlur = () => {
+        saveHeaderEdit();
+        header.removeEventListener('keydown', handleKeydown);
+        header.removeEventListener('blur', handleBlur);
+    };
+    
+    header.addEventListener('keydown', handleKeydown);
+    header.addEventListener('blur', handleBlur);
+}
     </script>
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
