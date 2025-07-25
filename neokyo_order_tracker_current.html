@@ -1630,12 +1630,13 @@ function parseHTML() {
                                 from: existingOrder.usd,
                                 to: newUsd
                             };
+
+                            // Update USD only if Yen changed
+                            existingOrder.usd = newUsd;
                         }
                     }
 
-                    // Update both prices regardless
                     existingOrder.yen = newYen;
-                    existingOrder.usd = newUsd;
                     
                     if (Object.keys(changes).length > 0) {
                         // UPDATE existing order with changes
