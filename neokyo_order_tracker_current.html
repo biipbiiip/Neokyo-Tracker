@@ -2016,9 +2016,18 @@ function deleteOrder(orderId) {
         }
 
 function updateTotals() {
-    const totalItems = orders.length;
-    const totalYen = orders.reduce((sum, order) => sum + order.yen, 0);
-    const totalUSD = orders.reduce((sum, order) => sum + order.usd, 0);
+    const activeOrders = orders.filter(order => 
+        order.status !== 'Cancelled'
+    );
+    
+    const totalItems = activeOrders.length; // Changed from orders.length
+    const totalYen = activeOrders.reduce((sum, order) => sum + order.yen, 0);
+    const totalUSD = activeOrders.reduce((sum, order) => sum + order.usd, 0);
+    
+    // Calculate total item quantity - use activeOrders
+    const totalItemQuantity = activeOrders.reduce((sum, order) => {
+        return sum + ((order.volumes || 1) * order.quantity);
+    }, 0);
     
     // Get a default format to use as fallback
     const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
@@ -2027,18 +2036,17 @@ function updateTotals() {
     let totalWeight = 0;
     let totalVolumes = 0;
     
-    orders.forEach(order => {
+    activeOrders.forEach(order => {
         const format = bookFormats[order.bookFormat] || defaultFormat;
         const itemWeight = format.weight * (order.volumes || 1);
         totalWeight += itemWeight * order.quantity;
         
-        // Add up total volumes
         totalVolumes += (order.volumes || 1) * order.quantity;
     });
 
-    // Calculate USD per item (this is new)
-    const avgUSDPerItem = totalVolumes > 0 ? (totalUSD / totalVolumes) : 0;
-    
+    // Calculate USD per item
+    const avgUSDPerItem = totalItemQuantity > 0 ? (totalUSD / totalItemQuantity) : 0;
+ 
 
     document.getElementById('totalItems').textContent = totalItems;
     document.getElementById('totalYen').textContent = `¥${totalYen.toLocaleString()}`;
