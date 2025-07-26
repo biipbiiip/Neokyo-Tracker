@@ -468,7 +468,7 @@
             
         .modal.hidden { 
             opacity: 0; 
-            visibility: hidden
+            visibility: hidden; /* Removes from interaction but not DOM */ 
         } 
 
         .modal-content {
@@ -659,9 +659,6 @@
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn btn-instructions" onclick="toggleInstructionsSection()">How to Use</button>
                 <button class="btn" onclick="toggleImportSection()">Import HTML</button>
-                <button class="btn" id="activityHamburger" aria-label="Activity Log" onclick="showActivityLog()">
-                    <span class="tooltip">Import History</span>
-                </button>
                 <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
                 <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
                 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Data</button>
@@ -843,18 +840,22 @@
                 <span>&#128202;</span>
                 <span class="tooltip">Toggle Filters</span>
             </button>
-            <button class="hamburger-btn active" id="parcelHamburger" aria-label="Parcel Calculator" onclick="toggleParcelSection()">
+            <button class="hamburger-btn active" id="parcelCalcHamburger" aria-label="Parcel Calculator" onclick="toggleParcelSection()">
                 <span>📦</span>
                 <span class="tooltip">Parcel Calculator</span>
             </button>
-            <button class="hamburger-btn" id="formatsHamburger" aria-label="Manage Formats" onclick="toggleFormatsSection()">
-                <span>📚</span>
-                <span class="tooltip">Manage Formats</span>
-            </button>
-            <button class="hamburger-btn" id="tagsHamburger" aria-label="Tag Manager" onclick="toggleTagManager()">
-                <span>🏷️</span>
-                <span class="tooltip">Manage Tags</span>
-            </button>
+<button class="hamburger-btn" id="formatsHamburger" onclick="toggleFloatingPanel('formatsModal', this, true)">
+    <span>📚</span>
+</button>
+<button class="hamburger-btn" id="tagsHamburger" onclick="toggleFloatingPanel('tagManagerModal', this, true)">
+    <span>🏷️</span>
+</button>
+<button class="hamburger-btn" id="parcelHamburger" onclick="toggleFloatingPanel('parcelModal', this, true)">
+    <span>📦</span>
+</button>
+<button class="hamburger-btn" id="activityHamburger" onclick="toggleFloatingPanel('activityModal', this, true)">
+    <span>📊</span>
+</button>
             <button class="hamburger-btn" id="viewHamburger" aria-label="View Controls" onclick="toggleFloatingPanel('viewPanel', this)">
                 <span>&#9881;</span>
                 <span class="tooltip">Grid/Table View</span>
@@ -863,6 +864,10 @@
                     <span>☑️</span>
                     <span class="tooltip">Toggle Batch Mode</span>
                 </button>
+                <!-- <button class="hamburger-btn" id="batchControlsHamburger" aria-label="Batch Controls" onclick="toggleFloatingPanel('batchPanel', this)" style="display: none;">
+                    <span>⚙️</span>
+                    <span class="tooltip">Batch Controls</span>
+                </button> -->
             <style>
                 .hamburger-btn {
                     position: relative;
@@ -1008,9 +1013,11 @@
                 <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
             </div>
             <div class="view-controls" style="margin-top:10px;">
-                <button class="view-toggle active" onclick="setView('grid')">Grid View</button>
-                <button class="view-toggle" onclick="setView('table')">Table View</button>
+                <button class="view-toggle-simple" id="viewToggleBtn" onclick="toggleView()">
+                    <span id="viewToggleText">📋 Table View</span>
+                </button>
                 <button id="columnToggleBtn" class="view-toggle" onclick="toggleColumnControls()" style="display: none;">Columns</button>
+            </div>
                 <div id="columnControls" class="column-controls">
                     <div style="font-weight: 600; margin-bottom: 8px; color: #4b5563;">Show/Hide Columns</div>
                     <div class="column-grid">
@@ -1085,14 +1092,13 @@
                     </div>
                 </div>
             </div>
+
+
+    <div id="batchPanel" class="floating-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong>Batch Assign (<span id="selectedCount">0</span> selected)</strong>
+            <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
         </div>
-
-
-<div id="batchPanel" class="floating-panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-        <strong>Batch Assign (<span id="selectedCount">0</span> selected)</strong>
-        <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
-    </div>
     
     <div style="margin-top: 15px;">
         <div class="form-row" style="margin-bottom: 12px;">
@@ -1130,39 +1136,99 @@
 </div>
 
         <script>
-            // Hamburger floating panel logic
-            // function closeAllPanels() {
-            //     document.querySelectorAll('.floating-panel').forEach(panel => panel.classList.remove('show'));
-            //     document.querySelectorAll('.hamburger-btn').forEach(btn => btn.classList.remove('active'));
-            // }
-            // function toggleFloatingPanel(panelId, btn) {
-            //     const panel = document.getElementById(panelId);
-            //     const isOpen = panel.classList.contains('show');
-            //     closeAllPanels();
-            //     if (!isOpen) {
-            //             panel.classList.add('show');
-            //             btn.classList.add('active');
-
-            //     }
-            // }
-
-
-function toggleFloatingPanel(panelId, btn) {
-    const panel = document.getElementById('panelId');
-    panel.classList.toggle('hidden');
-    const btn = document.getElementById('btn');
-    btn.classList.toggle('active');
+function toggleFloatingPanel(panelId, btn, isModal = false) {
+    const panel = document.getElementById(panelId);
     
-    // // Only render content when opening (not closing)
-    // if (!panel.classList.contains('hidden')) {
-    //     renderTagManagerContent();
-    // }
+    // Special handling for activityModal - create it if it doesn't exist
+    if (panelId === 'activityModal' && !panel) {
+        createActivityModal();
+        const newPanel = document.getElementById('activityModal');
+        newPanel.classList.remove('hidden');
+        btn.classList.add('active');
+        populateActivityLog();
+        return;
+    }
+    
+    if (!panel) {
+        console.error('Panel not found:', panelId);
+        return;
+    }
+    
+    // Check if it's currently open
+    const isOpen = isModal ? !panel.classList.contains('hidden') : panel.classList.contains('show');
+    
+    // Close all panels AND modals first
+    closeAllPanels();
+    
+    if (!isOpen) {
+        if (isModal) {
+            // Show modal - EXPLICITLY set the classes we want
+            panel.classList.remove('hidden', 'show'); // Remove both first
+            btn.classList.add('active');
+            
+            // Call specific render functions based on modal type
+            if (panelId === 'formatsModal') renderFormatsTable();
+            if (panelId === 'tagManagerModal') renderTagManagerContent();
+            if (panelId === 'activityModal') populateActivityLog();
+            if (panelId === 'parcelModal') {
+                // Reset parcel form values
+                document.getElementById('parcelName').value = '';
+                document.getElementById('parcelLength').value = '60';
+                document.getElementById('parcelWidth').value = '45';
+                document.getElementById('parcelHeight').value = '62';
+                document.getElementById('parcelPadding').value = '20';
+                document.getElementById('parcelBoxWeight').value = '2000';
+            }
+        } else {
+            // Show floating panel - EXPLICITLY set the classes we want
+            panel.classList.remove('hidden', 'show'); // Remove both first
+            panel.classList.add('show'); // Then add only show
+            btn.classList.add('active');
+        }
+    }
 }
 
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeAllPanels();
-            });
+// 3. Update closeAllPanels to destroy the activity modal:
+function closeAllPanels() {
+    // Close floating panels - remove show, don't add hidden
+    document.querySelectorAll('.floating-panel').forEach(panel => {
+        panel.classList.remove('show');
+    });
+    
+    // Close modals - add hidden, remove show
+    const modals = ['formatsModal', 'tagManagerModal', 'parcelModal', 'editParcelModal', 'activityModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show'); // Remove show first
+            modal.classList.add('hidden');  // Then add hidden
+        }
+    });
+    
+    // Destroy activity modal to free memory when closing
+    const activityModal = document.getElementById('activityModal');
+    if (activityModal) {
+        activityModal.remove();
+    }
+    
+    // Remove active state from all buttons
+    document.querySelectorAll('.hamburger-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+}
 
+// New helper function
+function closeAllModals() {
+    const modals = ['formatsModal', 'tagManagerModal', 'parcelModal', 'editParcelModal', 'activityModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            // ONLY add hidden, remove show if it exists
+            modal.classList.add('hidden');
+            modal.classList.remove('show'); // Remove this class if it got added by mistake
+        }
+    });
+}
 
 // TAG FILTERS!!!11 multiselect filter logic
 function updateMultiSelectFilter(type) {
@@ -1611,11 +1677,11 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <!-- Formats Modal -->
-    <div id="formatsModal" class="modal hidden" onclick="toggleFormatsSection(event)">
-        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+<div id="formatsModal" class="modal hidden" onclick="if(event.target === this) closeAllPanels()">
+            <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3>Manage Formats</h3>
-                <button class="btn btn-secondary" onclick="toggleFormatsSection()">×</button>
+<button class="btn btn-secondary" onclick="closeAllPanels()">×</button>
             </div>
             
             <div style="margin-bottom: 20px;">
@@ -1629,17 +1695,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             <div style="text-align: right;">
                 <button class="btn" onclick="saveFormats()">Save Changes</button>
-                <button class="btn btn-secondary" onclick="toggleFormatsSection()">Cancel</button>
+<button class="btn btn-secondary" onclick="closeAllPanels()">×</button>
             </div>
         </div>
     </div>
 
 <!-- Tag Manager Modal -->
-<div id="tagManagerModal" class="modal hidden" onclick="toggleTagManager(event)">
-    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+<div id="tagManagerModal" class="modal hidden" onclick="if(event.target === this) closeAllPanels()">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3>Manage Tags</h3>
-            <button class="btn btn-secondary" onclick="toggleTagManager()">×</button>
+        <button class="btn btn-secondary" onclick="closeAllPanels()">×</button>
         </div>
         
         <div id="tagManagerContent">
@@ -1647,7 +1713,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         
         <div style="text-align: right; margin-top: 20px;">
-            <button class="btn" onclick="toggleTagManager()">Close</button>
+<button class="btn btn-secondary" onclick="closeAllPanels()">Close</button>
         </div>
     </div>
 </div>
@@ -1776,6 +1842,25 @@ document.addEventListener('DOMContentLoaded', function() {
             parcels = [];
         }
         let currentView = 'grid';
+
+        function toggleView() {
+            const btn = document.getElementById('viewToggleBtn');
+            const text = document.getElementById('viewToggleText');
+            const columnBtn = document.getElementById('columnToggleBtn');
+            
+            if (currentView === 'grid') {
+                currentView = 'table';
+                text.textContent = '📇 Grid View';
+                columnBtn.style.display = 'block';
+            } else {
+                currentView = 'grid';
+                text.textContent = '📋 Table View';
+                columnBtn.style.display = 'none';
+            }
+            
+            renderView();
+        }
+
         let showTotals = true;
         let sortState = { field: null, direction: 'asc' }; // Track sort state
         let currentEditingParcel = null; // Track which parcel is being edited
@@ -2766,13 +2851,9 @@ function updateTotals() {
             parcelHamburger.classList.toggle('active');
         }
 
-        function toggleFormatsSection() {
-            const formatsSection = document.getElementById('formatsModal');
-            formatsSection.classList.toggle('hidden');
-            const formatsHamburger = document.getElementById('formatsHamburger');
-            formatsHamburger.classList.toggle('active');
-            renderFormatsTable();
-        }
+function toggleFormatsSection() {
+    toggleFloatingPanel('formatsModal', document.getElementById('formatsHamburger'), true);
+}
         function toggleFiltersSection() {
             const filtersSection = document.getElementById('filtersSection');
             filtersSection.classList.toggle('hidden');
@@ -2895,78 +2976,85 @@ function saveFormats() {
 }
 
 function showActivityLog() {
+    const btn = document.getElementById('activityHamburger');
+    toggleFloatingPanel('activityModal', btn, true);
+}
+
+function createActivityModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.id = 'activityModal';
+    modal.className = 'modal hidden';
+    modal.onclick = (e) => { if (e.target === modal) closeAllPanels(); };
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3>Import Activity Log</h3>
-                <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">×</button>
+                <button class="btn btn-secondary" onclick="closeAllPanels()">×</button>
             </div>
             <div style="margin-bottom: 15px;">
-                <button class="btn btn-secondary" onclick="clearActivityLog(); this.closest('.modal').remove();" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Clear Log</button>
+                <button class="btn btn-secondary" onclick="clearActivityLog(); closeAllPanels();" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Clear Log</button>
             </div>
-            ${activityLog.length === 0 ? 
-                '<p style="color: #9ca3af; text-align: center; padding: 40px;">No import activity yet</p>' :
-                activityLog.map(session => `
-                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
-                        <div style="font-weight: 600; color: #374151; margin-bottom: 12px;">
-                            ${new Date(session.timestamp).toLocaleString()}
-                        </div>
-                        
-                        ${session.newOrders.length > 0 ? `
-                            <div style="margin-bottom: 12px;">
-                                <strong style="color: #059669;">✅ ${session.newOrders.length} New Orders:</strong>
-                                <div style="margin-left: 16px; font-size: 11px;">
-                                    ${session.newOrders.map(order => 
-                                        `• #${order.orderId}: ${order.title.substring(0, 40)}${order.title.length > 40 ? '...' : ''}`
-                                    ).join('<br>')}
-                                </div>
-                            </div>
-                        ` : ''}
-                        
-                        ${session.updatedOrders.length > 0 ? `
-                            <div style="margin-bottom: 12px;">
-                                <strong style="color: #d97706;">🔄 ${session.updatedOrders.length} Updated Orders:</strong>
-                                <div style="margin-left: 16px; font-size: 11px;">
-                                    ${session.updatedOrders.map(order => `
-                                        <div style="margin-bottom: 8px;">
-                                            <strong>#${order.orderId}:</strong> ${order.title.substring(0, 30)}${order.title.length > 30 ? '...' : ''}
-                                            <div style="margin-left: 12px; color: #6b7280;">
-                                                ${Object.entries(order.changes).map(([field, change]) => {
-                                                    const fieldName = field === 'storageDays' ? 'Storage Days' : 
-                                                                    field === 'neokyoNotes' ? 'Notes' : 
-                                                                    field === 'yen' ? 'Yen Price' :
-                                                                    field === 'usd' ? 'USD Price' :
-                                                                    field.charAt(0).toUpperCase() + field.slice(1);
-                                                    return `${fieldName}: "${change.from}" → "${change.to}"`;
-                                                }).join('<br>')}
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-                        
-                        ${session.unchangedOrders.length > 0 ? `
-                            <div>
-                                <strong style="color: #6b7280;">📊 ${session.unchangedOrders.length} Unchanged Orders</strong>
-                            </div>
-                        ` : ''}
-                    </div>
-                `).join('')
-            }
+            <div id="activityContent">
+                <!-- Content will be populated by populateActivityLog() -->
+            </div>
         </div>
     `;
-    
     document.body.appendChild(modal);
+}
+
+// Extract your existing HTML generation into this function:
+function populateActivityLog() {
+    const contentDiv = document.getElementById('activityContent');
     
-    // Close on outside click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
+    contentDiv.innerHTML = activityLog.length === 0 ? 
+        '<p style="color: #9ca3af; text-align: center; padding: 40px;">No import activity yet</p>' :
+        activityLog.map(session => `
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
+                <div style="font-weight: 600; color: #374151; margin-bottom: 12px;">
+                    ${new Date(session.timestamp).toLocaleString()}
+                </div>
+                
+                ${session.newOrders.length > 0 ? `
+                    <div style="margin-bottom: 12px;">
+                        <strong style="color: #059669;">✅ ${session.newOrders.length} New Orders:</strong>
+                        <div style="margin-left: 16px; font-size: 11px;">
+                            ${session.newOrders.map(order => 
+                                `• #${order.orderId}: ${order.title.substring(0, 40)}${order.title.length > 40 ? '...' : ''}`
+                            ).join('<br>')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${session.updatedOrders.length > 0 ? `
+                    <div style="margin-bottom: 12px;">
+                        <strong style="color: #d97706;">🔄 ${session.updatedOrders.length} Updated Orders:</strong>
+                        <div style="margin-left: 16px; font-size: 11px;">
+                            ${session.updatedOrders.map(order => `
+                                <div style="margin-bottom: 8px;">
+                                    <strong>#${order.orderId}:</strong> ${order.title.substring(0, 30)}${order.title.length > 30 ? '...' : ''}
+                                    <div style="margin-left: 12px; color: #6b7280;">
+                                        ${Object.entries(order.changes).map(([field, change]) => {
+                                            const fieldName = field === 'storageDays' ? 'Storage Days' : 
+                                                            field === 'neokyoNotes' ? 'Notes' : 
+                                                            field === 'yen' ? 'Yen Price' :
+                                                            field === 'usd' ? 'USD Price' :
+                                                            field.charAt(0).toUpperCase() + field.slice(1);
+                                            return `${fieldName}: "${change.from}" → "${change.to}"`;
+                                        }).join('<br>')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${session.unchangedOrders.length > 0 ? `
+                    <div>
+                        <strong style="color: #6b7280;">📊 ${session.unchangedOrders.length} Unchanged Orders</strong>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
 }
 
 // Function to clear activity log
@@ -2974,6 +3062,13 @@ function clearActivityLog() {
     if (confirm('Clear all import activity history?')) {
         activityLog = [];
         localStorage.removeItem('activityLog');
+        
+        // Refresh the content if modal is open
+        const contentDiv = document.getElementById('activityContent');
+        if (contentDiv) {
+            populateActivityLog();
+        }
+        
         alert('Activity log cleared.');
     }
 }
@@ -3565,15 +3660,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function toggleTagManager() {
-    const tagManagerModal = document.getElementById('tagManagerModal');
-    tagManagerModal.classList.toggle('hidden');
-    const tagsHamburger= document.getElementById('tagsHamburger');
-    tagsHamburger.classList.toggle('active');
-    
-    // Only render content when opening (not closing)
-    if (!tagManagerModal.classList.contains('hidden')) {
-        renderTagManagerContent();
-    }
+    toggleFloatingPanel('tagManagerModal', document.getElementById('tagsHamburger'), true);
 }
 
 function closeTagManagerModalOnOutsideClick(event) {
