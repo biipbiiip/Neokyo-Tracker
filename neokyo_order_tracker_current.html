@@ -4254,12 +4254,12 @@ function addNewTagNew(orderId) {
 }
 
 function editTagNew(tagElement, orderId, currentTag) {
-    console.log('=== DIRECT editTagNew called:', orderId, currentTag);
+    // console.log('=== DIRECT editTagNew called:', orderId, currentTag);
     
-    if (tagElement.querySelector('.direct-tag-input')) {
-        console.log('Already editing');
-        return;
-    }
+    // if (tagElement.querySelector('.direct-tag-input')) {
+    //     console.log('Already editing');
+    //     return;
+    // }
     
     const originalContent = tagElement.innerHTML;
     const isDummyTag = tagElement.classList.contains('dummy-tag');
@@ -4322,6 +4322,8 @@ function editTagNew(tagElement, orderId, currentTag) {
                 localStorage.setItem('orders', JSON.stringify(allOrders));
                 console.log('=== DIRECT Saved to localStorage');
                 
+                setTimeout(() => refreshTagsUINew(orderId), 100);
+
                 // Force refresh
                 setTimeout(() => {
                     applyFilters();
@@ -4367,6 +4369,53 @@ function editTagNew(tagElement, orderId, currentTag) {
         setTimeout(saveEdit, 200);
     };
 };
+
+
+
+function removeTagNew(event, orderId, tagToRemove) {
+    console.log('removeTagNew called:', orderId, tagToRemove);
+    event.stopPropagation();
+    event.preventDefault();
+    
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = allOrders.find(o => o.id == orderId);
+    if (!order) {
+        console.error('Order not found:', orderId);
+        return;
+    }
+    
+    const currentTags = order.tags ? order.tags.split(' ').filter(t => t.trim()) : [];
+    const newTags = currentTags.filter(tag => tag !== tagToRemove);
+    
+    updateOrder(orderId, 'tags', newTags.join(' '));
+    
+    setTimeout(() => refreshTagsUINew(orderId), 100);
+}
+
+function addTagToOrderNew(orderId, newTag) {
+    console.log('addTagToOrderNew called:', orderId, newTag);
+    
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = allOrders.find(o => o.id == orderId);
+    if (!order) {
+        console.error('Order not found:', orderId);
+        return;
+    }
+    
+    const currentTags = order.tags ? order.tags.split(' ').filter(t => t.trim()) : [];
+    
+    // Don't add duplicate tags
+    if (!currentTags.includes(newTag)) {
+        currentTags.push(newTag);
+        updateOrder(orderId, 'tags', currentTags.join(' '));
+        console.log('Tag added successfully');
+    } else {
+        console.log('Tag already exists');
+    }
+    
+    setTimeout(() => refreshTagsUINew(orderId), 100);
+}
+
 
 function refreshTagsUINew(orderId) {
     console.log('refreshTagsUINew called:', orderId);
