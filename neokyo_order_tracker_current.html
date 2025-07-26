@@ -32,7 +32,7 @@
         }
 
         #header {
-            font-size:16px !important; font-weight:800; cursor: pointer;
+            font-size:16px !important; font-weight:800; cursor: pointer; width: fit-content
         }
 
         .header {
@@ -72,7 +72,6 @@
         }
 
         .btn {
-            background: rgb(106, 92, 201);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -238,9 +237,8 @@
         .grid-item .details {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
             color: rgb(106, 92, 201);
-            margin-bottom: 12px;
+            margin: 6px 0;
         }
 
         .grid-item .tags {
@@ -251,8 +249,8 @@
         }
 
         .tag {
-            background: rgba(167, 139, 250, 0.1);
             color: rgba(153,145,216,1);
+            background: rgba(167, 139, 250, 0.1);
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -275,6 +273,8 @@
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid #e5e7eb;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .table-view table {
@@ -290,7 +290,9 @@
             font-weight: 500;
             font-size: 12px;
             cursor: pointer;
-            position: relative;
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
         }
 
         .table-view th:hover {
@@ -644,6 +646,8 @@
         .table-view td.hidden-column {
             display: none;
         }
+
+        .grid-item select {margin: 0 -5px}
     </style>
 </head>
 <body>
@@ -892,7 +896,7 @@
         <!-- Floating Panels -->
         <div id="filtersPanel" class="">
             <div id="headerSection" class="filter-header">
-                <strong id="filtersTitle">Filters / </strong>
+                <strong id="filtersTitle" style="font-weight: 800; min-width:80px">Filters / </strong>
                             <div id="totalsRow" class="totals-row" style="">
                 <div class="total-item">
                     <div class="total-label">Total Orders</div>
@@ -2124,7 +2128,7 @@ function renderGridView() {
         <div class="grid-item ${selectedOrders.has(order.id) ? 'batch-mode-active' : ''} ${batchMode ? 'batch-selectable' : ''}" 
              ${batchMode ? `onclick="toggleGridItemSelection('${order.id}')"` : ''}>
             ${batchMode ? `<input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(order.id) ? 'checked' : ''} readonly>` : ''}
-            <img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='">
+            <a href="${order.url}" target="_blank" onclick="event.stopPropagation()"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='"></a>
             <div class="order-id">#${order.orderId}</div>
             <h3>${order.title}</h3>
             <div class="price">¥${order.yen} (${order.usd})</div>
@@ -2134,9 +2138,9 @@ function renderGridView() {
                 <span>Status <span class="detail-val">${order.status || 'Unknown'}</span></span>
             </div>
             <div class="details">
-                <span>Items <input type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)" style="width: 50px;" onclick="event.stopPropagation()"></span>
+                <span>Items <input type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)" style="width: 40px;" onclick="event.stopPropagation()"></span>
                 <span>Format 
-                    <select onchange="updateOrder('${order.id}', 'bookFormat', this.value)" style="width: 60px;" onclick="event.stopPropagation()">
+                    <select onchange="updateOrder('${order.id}', 'bookFormat', this.value)" style="width: 70px;" onclick="event.stopPropagation()">
                         ${Object.keys(bookFormats).map(format => 
                             `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
                         ).join('')}
@@ -2155,10 +2159,10 @@ function renderGridView() {
 
             ${renderTagsUI(order.id, order.tags)}
 
-            <div class="actions">
+            <!--- <div class="actions">
                 <a href="${order.url}" class="btn btn-small" target="_blank" onclick="event.stopPropagation()">Open</a>
                 <button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}'); event.stopPropagation()">Delete</button>
-            </div>
+            </div> -->
         </div>
     `).join('');
 }
@@ -2246,6 +2250,14 @@ function renderTableView() {
                     </tr>
                 `;}).join('')}
             </tbody>
+
+  <tfoot>
+    <tr>
+      <th scope="row">Totals</th>
+      <td>Calculated Total 1</td>
+      <td>Calculated Total 2</td>
+    </tr>
+  </tfoot>
         </table>
     `;
 }
@@ -3699,6 +3711,8 @@ function renderTagsUI(orderId, tagsString) {
             ${tags.map(tag => `
                 <span class="tag-item" onclick="editTagNew(this, '${orderId}', '${tag}'); event.stopPropagation();">
                     ${tag}
+                    <div class="tag-delete-invisible" onclick="removeTagNew(event, '${orderId}', '${tag}'); event.stopPropagation();">
+                        &times;</div>
                     <span class="tag-remove" onclick="removeTagNew(event, '${orderId}', '${tag}');">&times;</span>
                 </span>
             `).join('')}
@@ -3709,18 +3723,8 @@ function renderTagsUI(orderId, tagsString) {
             </button> -->
             
             <!-- yeehaw -->
-            <span class="dummy-tag" id="dummy-tag-${orderId}" style="font-size:10px !important;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    transition: all 0.2s;" onclick="editTagNew(this, '${orderId}', ''); event.stopPropagation();">
-                + Add Tag
+            <span class="dummy-tag" id="dummy-tag-${orderId}" onclick="editTagNew(this, '${orderId}', ''); event.stopPropagation();">
+                + 
             </span>
         </div>
     `;
@@ -3918,7 +3922,8 @@ function activateDummyTag(orderId) {
     background: #f7f8f9f7;
     padding-top: 10px;
     padding-bottom: 13px;
-    font-size: 12px}
+    font-size: 12px;
+    }
 
     .filters {
     margin-top:-6px;
@@ -4032,26 +4037,22 @@ function activateDummyTag(orderId) {
     gap: 6px;
     align-items: center;
     min-height: 24px;
-    padding: 4px;
     border-radius: 4px;
     transition: background-color 0.2s;
 }
 
-.tags-container:hover {
-    background-color: rgba(167, 139, 250, 0.05);
-}
-
 .tag-item {
-    background: rgba(167, 139, 250, 0.15);
-    color: rgba(106, 92, 201, 1);
-    padding: 4px 8px;
+    color: rgba(153,145,216,1);
+    background: rgba(167, 139, 250, 0.1);
+    padding: 2px 8px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: 11px !important;
     display: flex;
     align-items: center;
     gap: 4px;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
 }
 
 .tag-item:hover {
@@ -4072,32 +4073,29 @@ function activateDummyTag(orderId) {
     transition: opacity 0.2s;
 }
 
+.tag-delete-invisible {
+    position: absolute;
+    right: 0;
+    width: 15px;
+    opacity: 0;
+}
+
+.tag-delete-invisible:hover + .tag-remove {
+    color: #ef4444;
+}
+
 .tag-item .tag-remove:hover {
     opacity: 1;
     color: #ef4444;
 }
 
-.add-tag-btn {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    transition: all 0.2s;
-}
-
-.add-tag-btn:hover {
-    background: #2563eb;
+.dummy-tag:hover {
+    background: #2563ebde;
     transform: translateY(-1px);
 }
 
 .tag-input {
-    border: 2px solid #3b82f6;
+    border: 2px solid ##3b82f6fa;
     padding: 4px 8px;
     border-radius: 12px;
     font-size: 11px;
@@ -4106,32 +4104,25 @@ function activateDummyTag(orderId) {
     background: white;
 }
 
-</style>
-<style>
-/* .dummy-tag {
-    background: rgba(167, 139, 250, 0.15);
-    color: rgba(106, 92, 201, 1);
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    display: none; /* Hidden by default */
-    cursor: pointer;
-} */
-
-
 .dummy-tag {
+    font-size:11px !important;
     background: #3b82f6;
     color: white;
     border: none;
-    padding: 4px 8px;
+    padding: 2px 8px;
     border-radius: 12px;
-    font-size: 11px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 2px;
     transition: all 0.2s;
 }
+
+.dummy-tag:hover::after {
+    content: 'Add Tag';
+    color: white;
+}
+
 </style>
 
 <script>
@@ -4320,7 +4311,6 @@ function editTagNew(tagElement, orderId, currentTag) {
                 }
                 
                 localStorage.setItem('orders', JSON.stringify(allOrders));
-                console.log('=== DIRECT Saved to localStorage');
                 
                 setTimeout(() => refreshTagsUINew(orderId), 100);
 
@@ -4331,7 +4321,6 @@ function editTagNew(tagElement, orderId, currentTag) {
             }
         } else if (isDummyTag) {
             // Empty input on dummy tag - just cancel
-            console.log('=== DUMMY Empty input, canceling');
             cancelEdit();
             return;
         } else {
@@ -4353,7 +4342,6 @@ function editTagNew(tagElement, orderId, currentTag) {
     
     // Simple event handling
     input.onkeydown = function(e) {
-        console.log('=== DIRECT Edit key:', e.key);
         e.stopPropagation();
         
         if (e.key === 'Enter') {
