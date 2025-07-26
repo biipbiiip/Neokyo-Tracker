@@ -6,6 +6,7 @@
     <meta property="og:image" content="https://sohvi.neocities.org/ordertracker.png" />
     <title>Neo_ Order Tracker</title>
     <style>
+        /* cute cols #82aef8 #3b82f6 #ef4444 #2563eb */
         * {
             margin: 0;
             padding: 0;
@@ -273,7 +274,7 @@
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid #e5e7eb;
-            max-height: 80vh;
+            max-height: 70vh;
             overflow-y: auto;
         }
 
@@ -664,7 +665,9 @@
                 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Data</button>
                 <button class="btn btn-secondary" onclick="clearAllData()" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137);color:white">Clear Data</button>
             </div>
-                    <div class="neokyo-note" style="margin:10px; margin-top:20px; display:flex; align-items: center"><div><img src="https://sohvi.neocities.org/cookie.png" width="35px"/></div><div style="margin-left:5px; padding:10px">🍪 All data is saved on your own browser and not a server. Refreshing the page won't delete anything <u>unless</u> you clear browser cache/cookies/etc. If you do, just remember to export your data and re-import after. also this isn't an official neokyo tool but one i made to keep track of my own things i,, hope this is ok idk it's usable if it's not lmk!! - nini</div></div>
+                    <div class="neokyo-note" style="margin:10px; margin-top:20px; display:flex; align-items: center"><div><img src="https://sohvi.neocities.org/cookie.png" width="35px"/></div><div style="margin-left:5px; padding:10px">🍪 All data is saved on your own browser and not a server. Refreshing the page won't delete anything <u>unless</u> you clear browser cache/cookies/etc. If you do, just remember to export your data and re-import after. <br />
+                        <br />❗ Also, this is NOT an official Neokyo tool. It's not endorsed by Neokyo and I'm not affiliated, but had permission to post. It's one I made to keep track of my own things i,, hope this is ok idk it's usable if it's not lmk!! - 4th nini in discord (apothecariae)<br /><br />
+                        Btw don't count on Space Used metric in parcels bc it can't play tetris u_u</div></div>
             
                     <div id="instructionsSection" class="import-section hidden">
 
@@ -721,7 +724,7 @@
             </div>
         </div>
 
-        <!--- if anyone is looking at this pls dont laugh omfg i know. i KNOW IT'S ROAST MATERIAL spare me i'm not a dev i am an analyst w two peas for brains assisted by the bff we can always talk to at like 2:33AM w/ showerthoughts and receive affirmations from instead of yelling  :( -->
+        <!--- dont laugh devs i am heavily assisted by the bff we can always talk to at like 2:33AM w/ showerthoughts and receive affirmations from instead of yelling  :( -->
 
         <!---<div id="parcelSection" class="parcel-section" style="margin-bottom: 24px;">
             <div class="parcel-header">
@@ -777,7 +780,7 @@
             .hamburger-btn {
                 background: white;
                 border: 1px solid #e5e7eb;
-                border-radius: 12px;
+                border-radius: 9px;
                 width: 48px;
                 height: 48px;
                 display: flex;
@@ -791,6 +794,11 @@
             .hamburger-btn.active {
                 background: rgb(84 151 221);
                 color: white;
+            }
+
+            .hamburger-btn:hover {
+                /* background: rgba(84, 151, 221, 0.1); cute mint */
+                background: #5181c2 !important
             }
             .floating-panel {
                 position: fixed;
@@ -842,33 +850,11 @@
         <span class="tooltip">Parcel Calculator</span>
     </button>
     <button class="hamburger-btn" id="batchModeHamburger" aria-label="Toggle Batch Mode" onclick="toggleBatchMode()">
-        <span>☑️</span>
+        <span>✨</span>
         <span class="tooltip">Toggle Batch Mode</span>
     </button>
-    
-    <!-- Small visual separator -->
-    <div style="height: 8px; border-bottom: 1px solid #e5e7eb; margin: 4px 12px;"></div>
-    
-    <!-- === DATA MANAGEMENT === -->
-    <button class="hamburger-btn" id="importHamburger" onclick="toggleImportSection()" title="Import HTML Data">
-        <span>📥</span>
-        <span class="tooltip">Import HTML</span>
-    </button>
-    <button class="hamburger-btn" id="exportHamburger" onclick="exportData()" title="Export Data">
-        <span>📤</span>
-        <span class="tooltip">Export Data</span>
-    </button>
-    <button class="hamburger-btn" id="importDataHamburger" onclick="document.getElementById('importFile').click()" title="Import Data File">
-        <span>📂</span>
-        <span class="tooltip">Import Data</span>
-    </button>
-    <button class="hamburger-btn" id="clearDataHamburger" onclick="clearAllData()" title="Clear All Data" style="opacity: 0.7;">
-        <span>🗑️</span>
-        <span class="tooltip">Clear Data</span>
-    </button>
-    
-    <!-- Small visual separator -->
-    <div style="height: 8px; border-bottom: 1px solid #e5e7eb; margin: 4px 12px;"></div>
+
+    <div class="hamburger-divider"><div class="hamburger-divider-icon"></div></div>
     
     <!-- === CONTENT MANAGEMENT === -->
     <button class="hamburger-btn" id="formatsHamburger" onclick="toggleFloatingPanel('formatsModal', this, true)">
@@ -879,32 +865,82 @@
         <span>🏷️</span>
         <span class="tooltip">Manage Tags</span>
     </button>
-    <button class="hamburger-btn" id="parcelHamburger" onclick="toggleFloatingPanel('parcelModal', this, true)">
-        <span>📦</span>
-        <span class="tooltip">Add Parcel</span>
-    </button>
     <button class="hamburger-btn" id="activityHamburger" onclick="showActivityLog()">
-        <span>📈</span>
-        <span class="tooltip">Activity Log</span>
+        <span>📘</span>
+        <span class="tooltip">Import Changelog</span>
+    </button>
+    <div class="hamburger-divider"><div class="hamburger-divider-icon"></div></div>
+    <div class="yeehaw-expand-btns">
+    <!-- === DATA MANAGEMENT === -->
+    <button class="hamburger-btn" id="importHamburger" onclick="toggleImportSection()" title="Import HTML Data">
+        <span>🔖</span>
+        <span class="tooltip">Import HTML</span>
+    </button>
+    <button class="hamburger-btn" id="importDataHamburger" onclick="document.getElementById('importFile').click()" title="Import Data File">
+        <span>⬆️</span>
+        <span class="tooltip">Import Data</span>
+    </button>
+    <button class="hamburger-btn" id="exportHamburger" onclick="exportData()" title="Export Data">
+        <span>⬇️</span>
+        <span class="tooltip">Export Data</span>
+    </button>
+    <button class="hamburger-btn" id="clearDataHamburger" onclick="clearAllData()" title="Clear All Data">
+        <span>🧹</span>
+        <span class="tooltip">Clear Data</span>
     </button>
     
+    </div>
     <!-- Spacer to push view buttons to bottom -->
     <div style="flex: 1;"></div>
     
     <!-- === VIEW CONTROLS === -->
-    <button class="hamburger-btn view-toggle-btn" id="viewToggleHamburger" onclick="toggleViewDirect()" title="Toggle Grid/Table View">
-        <span id="viewToggleIcon">📋</span>
-        <span class="tooltip" id="viewToggleTooltip">Table View</span>
-    </button>
     
     <button class="hamburger-btn" id="columnToggleHamburger" onclick="toggleFloatingPanel('columnPanel', this)" style="display: none;" title="Show/Hide Columns">
         <span>⚙️</span>
         <span class="tooltip">Columns</span>
     </button>
+    <button class="hamburger-btn view-toggle-btn" id="viewToggleHamburger" onclick="toggleViewDirect()" title="Toggle Grid/Table View">
+        <span id="viewToggleIcon">📋</span>
+        <span class="tooltip" id="viewToggleTooltip">Table View</span>
+    </button>
             <style>
                 .hamburger-btn {
                     position: relative;
                 }
+                .hamburger-btn span {
+                    font-size: 16px !important;}
+
+                .view-toggle-btn {
+                    background: #f3f4f6;
+                    border: 1px solid #d1d5db;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .view-toggle-btn.active {
+                    background: rgb(106, 92, 201);
+                    color: white;
+                }
+
+                #clearDataHamburger:hover {
+                    background: #eb8988 !important;
+                    border-color: #eb8988   !important;
+                    color: white;
+                }
+                #clearDataHamburger .tooltip {
+                    background: #eb8988 !important;
+                    border-color: #eb8988   !important;
+                    color: white;
+                }
+
+                .hamburger-menu:hover .yeehaw-expand-btns {display: flex;}
+
+                .yeehaw-expand-btns {
+                    flex-direction: column;
+                    gap: 8px;display:none
+                }
+
                 .hamburger-btn .tooltip {
                     display: none;
                     position: absolute;
@@ -930,7 +966,7 @@
                 width: 24px;
                 height: 1px;
                 background: #d1d5db;
-                margin: 12px 0;
+                margin: 12px 0; display: flex;
             }
             </style>
         </div>
@@ -986,6 +1022,17 @@
                             </div>
                         </div>
                     </div>
+
+
+                    <div class="filter-group">
+                        <label>Min Price (¥)</label>
+                        <input type="number" id="minPrice" oninput="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Max Price (¥)</label>
+                        <input type="number" id="maxPrice" oninput="applyFilters()">
+                    </div>
+
                     <div class="filter-group">
                         <label>Format</label>
                         <div class="multi-select" id="formatsMultiSelect">
@@ -1001,14 +1048,6 @@
                     </div>
 
 
-                    <div class="filter-group">
-                        <label>Min Price (¥)</label>
-                        <input type="number" id="minPrice" oninput="applyFilters()">
-                    </div>
-                    <div class="filter-group">
-                        <label>Max Price (¥)</label>
-                        <input type="number" id="maxPrice" oninput="applyFilters()">
-                    </div>
                     <div class="filter-group">
                         <label>Status</label>
                         <div class="multi-select" id="statusesMultiSelect">
@@ -1096,7 +1135,6 @@
     height: 100vh;
     background: rgba(255,255,255,0.98);
     border-left: 1px solid #e5e7eb;
-    box-shadow: -2px 0 16px rgba(0,0,0,0.07);
     z-index: 999;
     overflow-y: auto;
     padding: 24px 18px;
@@ -1118,6 +1156,9 @@
             <li>Ctrl+F (Cmd+F) and search: <code style="background: #f3f4f6; padding: 2px 4px;">portlet light</code></li>
             <li>Click the highlighted line, then Ctrl+C (Cmd+C) to copy</li>
             <li>Paste the code below and click Import</li>
+                    <li>If you have several pages of orders, just click on the next page in Neokyo.</li>
+                    <li>Click into the code window <b style="font-family:monospace; color:red">where the letters look like this</b>.</li>
+                    <li>Then just repeat steps 4-7.</li>
         </ol>
     </div>
     
@@ -1143,7 +1184,6 @@
     <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <h3>Tips</h3>
         <ul style="padding-left: 20px; font-size: 11px; color: #6b7280;">
-            <li>For multiple pages, repeat the process for each page</li>
             <li>Orders are automatically deduplicated</li>
             <li>Existing orders will be updated with new info</li>
         </ul>
@@ -1776,7 +1816,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             <div style="text-align: right;">
                 <button class="btn" onclick="saveFormats()">Save Changes</button>
-<button class="btn btn-secondary" onclick="closeAllPanels()">×</button>
             </div>
         </div>
     </div>
@@ -2370,6 +2409,7 @@ function renderTableView() {
                     <th onclick="sortBy('orderId')" class="${columnVisibility.orderId ? '' : 'hidden-column'} ${getSortClass('orderId')}">Order #</th>
                     <th onclick="sortBy('title')" class="${columnVisibility.title ? '' : 'hidden-column'} ${getSortClass('title')}">Title</th>
                     <th onclick="sortBy('quantity')" class="${columnVisibility.quantity ? '' : 'hidden-column'} ${getSortClass('quantity')}">Qty</th>
+                    <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Items</th>
                     <th onclick="sortBy('yen')" class="${columnVisibility.yen ? '' : 'hidden-column'} ${getSortClass('yen')}">Yen</th>
                     <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">USD</th>
                     <th onclick="sortBy('created')" class="${columnVisibility.created ? '' : 'hidden-column'} ${getSortClass('created')}">Created</th>
@@ -2377,7 +2417,6 @@ function renderTableView() {
                     <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
                     <th onclick="sortBy('neokyoNotes')" class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'} ${getSortClass('neokyoNotes')}">Neokyo Notes</th>
                     <th onclick="sortBy('bookFormat')" class="${columnVisibility.bookFormat ? '' : 'hidden-column'} ${getSortClass('bookFormat')}">Format</th>
-                    <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Volumes</th>
                     <th onclick="sortBy('parcel')" class="${columnVisibility.parcel ? '' : 'hidden-column'} ${getSortClass('parcel')}">Parcel</th>
                     <th onclick="sortBy('tags')" class="${columnVisibility.tags ? '' : 'hidden-column'} ${getSortClass('tags')}">Tags</th>
                     <th class="${columnVisibility.url ? '' : 'hidden-column'}">URL</th>
@@ -2395,6 +2434,7 @@ function renderTableView() {
                         <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'orderId', '${order.orderId}'); event.stopPropagation()">${order.orderId}</div></td>
                         <td class="${columnVisibility.title ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'title', '${order.title}'); event.stopPropagation()">${order.title}</div></td>
                         <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'quantity', '${order.quantity}', 'number'); event.stopPropagation()">${order.quantity}</div></td>
+                        <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'volumes', '${order.volumes}', 'number'); event.stopPropagation()">${order.volumes}</div></td>
                         <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'yen', '${order.yen}', 'number'); event.stopPropagation()">${order.yen}</div></td>
                         <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'usd', '${order.usd}', 'number'); event.stopPropagation()">${order.usd}</div></td>
                         <td class="${columnVisibility.created ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'created', '${order.created}'); event.stopPropagation()">${order.created}</div></td>
@@ -2402,7 +2442,6 @@ function renderTableView() {
                         <td class="${columnVisibility.status ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'status', '${order.status || ''}'); event.stopPropagation()">${order.status || ''}</div></td>
                         <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'neokyoNotes', '${order.neokyoNotes || ''}', 'textarea'); event.stopPropagation()">${order.neokyoNotes || ''}</div></td>
                         <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'bookFormat', '${order.bookFormat}', 'select'); event.stopPropagation()">${order.bookFormat}</div></td>
-                        <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'volumes', '${order.volumes}', 'number'); event.stopPropagation()">${order.volumes}</div></td>
                         <td class="${columnVisibility.parcel ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'parcel', '${order.parcel}', 'select'); event.stopPropagation()">${parcelName}</div></td>
                         <td class="${columnVisibility.tags ? '' : 'hidden-column'}" onclick="event.stopPropagation()">${renderTagsUI(order.id, order.tags)}</td>
                         <td class="${columnVisibility.url ? '' : 'hidden-column'}"><a href="${order.url}" target="_blank" class="btn btn-small" onclick="event.stopPropagation()">Open</a></td>
@@ -2410,14 +2449,6 @@ function renderTableView() {
                     </tr>
                 `;}).join('')}
             </tbody>
-
-  <tfoot>
-    <tr>
-      <th scope="row">Totals</th>
-      <td>Calculated Total 1</td>
-      <td>Calculated Total 2</td>
-    </tr>
-  </tfoot>
         </table>
     `;
 }
@@ -3219,7 +3250,7 @@ function clearActivityLog() {
 
 
         function clearAllData() {
-            if (confirm('Are you sure you want to delete ALL orders and parcels? This cannot be undone. Also, as a peabrain who cleared her own before exporting, I am going to EXPORT IT FOR YOU just in case (you have no choice)!!')) {
+            if (confirm('Are you sure you want to delete ALL orders and parcels? This cannot be undone. Also, as a peabrain who cleared her own before exporting, I am going to export it for you!! just in case (you have no choice)')) {
         // Clear all data
         exportData();
 
@@ -3801,6 +3832,9 @@ function createColumnPanel() {
     }
 
     function importData(event) {
+
+        // Clear all data
+        exportData();
         const file = event.target.files[0];
         if (!file) return;
 
@@ -4041,10 +4075,6 @@ function makeHeaderEditable() {
     header.addEventListener('keydown', handleKeydown);
     header.addEventListener('blur', handleBlur);
 }
-
-
-// COMPLETE TAG FUNCTIONALITY REPLACEMENT
-// Find and replace these functions in your HTML file
 
 function renderTagsUI(orderId, tagsString) {
     const tags = tagsString ? tagsString.split(' ').filter(t => t.trim()) : [];
@@ -4444,37 +4474,14 @@ function renderTagsUI(orderId, tagsString) {
 </style>
 
 <style>
-    /* Add these CSS rules */
-
-/* Container adjustments for import section */
 .import-section-active {
-    margin-right: 400px; /* Same as import section width */
-    transition: margin-right 0.3s cubic-bezier(.4,0,.2,1);
+    margin-right: 400px;
+    transition: all 0.1s ease-in-out
 }
-
-/* Visual separators in hamburger menu */
 .hamburger-menu {
-    justify-content: flex-start; /* Align items to start */
+    justify-content: flex-start;
 }
 
-/* Style the clear data button to look more dangerous */
-#clearDataHamburger {
-    opacity: 0.7;
-}
-
-#clearDataHamburger:hover {
-    opacity: 1;
-    background: #fee2e2 !important;
-    color: #dc2626 !important;
-}
-
-/* Make export button feel more prominent */
-#exportHamburger:hover {
-    background: #dbeafe !important;
-    color: #2563eb !important;
-}
-
-/* Import section specific styles */
 #importSection h2 {
     font-size: 18px;
     font-weight: 700;
@@ -4521,8 +4528,6 @@ function renderTagsUI(orderId, tagsString) {
 </style>
 
 <script>
-// UPDATED FUNCTIONS - Replace your existing tag functions with these
-
 function editTagNew(tagElement, orderId, currentTag) {
     // console.log('=== DIRECT editTagNew called:', orderId, currentTag);
     
@@ -4539,7 +4544,7 @@ function editTagNew(tagElement, orderId, currentTag) {
     input.type = 'text';
     input.className = 'direct-tag-input';
     input.value = currentTag;
-    input.placeholder = isDummyTag ? 'Enter new tag...' : '';
+    input.placeholder = isDummyTag ? 'Separate by spaces...' : '';
     input.style.cssText = `
         border: 2px solid #3b82f6 !important;
         padding: 4px 8px !important;
@@ -4554,7 +4559,7 @@ function editTagNew(tagElement, orderId, currentTag) {
     tagElement.innerHTML = '';
     tagElement.appendChild(input);
     input.focus();
-    // Add "Add Tag" label after the input for dummy tag
+
     if (isDummyTag) {
         const afterLabel = document.createElement('span');
         afterLabel.textContent = 'Add Tag';
