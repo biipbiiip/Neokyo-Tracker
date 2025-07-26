@@ -783,7 +783,7 @@
             .hamburger-btn {
                 background: white;
                 border: 1px solid #e5e7eb;
-                border-radius: 10px;
+                border-radius: 12px;
                 width: 48px;
                 height: 48px;
                 display: flex;
@@ -844,26 +844,26 @@
                 <span>📦</span>
                 <span class="tooltip">Parcel Calculator</span>
             </button>
-<button class="hamburger-btn" id="formatsHamburger" onclick="toggleFloatingPanel('formatsModal', this, true)">
-    <span>📚</span>
-</button>
-<button class="hamburger-btn" id="tagsHamburger" onclick="toggleFloatingPanel('tagManagerModal', this, true)">
-    <span>🏷️</span>
-</button>
-<button class="hamburger-btn" id="parcelHamburger" onclick="toggleFloatingPanel('parcelModal', this, true)">
-    <span>📦</span>
-</button>
-<button class="hamburger-btn" id="activityHamburger" onclick="toggleFloatingPanel('activityModal', this, true)">
-    <span>📊</span>
-</button>
-            <button class="hamburger-btn" id="viewHamburger" aria-label="View Controls" onclick="toggleFloatingPanel('viewPanel', this)">
-                <span>&#9881;</span>
-                <span class="tooltip">Grid/Table View</span>
-            </button>
                 <button class="hamburger-btn" id="batchModeHamburger" aria-label="Toggle Batch Mode" onclick="toggleBatchMode()">
                     <span>☑️</span>
                     <span class="tooltip">Toggle Batch Mode</span>
                 </button>
+            <button class="hamburger-btn" id="viewHamburger" aria-label="View Controls" onclick="toggleFloatingPanel('viewPanel', this)">
+                <span>&#9881;</span>
+                <span class="tooltip">Grid/Table View</span>
+            </button>
+<button class="hamburger-btn" id="formatsHamburger" onclick="toggleFloatingPanel('formatsModal', this, true)">
+    <span>📚</span>
+                <span class="tooltip">Manage Formats</span>
+</button>
+<button class="hamburger-btn" id="tagsHamburger" onclick="toggleFloatingPanel('tagManagerModal', this, true)">
+    <span>🏷️</span>
+                <span class="tooltip">Manage Tags</span>
+</button>
+<button class="hamburger-btn" id="activityHamburger" onclick="toggleFloatingPanel('activityModal', this, true)">
+    <span>📊</span>
+                <span class="tooltip">Import History</span>
+</button>
                 <!-- <button class="hamburger-btn" id="batchControlsHamburger" aria-label="Batch Controls" onclick="toggleFloatingPanel('batchPanel', this)" style="display: none;">
                     <span>⚙️</span>
                     <span class="tooltip">Batch Controls</span>
@@ -1141,11 +1141,27 @@ function toggleFloatingPanel(panelId, btn, isModal = false) {
     
     // Special handling for activityModal - create it if it doesn't exist
     if (panelId === 'activityModal' && !panel) {
+        closeAllPanels(); // Close everything else first
         createActivityModal();
         const newPanel = document.getElementById('activityModal');
         newPanel.classList.remove('hidden');
         btn.classList.add('active');
         populateActivityLog();
+        return;
+    }
+    
+    // Special handling for activityModal - if it exists, treat it normally
+    if (panelId === 'activityModal' && panel) {
+        const isOpen = !panel.classList.contains('hidden');
+        closeAllPanels(); // This will remove the modal and deactivate the button
+        if (!isOpen) {
+            // Modal was just destroyed by closeAllPanels, so recreate it
+            createActivityModal();
+            const newPanel = document.getElementById('activityModal');
+            newPanel.classList.remove('hidden');
+            btn.classList.add('active');
+            populateActivityLog();
+        }
         return;
     }
     
@@ -1231,10 +1247,20 @@ function closeAllPanels() {
         activityModal.remove();
     }
     
-    // Remove active state from all buttons
+    // Remove active state from ONLY modal/panel buttons, NOT persistent UI buttons
+    const persistentButtons = ['filtersHamburger', 'parcelCalcHamburger', 'batchModeHamburger'];
     document.querySelectorAll('.hamburger-btn').forEach(btn => {
-        btn.classList.remove('active');
+        // Only remove active if it's NOT a persistent button
+        if (!persistentButtons.includes(btn.id)) {
+            btn.classList.remove('active');
+        }
     });
+    
+    // SPECIFICALLY handle activityHamburger since it's special
+    const activityBtn = document.getElementById('activityHamburger');
+    if (activityBtn) {
+        activityBtn.classList.remove('active');
+    }
 }
 
 // New helper function
@@ -2860,16 +2886,18 @@ function updateTotals() {
             instructionsSection.classList.toggle('hidden');
         }
 
-        function toggleParcelSection() {
-            const parcelSection = document.getElementById('parcelSection');
-            parcelSection.classList.toggle('hidden');
-            // const filtersPanel = document.getElementById('filtersPanel');
-            // filtersPanel.classList.toggle('parcel-section-active');
-            const pageContainer = document.getElementById('container');
-            pageContainer.classList.toggle('parcel-section-active');
-            const parcelHamburger= document.getElementById('parcelHamburger');
-            parcelHamburger.classList.toggle('active');
-        }
+function toggleParcelSection() {
+    const parcelSection = document.getElementById('parcelSection');
+    const parcelHamburger = document.getElementById('parcelCalcHamburger');
+    const pageContainer = document.getElementById('container');
+    
+    // Toggle the parcel section visibility
+    parcelSection.classList.toggle('hidden');
+    pageContainer.classList.toggle('parcel-section-active');
+    
+    // Toggle the button active state
+    parcelHamburger.classList.toggle('active');
+}
 
 function toggleFormatsSection() {
     toggleFloatingPanel('formatsModal', document.getElementById('formatsHamburger'), true);
@@ -4035,7 +4063,7 @@ function renderTagsUI(orderId, tagsString) {
     cursor: pointer;
 }
 
-.grid-item.batch-selectable img {pointer-events: none;}
+.grid-item.batch-selectable img, .grid-item.batch-selectable a {pointer-events: none;}
 
 .batch-checkbox {
     position: absolute;
