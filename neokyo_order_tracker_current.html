@@ -800,7 +800,7 @@
             }
             .floating-panel {
                 position: fixed;
-                top: 20px;
+                bottom: 20px;
                 left: 70px;
                 z-index: 1002;
                 min-width: 320px;
@@ -848,10 +848,10 @@
                     <span>☑️</span>
                     <span class="tooltip">Toggle Batch Mode</span>
                 </button>
-            <button class="hamburger-btn" id="viewHamburger" aria-label="View Controls" onclick="toggleFloatingPanel('viewPanel', this)">
+            <!-- <button class="hamburger-btn" id="viewHamburger" aria-label="View Controls" onclick="toggleFloatingPanel('viewPanel', this)">
                 <span>&#9881;</span>
                 <span class="tooltip">Grid/Table View</span>
-            </button>
+            </button> -->
 <button class="hamburger-btn" id="formatsHamburger" onclick="toggleFloatingPanel('formatsModal', this, true)">
     <span>📚</span>
                 <span class="tooltip">Manage Formats</span>
@@ -864,6 +864,23 @@
     <span>📊</span>
                 <span class="tooltip">Import History</span>
 </button>
+
+
+    
+    <!-- Spacer to push view buttons to bottom -->
+    <div style="flex: 1;"></div>
+    
+    <!-- Column toggle button - only show in table view -->
+    <button class="hamburger-btn" id="columnToggleHamburger" onclick="toggleFloatingPanel('columnPanel', this)" style="display: none;" title="Show/Hide Columns">
+        <span>⚙️</span>
+        <span class="tooltip">Columns</span>
+    </button>
+    
+    <!-- View toggle buttons at bottom -->
+    <button class="hamburger-btn view-toggle-btn" id="viewToggleHamburger" onclick="toggleViewDirect()" title="Toggle Grid/Table View">
+        <span id="viewToggleIcon">📋</span>
+        <span class="tooltip" id="viewToggleTooltip">Table View</span>
+    </button>
                 <!-- <button class="hamburger-btn" id="batchControlsHamburger" aria-label="Batch Controls" onclick="toggleFloatingPanel('batchPanel', this)" style="display: none;">
                     <span>⚙️</span>
                     <span class="tooltip">Batch Controls</span>
@@ -1005,93 +1022,7 @@
                 <strong>Totals</strong>
                 <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
             </div>
-        </div>
-
-        <div id="viewPanel" class="floating-panel">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <strong>View Controls</strong>
-                <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
-            </div>
-            <div class="view-controls" style="margin-top:10px;">
-                <button class="view-toggle-simple" id="viewToggleBtn" onclick="toggleView()">
-                    <span id="viewToggleText">📋 Table View</span>
-                </button>
-                <button id="columnToggleBtn" class="view-toggle" onclick="toggleColumnControls()" style="display: none;">Columns</button>
-            </div>
-                <div id="columnControls" class="column-controls">
-                    <div style="font-weight: 600; margin-bottom: 8px; color: #4b5563;">Show/Hide Columns</div>
-                    <div class="column-grid">
-                        <div class="column-item">
-                            <input type="checkbox" id="col-image" checked onchange="toggleColumn('image')">
-                            <label for="col-image">Image</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-orderId" checked onchange="toggleColumn('orderId')">
-                            <label for="col-orderId">Order #</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-title" checked onchange="toggleColumn('title')">
-                            <label for="col-title">Title</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-quantity" checked onchange="toggleColumn('quantity')">
-                            <label for="col-quantity">Quantity</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-yen" checked onchange="toggleColumn('yen')">
-                            <label for="col-yen">Yen</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-usd" checked onchange="toggleColumn('usd')">
-                            <label for="col-usd">USD</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-created" checked onchange="toggleColumn('created')">
-                            <label for="col-created">Created</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-storageDays" checked onchange="toggleColumn('storageDays')">
-                            <label for="col-storageDays">Storage Days</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-status" checked onchange="toggleColumn('status')">
-                            <label for="col-status">Status</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-neokyoNotes" checked onchange="toggleColumn('neokyoNotes')">
-                            <label for="col-neokyoNotes">Neokyo Notes</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-bookFormat" checked onchange="toggleColumn('bookFormat')">
-                            <label for="col-bookFormat">Format</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-volumes" checked onchange="toggleColumn('volumes')">
-                            <label for="col-volumes">Items</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-parcel" checked onchange="toggleColumn('parcel')">
-                            <label for="col-parcel">Parcel</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-tags" checked onchange="toggleColumn('tags')">
-                            <label for="col-tags">Tags</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-url" checked onchange="toggleColumn('url')">
-                            <label for="col-url">URL</label>
-                        </div>
-                        <div class="column-item">
-                            <input type="checkbox" id="col-actions" checked onchange="toggleColumn('actions')">
-                            <label for="col-actions">Actions</label>
-                        </div>
-                    </div>
-                    <div style="margin-top: 12px;">
-                        <button class="btn btn-secondary btn-small" onclick="showAllColumns()">Show All</button>
-                        <button class="btn btn-secondary btn-small" onclick="hideAllColumns()">Hide All</button>
-                    </div>
-                </div>
-            </div>
+        </div>  
 
 
     <div id="batchPanel" class="floating-panel">
@@ -1185,6 +1116,20 @@ function toggleFloatingPanel(panelId, btn, isModal = false) {
             panel.classList.remove('hidden', 'show');
             btn.classList.add('active');
             renderTagManagerContent();
+        }
+        return;
+    }
+    if (panelId === 'columnPanel') {
+        if (!document.getElementById('columnPanel')) {
+            createColumnPanel();
+        }
+        const panel = document.getElementById('columnPanel');
+        const isOpen = panel.classList.contains('show');
+        
+        closeAllPanels();
+        if (!isOpen) {
+            panel.classList.add('show');
+            btn.classList.add('active');
         }
         return;
     }
@@ -1889,23 +1834,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         let currentView = 'grid';
 
-        function toggleView() {
-            const btn = document.getElementById('viewToggleBtn');
-            const text = document.getElementById('viewToggleText');
-            const columnBtn = document.getElementById('columnToggleBtn');
-            
-            if (currentView === 'grid') {
-                currentView = 'table';
-                text.textContent = '📇 Grid View';
-                columnBtn.style.display = 'block';
-            } else {
-                currentView = 'grid';
-                text.textContent = '📋 Table View';
-                columnBtn.style.display = 'none';
-            }
-            
-            renderView();
-        }
 
         let showTotals = true;
         let sortState = { field: null, direction: 'asc' }; // Track sort state
@@ -2885,6 +2813,7 @@ function updateTotals() {
             const instructionsSection = document.getElementById('instructionsSection');
             instructionsSection.classList.toggle('hidden');
         }
+        
 
 function toggleParcelSection() {
     const parcelSection = document.getElementById('parcelSection');
@@ -3558,6 +3487,125 @@ function renderParcels() {
     }).join('');
 }
 
+
+
+function toggleViewDirect() {
+    const icon = document.getElementById('viewToggleIcon');
+    const tooltip = document.getElementById('viewToggleTooltip');
+    const columnBtn = document.getElementById('columnToggleHamburger');
+    
+    if (currentView === 'grid') {
+        // Switch to table view
+        currentView = 'table';
+        icon.textContent = '📇';
+        tooltip.textContent = 'Grid View';
+        columnBtn.style.display = 'flex'; // Show column toggle button
+    } else {
+        // Switch to grid view
+        currentView = 'grid';
+        icon.textContent = '📋';
+        tooltip.textContent = 'Table View';
+        columnBtn.style.display = 'none'; // Hide column toggle button
+        
+        // Close column panel if it's open
+        const columnPanel = document.getElementById('columnPanel');
+        if (columnPanel && columnPanel.classList.contains('show')) {
+            columnPanel.classList.remove('show');
+            document.getElementById('columnToggleHamburger').classList.remove('active');
+        }
+    }
+    
+    renderView();
+}
+
+function createColumnPanel() {
+    // Check if panel already exists
+    if (document.getElementById('columnPanel')) return;
+    
+    const panel = document.createElement('div');
+    panel.id = 'columnPanel';
+    panel.className = 'floating-panel';
+    panel.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong>Show/Hide Columns</strong>
+            <button class="btn btn-small btn-secondary" onclick="closeAllPanels()">×</button>
+        </div>
+        <div class="column-grid" style="margin-top: 12px;">
+            <div class="column-item">
+                <input type="checkbox" id="col-image" checked onchange="toggleColumn('image')">
+                <label for="col-image">Image</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-orderId" checked onchange="toggleColumn('orderId')">
+                <label for="col-orderId">Order #</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-title" checked onchange="toggleColumn('title')">
+                <label for="col-title">Title</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-quantity" checked onchange="toggleColumn('quantity')">
+                <label for="col-quantity">Quantity</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-yen" checked onchange="toggleColumn('yen')">
+                <label for="col-yen">Yen</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-usd" checked onchange="toggleColumn('usd')">
+                <label for="col-usd">USD</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-created" checked onchange="toggleColumn('created')">
+                <label for="col-created">Created</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-storageDays" checked onchange="toggleColumn('storageDays')">
+                <label for="col-storageDays">Storage Days</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-status" checked onchange="toggleColumn('status')">
+                <label for="col-status">Status</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-neokyoNotes" checked onchange="toggleColumn('neokyoNotes')">
+                <label for="col-neokyoNotes">Neokyo Notes</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-bookFormat" checked onchange="toggleColumn('bookFormat')">
+                <label for="col-bookFormat">Format</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-volumes" checked onchange="toggleColumn('volumes')">
+                <label for="col-volumes">Items</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-parcel" checked onchange="toggleColumn('parcel')">
+                <label for="col-parcel">Parcel</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-tags" checked onchange="toggleColumn('tags')">
+                <label for="col-tags">Tags</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-url" checked onchange="toggleColumn('url')">
+                <label for="col-url">URL</label>
+            </div>
+            <div class="column-item">
+                <input type="checkbox" id="col-actions" checked onchange="toggleColumn('actions')">
+                <label for="col-actions">Actions</label>
+            </div>
+        </div>
+        <div style="margin-top: 12px;">
+            <button class="btn btn-secondary btn-small" onclick="showAllColumns()">Show All</button>
+            <button class="btn btn-secondary btn-small" onclick="hideAllColumns()">Hide All</button>
+        </div>
+    `;
+    
+    document.body.appendChild(panel);
+}
+
+
     function exportData() {
         // Get ALL orders from localStorage, not just filtered ones
         let allOrders = [];
@@ -3665,6 +3713,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   observer.observe(filtersPanel);
 });
+
+
+    if (currentView === 'table') {
+        document.getElementById('viewToggleIcon').textContent = '📇';
+        document.getElementById('viewToggleTooltip').textContent = 'Grid View';
+        document.getElementById('columnToggleHamburger').style.display = 'flex';
+    }
 
 function validateOrderFormats() {
     let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
