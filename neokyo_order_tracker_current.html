@@ -1149,6 +1149,30 @@ function toggleFloatingPanel(panelId, btn, isModal = false) {
         return;
     }
     
+    // Special handling for formatsModal - render content if it exists
+    if (panelId === 'formatsModal' && panel) {
+        const isOpen = !panel.classList.contains('hidden');
+        closeAllPanels();
+        if (!isOpen) {
+            panel.classList.remove('hidden', 'show');
+            btn.classList.add('active');
+            renderFormatsTable();
+        }
+        return;
+    }
+    
+    // Special handling for tagManagerModal - render content if it exists
+    if (panelId === 'tagManagerModal' && panel) {
+        const isOpen = !panel.classList.contains('hidden');
+        closeAllPanels();
+        if (!isOpen) {
+            panel.classList.remove('hidden', 'show');
+            btn.classList.add('active');
+            renderTagManagerContent();
+        }
+        return;
+    }
+    
     if (!panel) {
         console.error('Panel not found:', panelId);
         return;
@@ -1162,16 +1186,12 @@ function toggleFloatingPanel(panelId, btn, isModal = false) {
     
     if (!isOpen) {
         if (isModal) {
-            // Show modal - EXPLICITLY set the classes we want
-            panel.classList.remove('hidden', 'show'); // Remove both first
+            // Show modal - remove hidden class
+            panel.classList.remove('hidden', 'show');
             btn.classList.add('active');
             
-            // Call specific render functions based on modal type
-            if (panelId === 'formatsModal') renderFormatsTable();
-            if (panelId === 'tagManagerModal') renderTagManagerContent();
-            if (panelId === 'activityModal') populateActivityLog();
+            // Only parcel modal needs form reset (since formats and tags are handled above)
             if (panelId === 'parcelModal') {
-                // Reset parcel form values
                 document.getElementById('parcelName').value = '';
                 document.getElementById('parcelLength').value = '60';
                 document.getElementById('parcelWidth').value = '45';
@@ -1180,9 +1200,9 @@ function toggleFloatingPanel(panelId, btn, isModal = false) {
                 document.getElementById('parcelBoxWeight').value = '2000';
             }
         } else {
-            // Show floating panel - EXPLICITLY set the classes we want
-            panel.classList.remove('hidden', 'show'); // Remove both first
-            panel.classList.add('show'); // Then add only show
+            // Show floating panel
+            panel.classList.remove('hidden', 'show');
+            panel.classList.add('show');
             btn.classList.add('active');
         }
     }
@@ -3074,21 +3094,6 @@ function clearActivityLog() {
 }
 
 
-        function openFormatsModal() {
-            document.getElementById('formatsModal').classList.remove('hidden');
-            renderFormatsTable();
-        }
-
-        function closeFormatsModal() {
-            document.getElementById('formatsModal').classList.add('hidden');
-        }
-
-        function closeFormatsModalOnOutsideClick(event) {
-            if (event.target.classList.contains('modal')) {
-                closeFormatsModal();
-            }
-        }
-
         function clearAllData() {
             if (confirm('Are you sure you want to delete ALL orders and parcels? This cannot be undone. Also, as a peabrain who cleared her own before exporting, I am going to EXPORT IT FOR YOU just in case (you have no choice)!!')) {
         // Clear all data
@@ -3131,36 +3136,36 @@ function clearActivityLog() {
             }
         }
 
-        function renderFormatsTable() {
-            const formatsTable = document.getElementById('formatsTable');
-            
-            formatsTable.innerHTML = `
-                <table style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th>Format Name</th>
-                            <th>Width (cm)</th>
-                            <th>Height (cm)</th>
-                            <th>Thickness (cm)</th>
-                            <th>Weight (grams)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${Object.entries(bookFormats).map(([name, format]) => `
-                            <tr>
-                                <td><input type="text" value="${name}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" step="1" value="${format.width}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" step="1" value="${format.height}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" step="1" value="${format.thickness}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><input type="number" value="${format.weight}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
-                                <td><button class="btn btn-small btn-secondary" onclick="deleteFormatRow(this)" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
+function renderFormatsTable() {
+    const formatsTable = document.getElementById('formatsTable');
+    
+    formatsTable.innerHTML = `
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Format Name</th>
+                    <th>Width (cm)</th>
+                    <th>Height (cm)</th>
+                    <th>Thickness (cm)</th>
+                    <th>Weight (grams)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${Object.entries(bookFormats).map(([name, format]) => `
+                    <tr>
+                        <td><input type="text" value="${name}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                        <td><input type="number" step="1" value="${format.width}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                        <td><input type="number" step="1" value="${format.height}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                        <td><input type="number" step="1" value="${format.thickness}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                        <td><input type="number" value="${format.weight}" style="width: 100%; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                        <td><button class="btn btn-small btn-secondary" onclick="deleteFormatRow(this)" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
 
         function addNewFormat() {
             const tbody = document.querySelector('#formatsTable tbody');
@@ -3658,16 +3663,6 @@ document.addEventListener('DOMContentLoaded', function() {
     validateOrderFormats();
 });
 
-
-function toggleTagManager() {
-    toggleFloatingPanel('tagManagerModal', document.getElementById('tagsHamburger'), true);
-}
-
-function closeTagManagerModalOnOutsideClick(event) {
-    if (event.target.classList.contains('modal')) {
-        closeTagManagerModal();
-    }
-}
 
 function renderTagManagerContent() {
     const uniqueTags = getUniqueTags();
