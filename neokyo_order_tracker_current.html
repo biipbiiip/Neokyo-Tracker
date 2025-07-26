@@ -321,21 +321,31 @@
             background: rgba(167, 139, 250, 0.05);
         }
 
-/* Make Title column wider */
-.editable-cell {
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    font-size:11px !important
-}
-
         .table-view img {
             width: 60px;
             height: 60px;
             object-fit: cover;
             border-radius: 6px;
+        }
+
+        .table-view tbody tr.batch-selectable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .table-view tbody tr.batch-selectable:hover {
+            background: rgba(59, 130, 246, 0.1) !important;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+        }
+
+        .table-view tbody tr.batch-mode-active {
+            background: rgba(59, 130, 246, 0.05) !important;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .table-view .batch-checkbox {
+            pointer-events: none; /* Prevent checkbox from intercepting clicks */
+            transform: scale(1.2);
         }
 
         /* Editable Cells in Table View */
@@ -2105,8 +2115,9 @@ function renderGridView() {
     tableView.classList.add('hidden');
     
     gridView.innerHTML = orders.map(order => `
-        <div class="grid-item ${selectedOrders.has(order.id) ? 'batch-mode-active' : ''}">
-            ${batchMode ? `<input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(order.id) ? 'checked' : ''} onchange="toggleOrderSelection('${order.id}', this)">` : ''}
+        <div class="grid-item ${selectedOrders.has(order.id) ? 'batch-mode-active' : ''} ${batchMode ? 'batch-selectable' : ''}" 
+             ${batchMode ? `onclick="toggleGridItemSelection('${order.id}')"` : ''}>
+            ${batchMode ? `<input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(order.id) ? 'checked' : ''} readonly>` : ''}
             <img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='">
             <div class="order-id">#${order.orderId}</div>
             <h3>${order.title}</h3>
@@ -2117,16 +2128,16 @@ function renderGridView() {
                 <span>Status <span class="detail-val">${order.status || 'Unknown'}</span></span>
             </div>
             <div class="details">
-                <span>Items <input type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)" style="width: 50px;"></span>
+                <span>Items <input type="number" value="${order.volumes}" onchange="updateOrder('${order.id}', 'volumes', this.value)" style="width: 50px;" onclick="event.stopPropagation()"></span>
                 <span>Format 
-                    <select onchange="updateOrder('${order.id}', 'bookFormat', this.value)" style="width: 60px;">
+                    <select onchange="updateOrder('${order.id}', 'bookFormat', this.value)" style="width: 60px;" onclick="event.stopPropagation()">
                         ${Object.keys(bookFormats).map(format => 
                             `<option value="${format}" ${order.bookFormat === format ? 'selected' : ''}>${format}</option>`
                         ).join('')}
                     </select>
                 </span>
                 <span>Parcel 
-                    <select onchange="updateOrder('${order.id}', 'parcel', this.value)" style="width: 80px;">
+                    <select onchange="updateOrder('${order.id}', 'parcel', this.value)" style="width: 80px;" onclick="event.stopPropagation()">
                         <option value="">None</option>
                         ${parcels.map(parcel => 
                             `<option value="${parcel.id}" ${order.parcel === parcel.id ? 'selected' : ''}>${parcel.name}</option>`
@@ -2138,16 +2149,32 @@ function renderGridView() {
             <div class="tags">
                 ${String(order.tags || '').split(' ').filter(tag => tag).map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>
-            <input type="text" value="${order.tags || ''}" placeholder="Add tags (separate by spaces)..." onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')" style="width: 100%; margin: 8px 0; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;">
+            <input type="text" value="${order.tags || ''}" placeholder="Add tags (separate by spaces)..." onchange="updateOrder('${order.id}', 'tags', this.value)" onkeydown="handleTagInput(event, '${order.id}')" style="width: 100%; margin: 8px 0; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px;" onclick="event.stopPropagation()">
             <div class="actions">
-                <a href="${order.url}" class="btn btn-small" target="_blank">Open</a>
-                <button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button>
+                <a href="${order.url}" class="btn btn-small" target="_blank" onclick="event.stopPropagation()">Open</a>
+                <button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}'); event.stopPropagation()">Delete</button>
             </div>
         </div>
     `).join('');
 }
 
-
+function toggleGridItemSelection(orderId) {
+    if (!batchMode) return;
+    
+    const orderIdStr = String(orderId);
+    const checkbox = document.getElementById(`batch-${orderId}`);
+    
+    if (selectedOrders.has(orderIdStr)) {
+        selectedOrders.delete(orderIdStr);
+        if (checkbox) checkbox.checked = false;
+    } else {
+        selectedOrders.add(orderIdStr);
+        if (checkbox) checkbox.checked = true;
+    }
+    
+    updateSelectedCount();
+    updateOrderHighlight(orderId);
+}
 
 
 function renderTableView() {
@@ -2181,7 +2208,7 @@ function renderTableView() {
                     <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
                     <th onclick="sortBy('neokyoNotes')" class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'} ${getSortClass('neokyoNotes')}">Neokyo Notes</th>
                     <th onclick="sortBy('bookFormat')" class="${columnVisibility.bookFormat ? '' : 'hidden-column'} ${getSortClass('bookFormat')}">Format</th>
-                    <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Items</th>
+                    <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Volumes</th>
                     <th onclick="sortBy('parcel')" class="${columnVisibility.parcel ? '' : 'hidden-column'} ${getSortClass('parcel')}">Parcel</th>
                     <th onclick="sortBy('tags')" class="${columnVisibility.tags ? '' : 'hidden-column'} ${getSortClass('tags')}">Tags</th>
                     <th class="${columnVisibility.url ? '' : 'hidden-column'}">URL</th>
@@ -2192,29 +2219,59 @@ function renderTableView() {
                 ${orders.map(order => {
                     const parcelName = order.parcel ? (parcels.find(p => p.id === order.parcel)?.name || 'Unknown') : '';
                     return `
-                    <tr class="${selectedOrders.has(order.id) ? 'batch-mode-active' : ''}">
-                        ${batchMode ? `<td class="batch-checkbox-cell"><input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(order.id) ? 'checked' : ''} onchange="toggleOrderSelection('${order.id}', this)"></td>` : ''}
+                    <tr class="${selectedOrders.has(String(order.id)) ? 'batch-mode-active' : ''} ${batchMode ? 'batch-selectable' : ''}" 
+                        ${batchMode ? `onclick="toggleTableRowSelection('${order.id}', event)"` : ''}>
+                        ${batchMode ? `<td class="batch-checkbox-cell"><input type="checkbox" class="batch-checkbox" id="batch-${order.id}" ${selectedOrders.has(String(order.id)) ? 'checked' : ''} readonly></td>` : ''}
                         <td class="${columnVisibility.image ? '' : 'hidden-column'}"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMjYgMzBIMjRWMjZIMjZWMzBaTTM0IDMwSDMyVjI2SDM0VjMwWk0zMiAzNkgzMFYzMEgzMlYzNloiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4='"></td>
-                        <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'orderId', '${order.orderId}')">${order.orderId}</div></td>
-                        <td class="${columnVisibility.title ? '' : 'hidden-column'}"><div class="editable-cell title" onclick="makeEditable(this, '${order.id}', 'title', '${order.title}')">${order.title}</div></td>
-                        <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'quantity', '${order.quantity}', 'number')">${order.quantity}</div></td>
-                        <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'yen', '${order.yen}', 'number')">${order.yen}</div></td>
-                        <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'usd', '${order.usd}', 'number')">${order.usd}</div></td>
-                        <td class="${columnVisibility.created ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'created', '${order.created}')">${order.created}</div></td>
-                        <td class="${columnVisibility.storageDays ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'storageDays', '${order.storageDays}', 'number')">${order.storageDays}</div></td>
-                        <td class="${columnVisibility.status ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'status', '${order.status || ''}')">${order.status || ''}</div></td>
-                        <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'neokyoNotes', '${order.neokyoNotes || ''}', 'textarea')">${order.neokyoNotes || ''}</div></td>
-                        <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'bookFormat', '${order.bookFormat}', 'select')">${order.bookFormat}</div></td>
-                        <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'volumes', '${order.volumes}', 'number')">${order.volumes}</div></td>
-                        <td class="${columnVisibility.parcel ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'parcel', '${order.parcel}', 'select')">${parcelName}</div></td>
-                        <td class="${columnVisibility.tags ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'tags', '${order.tags || ''}')">${order.tags || ''}</div></td>
-                        <td class="${columnVisibility.url ? '' : 'hidden-column'}"><a href="${order.url}" target="_blank" class="btn btn-small">Open</a></td>
-                        <td class="${columnVisibility.actions ? '' : 'hidden-column'}"><button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}')">Delete</button></td>
+                        <td class="${columnVisibility.orderId ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'orderId', '${order.orderId}'); event.stopPropagation()">${order.orderId}</div></td>
+                        <td class="${columnVisibility.title ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'title', '${order.title}'); event.stopPropagation()">${order.title}</div></td>
+                        <td class="${columnVisibility.quantity ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'quantity', '${order.quantity}', 'number'); event.stopPropagation()">${order.quantity}</div></td>
+                        <td class="${columnVisibility.yen ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'yen', '${order.yen}', 'number'); event.stopPropagation()">${order.yen}</div></td>
+                        <td class="${columnVisibility.usd ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'usd', '${order.usd}', 'number'); event.stopPropagation()">${order.usd}</div></td>
+                        <td class="${columnVisibility.created ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'created', '${order.created}'); event.stopPropagation()">${order.created}</div></td>
+                        <td class="${columnVisibility.storageDays ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'storageDays', '${order.storageDays}', 'number'); event.stopPropagation()">${order.storageDays}</div></td>
+                        <td class="${columnVisibility.status ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'status', '${order.status || ''}'); event.stopPropagation()">${order.status || ''}</div></td>
+                        <td class="${columnVisibility.neokyoNotes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'neokyoNotes', '${order.neokyoNotes || ''}', 'textarea'); event.stopPropagation()">${order.neokyoNotes || ''}</div></td>
+                        <td class="${columnVisibility.bookFormat ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'bookFormat', '${order.bookFormat}', 'select'); event.stopPropagation()">${order.bookFormat}</div></td>
+                        <td class="${columnVisibility.volumes ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'volumes', '${order.volumes}', 'number'); event.stopPropagation()">${order.volumes}</div></td>
+                        <td class="${columnVisibility.parcel ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'parcel', '${order.parcel}', 'select'); event.stopPropagation()">${parcelName}</div></td>
+                        <td class="${columnVisibility.tags ? '' : 'hidden-column'}"><div class="editable-cell" onclick="makeEditable(this, '${order.id}', 'tags', '${order.tags || ''}'); event.stopPropagation()">${order.tags || ''}</div></td>
+                        <td class="${columnVisibility.url ? '' : 'hidden-column'}"><a href="${order.url}" target="_blank" class="btn btn-small" onclick="event.stopPropagation()">Open</a></td>
+                        <td class="${columnVisibility.actions ? '' : 'hidden-column'}"><button class="btn btn-small btn-secondary" onclick="deleteOrder('${order.id}'); event.stopPropagation()">Delete</button></td>
                     </tr>
                 `;}).join('')}
             </tbody>
         </table>
     `;
+}
+
+function toggleTableRowSelection(orderId, event) {
+    // Don't trigger selection if clicking on interactive elements that already have stopPropagation
+    if (event.target.closest('.editable-cell') || 
+        event.target.closest('button') || 
+        event.target.closest('a') ||
+        event.target.closest('input') ||
+        event.target.closest('select')) {
+        return;
+    }
+    
+    if (!batchMode) return;
+    
+    const orderIdStr = String(orderId);
+    const checkbox = document.getElementById(`batch-${orderId}`);
+    const row = event.currentTarget;
+    
+    if (selectedOrders.has(orderIdStr)) {
+        selectedOrders.delete(orderIdStr);
+        if (checkbox) checkbox.checked = false;
+        row.classList.remove('batch-mode-active');
+    } else {
+        selectedOrders.add(orderIdStr);
+        if (checkbox) checkbox.checked = true;
+        row.classList.add('batch-mode-active');
+    }
+    
+    updateSelectedCount();
 }
 
 // for table view - make cells editable
@@ -2381,15 +2438,15 @@ function updateItemHighlight(orderId, matches) {
 }
 
                 
-        function handleTagInput(event, orderId) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                updateOrder(orderId, 'tags', event.target.value);
-                event.target.blur();
-                renderView();
-                renderTagsDropdown(); // Update the dropdown with any new tags
-            }
-        }
+function handleTagInput(event, orderId) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        updateOrder(orderId, 'tags', event.target.value);
+        event.target.blur();
+        renderView();
+        renderTagsDropdown();
+    }
+}
 
 
 function deleteOrder(orderId) {
@@ -3837,9 +3894,11 @@ function makeHeaderEditable() {
 }
     </style>
     <style>
-.batch-mode-active {
-    border: 2px solid #3b82f6 !important;
+.grid-item.batch-mode-active {
+    outline: 1px solid #3b82f6 !important;
     background: rgba(59, 130, 246, 0.05) !important;
+    border: 1px solid #3b82f6;
+    cursor: pointer; /* Show it's clickable */
 }
 
 .batch-checkbox {
@@ -3850,6 +3909,7 @@ function makeHeaderEditable() {
     height: 20px;
     z-index: 10;
     cursor: pointer;
+    pointer-events: none;
 }
 
 .table-view .batch-checkbox {
@@ -3862,14 +3922,25 @@ function makeHeaderEditable() {
     position: relative;
 }
 
+.grid-item.batch-selectable {
+    cursor: pointer;
+}
+
+#gridView {
+    padding-top:5px
+    /* Clip shadows that go beyond the container */
+    clip-path: inset(0 0 0 0);
+}
+
 .table-view .batch-checkbox-cell {
     width: 40px;
     text-align: center;
 }
 
 .batch-mode .grid-item:hover {
-    transform: none !important;
-    box-shadow: 0 0 0 2px #3b82f6;
+    outline: 1px solid #3b82f6;
+    border: 1px solid #3b82f6
+    
 }
 
 .batch-controls {
