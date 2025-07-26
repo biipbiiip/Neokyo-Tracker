@@ -261,11 +261,11 @@
             gap: 8px;
         }
 
-.btn-small {
+/* .btn-small {
     padding: 3px 6px !important;
     font-size: 10px !important;
     border-radius: 4px;
-}
+} */
 
         /* Table View */
         .table-view {
@@ -448,7 +448,6 @@
 
         .hidden {
             display: none;
-            animation: fadeOutRight 0.6s;
         }
 
         .modal {
@@ -462,12 +461,15 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        .modal.hidden {
-            display: none !important;
-        }
+            backdrop-filter: blur(10px);opacity: 1; 
+            visibility: visible; 
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+        } 
+            
+        .modal.hidden { 
+            opacity: 0; 
+            visibility: hidden
+        } 
 
         .modal-content {
             background: white;
@@ -657,6 +659,9 @@
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn btn-instructions" onclick="toggleInstructionsSection()">How to Use</button>
                 <button class="btn" onclick="toggleImportSection()">Import HTML</button>
+                <button class="btn" id="activityHamburger" aria-label="Activity Log" onclick="showActivityLog()">
+                    <span class="tooltip">Import History</span>
+                </button>
                 <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
                 <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
                 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Data</button>
@@ -854,17 +859,9 @@
                 <span>&#9881;</span>
                 <span class="tooltip">Grid/Table View</span>
             </button>
-            <button class="hamburger-btn active" id="activityHamburger" aria-label="Activity Log" onclick="showActivityLog()">
-                <span>&#128202;</span>
-                <span class="tooltip">Import Activity Log</span>
-            </button>
                 <button class="hamburger-btn" id="batchModeHamburger" aria-label="Toggle Batch Mode" onclick="toggleBatchMode()">
                     <span>☑️</span>
                     <span class="tooltip">Toggle Batch Mode</span>
-                </button>
-                <button class="hamburger-btn" id="batchControlsHamburger" aria-label="Batch Controls" onclick="toggleFloatingPanel('batchPanel', this)" style="display: none;">
-                    <span>⚙️</span>
-                    <span class="tooltip">Batch Controls</span>
                 </button>
             <style>
                 .hamburger-btn {
@@ -1134,20 +1131,33 @@
 
         <script>
             // Hamburger floating panel logic
-            function closeAllPanels() {
-                document.querySelectorAll('.floating-panel').forEach(panel => panel.classList.remove('show'));
-                document.querySelectorAll('.hamburger-btn').forEach(btn => btn.classList.remove('active'));
-            }
-            function toggleFloatingPanel(panelId, btn) {
-                const panel = document.getElementById(panelId);
-                const isOpen = panel.classList.contains('show');
-                closeAllPanels();
-                if (!isOpen) {
-                        panel.classList.add('show');
-                        btn.classList.add('active');
+            // function closeAllPanels() {
+            //     document.querySelectorAll('.floating-panel').forEach(panel => panel.classList.remove('show'));
+            //     document.querySelectorAll('.hamburger-btn').forEach(btn => btn.classList.remove('active'));
+            // }
+            // function toggleFloatingPanel(panelId, btn) {
+            //     const panel = document.getElementById(panelId);
+            //     const isOpen = panel.classList.contains('show');
+            //     closeAllPanels();
+            //     if (!isOpen) {
+            //             panel.classList.add('show');
+            //             btn.classList.add('active');
 
-                }
-            }
+            //     }
+            // }
+
+
+function toggleFloatingPanel(panelId, btn) {
+    const panel = document.getElementById('panelId');
+    panel.classList.toggle('hidden');
+    const btn = document.getElementById('btn');
+    btn.classList.toggle('active');
+    
+    // // Only render content when opening (not closing)
+    // if (!panel.classList.contains('hidden')) {
+    //     renderTagManagerContent();
+    // }
+}
 
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') closeAllPanels();
@@ -1216,6 +1226,8 @@ function renderMultiSelectTags(type, removeFunction) {
     } else {
         container.innerHTML = selected.map(item => `
             <div class="multi-select-tag">
+                    <div class="tag-remove-invisible" onclick="${removeFunction}('${item}')"; event.stopPropagation();">
+                        &times;</div>
                 ${type === 'Parcels' ? getParcelsName(item) : item}
                 <span class="remove" onclick="${removeFunction}('${item}')">&times;</span>
             </div>
@@ -1338,11 +1350,11 @@ let selectedOrders = new Set();
 function toggleBatchMode() {
     batchMode = !batchMode;
     const batchModeHamburger = document.getElementById('batchModeHamburger');
-    const batchControlsHamburger = document.getElementById('batchControlsHamburger');
+    // const batchControlsHamburger = document.getElementById('batchControlsHamburger');
     
     if (batchMode) {
         batchModeHamburger.classList.add('active');
-        batchControlsHamburger.style.display = 'flex'; // Show the controls button
+        // batchControlsHamburger.style.display = 'flex'; // Show the controls button
         document.body.classList.add('batch-mode');
         renderView(); // Re-render to show checkboxes
         showBatchControls();
@@ -1355,11 +1367,11 @@ function closeBatchMode() {
     batchMode = false;
     selectedOrders.clear();
     const batchModeHamburger = document.getElementById('batchModeHamburger');
-    const batchControlsHamburger = document.getElementById('batchControlsHamburger');
+    // const batchControlsHamburger = document.getElementById('batchControlsHamburger');
     
     batchModeHamburger.classList.remove('active');
-    batchControlsHamburger.classList.remove('active');
-    batchControlsHamburger.style.display = 'none'; // Hide the controls button
+    // batchControlsHamburger.classList.remove('active');
+    // batchControlsHamburger.style.display = 'none'; // Hide the controls button
     document.body.classList.remove('batch-mode');
     hideBatchControls();
     closeAllPanels(); // Close the batch panel if open
@@ -1485,7 +1497,6 @@ function clearBatchSelection() {
 }
 
 function applyBatchChanges() {
-    console.log('=== SIMPLE DEBUG VERSION ===');
     
     if (selectedOrders.size === 0) {
         alert('Please select at least one order first.');
@@ -1502,12 +1513,12 @@ function applyBatchChanges() {
         return;
     }
     
-    console.log('Selected orders:', Array.from(selectedOrders));
-    console.log('Changes to apply:', { format, parcel, tags, volumes });
+    // console.log('Selected orders:', Array.from(selectedOrders));
+    // console.log('Changes to apply:', { format, parcel, tags, volumes });
     
     // Load ALL orders from localStorage
     let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    console.log('Total orders in localStorage:', allOrders.length);
+    // console.log('Total orders in localStorage:', allOrders.length);
     
     let changesApplied = 0;
     
@@ -1523,18 +1534,18 @@ function applyBatchChanges() {
                           Array.from(selectedOrders).includes(String(orderId));
         
         if (isSelected) {
-            console.log(`✓ FOUND MATCH: Order #${order.orderId} (id: ${orderId})`);
+            // console.log(`FOUND MATCH: Order #${order.orderId} (id: ${orderId})`);
             
             if (format && order.bookFormat !== format) {
                 order.bookFormat = format;
                 changesApplied++;
-                console.log(`  - Format changed to: ${format}`);
+                // console.log(`  - Format changed to: ${format}`);
             }
             
             if (parcel && order.parcel !== parcel) {
                 order.parcel = parcel;
                 changesApplied++;
-                console.log(`  - Parcel changed to: ${parcel}`);
+                // console.log(`  - Parcel changed to: ${parcel}`);
             }
             
             if (tags) {
@@ -1543,18 +1554,18 @@ function applyBatchChanges() {
                 const allTags = [...new Set([...existingTags, ...newTags])];
                 order.tags = allTags.join(' ');
                 changesApplied++;
-                console.log(`  - Tags updated to: ${order.tags}`);
+                // console.log(`  - Tags updated to: ${order.tags}`);
             }
             
             if (volumes) {
                 order.volumes = parseInt(volumes);
                 changesApplied++;
-                console.log(`  - Volumes changed to: ${volumes}`);
+                // console.log(`  - Volumes changed to: ${volumes}`);
             }
         }
     });
     
-    console.log(`Total changes applied: ${changesApplied}`);
+    // console.log(`Total changes applied: ${changesApplied}`);
     
     if (changesApplied > 0) {
         // Save changes
@@ -3541,7 +3552,7 @@ function validateOrderFormats() {
     
     if (fixedCount > 0) {
         localStorage.setItem('orders', JSON.stringify(allOrders));
-        console.log(`Fixed ${fixedCount} orders with invalid formats`);
+        // console.log(`Fixed ${fixedCount} orders with invalid formats`);
     }
     
     return fixedCount;
@@ -3711,7 +3722,7 @@ function renderTagsUI(orderId, tagsString) {
             ${tags.map(tag => `
                 <span class="tag-item" onclick="editTagNew(this, '${orderId}', '${tag}'); event.stopPropagation();">
                     ${tag}
-                    <div class="tag-delete-invisible" onclick="removeTagNew(event, '${orderId}', '${tag}'); event.stopPropagation();">
+                    <div class="tag-remove-invisible" onclick="removeTagNew(event, '${orderId}', '${tag}'); event.stopPropagation();">
                         &times;</div>
                     <span class="tag-remove" onclick="removeTagNew(event, '${orderId}', '${tag}');">&times;</span>
                 </span>
@@ -3729,34 +3740,6 @@ function renderTagsUI(orderId, tagsString) {
         </div>
     `;
 };
-
-function activateDummyTag(orderId) {
-    console.log('=== DUMMY activateDummyTag called for:', orderId);
-    
-    const dummyTag = document.getElementById(`dummy-tag-${orderId}`);
-    // const addButton = document.querySelector(`[data-order-id="${orderId}"] .add-tag-btn`);
-    
-    if (!dummyTag || !addButton) {
-        console.error('Dummy tag or add button not found');
-        return;
-    }
-    
-    console.log('=== DUMMY Showing dummy tag and hiding add button');
-    
-    // Show the dummy tag and hide add button
-    // addButton.style.display = 'none';
-    dummyTag.style.display = 'inline-flex';
-    
-    // Give it some initial content so editTagNew can work with it
-    dummyTag.innerHTML = '<span style="opacity: 0;">new</span>';
-    
-    // // Small delay then trigger the edit
-    // setTimeout(() => {
-    //     console.log('=== DUMMY Triggering editTagNew on dummy');
-        editTagNew(dummyTag, orderId, '');
-    // }, 0);
-};
-
 
     </script>
     <style>
@@ -3796,7 +3779,8 @@ function activateDummyTag(orderId) {
         flex-wrap: wrap;
         gap: 4px;
         min-height: 11px;
-        font-size:12px !important
+        font-size:12px !important;
+        position:relative
     }
 
     .multi-select-placeholder {
@@ -3880,10 +3864,10 @@ function activateDummyTag(orderId) {
 
     .filter-group {display:initial}
     .filter-group label {margin-right:3px}
-    .filter-group  * {font-size:10px !important;}
+    .filter-group  * {font-size:11px !important;}
     .filter-group input,
     .filter-group .multi-select-trigger {padding:6px 12px}
-    #formatTags .multi-select-tag, #statusTags .multi-select-tag, .filter-group input, .filter-group select {font-size:10px !important}
+    #formatTags .multi-select-tag, #statusTags .multi-select-tag, .filter-group input, .filter-group select {font-size:11px !important}
 
     #columnControls  {
         position: fixed;
@@ -3966,8 +3950,10 @@ function activateDummyTag(orderId) {
     outline: 1px solid #3b82f6 !important;
     background: rgba(59, 130, 246, 0.05) !important;
     border: 1px solid #3b82f6;
-    cursor: pointer; /* Show it's clickable */
+    cursor: pointer;
 }
+
+.grid-item.batch-selectable img {pointer-events: none;}
 
 .batch-checkbox {
     position: absolute;
@@ -4073,14 +4059,14 @@ function activateDummyTag(orderId) {
     transition: opacity 0.2s;
 }
 
-.tag-delete-invisible {
+.tag-remove-invisible {
     position: absolute;
     right: 0;
     width: 15px;
     opacity: 0;
 }
 
-.tag-delete-invisible:hover + .tag-remove {
+.tag-remove-invisible:hover + .tag-remove, .tag-remove-invisible:hover + .remove {
     color: #ef4444;
 }
 
@@ -4095,13 +4081,14 @@ function activateDummyTag(orderId) {
 }
 
 .tag-input {
-    border: 2px solid ##3b82f6fa;
+    border: 2px solid #3b82f6fa;
     padding: 4px 8px;
     border-radius: 12px;
     font-size: 11px;
     outline: none;
-    min-width: 60px;
+    min-width: 30px;
     background: white;
+    max-width:40px;
 }
 
 .dummy-tag {
@@ -4117,8 +4104,7 @@ function activateDummyTag(orderId) {
     gap: 2px;
     transition: all 0.2s;
 }
-
-.dummy-tag:hover::after {
+.dummy-tag:focus::after {
     content: 'Add Tag';
     color: white;
 }
@@ -4127,122 +4113,6 @@ function activateDummyTag(orderId) {
 
 <script>
 // UPDATED FUNCTIONS - Replace your existing tag functions with these
-
-function addNewTagNew(orderId) {
-    console.log('addNewTagNew called for order:', orderId);
-    
-    const container = document.querySelector(`[data-order-id="${orderId}"]`);
-    if (!container) {
-        console.error('Container not found for order:', orderId);
-        return;
-    }
-    
-    // const addButton = container.querySelector('.add-tag-btn');
-    // if (!addButton) {
-    //     console.error('Add button not found');
-    //     return;
-    // }
-    
-    // Check if there's already an input
-    const existingInput = container.querySelector('.tag-input-active');
-    if (existingInput) {
-        console.log('Input already exists, focusing on it');
-        existingInput.focus();
-        return;
-    }
-    
-    console.log('Creating new tag input');
-    
-    // Hide add button
-    // addButton.style.display = 'none';
-    
-    // Create input with stronger styling
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'tag-input-active';
-    input.placeholder = 'Enter tag...';
-    input.setAttribute('data-order-id', orderId);
-    
-    container.appendChild(input);
-    
-    // Force focus after a short delay
-    setTimeout(() => {
-        input.focus();
-        input.select();
-    }, 10);
-    
-    let isProcessing = false;
-    
-    function saveTag() {
-        if (isProcessing) return;
-        isProcessing = true;
-        console.log('Saving tag:', input.value);
-        
-        const newTag = input.value.trim();
-        if (newTag) {
-            addTagToOrderNew(orderId, newTag);
-        }
-        cleanup();
-    }
-    
-    function cancelTag() {
-        if (isProcessing) return;
-        isProcessing = true;
-        console.log('Canceling tag input');
-        cleanup();
-    }
-    
-    function cleanup() {
-        console.log('Cleaning up tag input');
-        try {
-            if (input && input.parentNode) {
-                input.remove();
-            }
-            if (addButton) {
-                addButton.style.display = 'flex';
-            }
-        } catch (e) {
-            console.error('Error during cleanup:', e);
-        }
-    }
-    
-    // Event listeners with better error handling
-    function handleKeydown(e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            console.log('Enter pressed - saving');
-            saveTag();
-            return false;
-        }
-        if (e.key === 'Escape') {
-            e.preventDefault();
-            console.log('Escape pressed - canceling');
-            cancelTag();
-            return false;
-        }
-    }
-    
-    function handleBlur() {
-        console.log('Input blurred');
-        setTimeout(() => {
-            if (!isProcessing) {
-                saveTag();
-            }
-        }, 300);
-    }
-    
-    input.addEventListener('keydown', handleKeydown, true);
-    input.addEventListener('blur', handleBlur);
-    
-    // Prevent table row clicks while editing
-    input.addEventListener('click', function(e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-    });
-}
 
 function editTagNew(tagElement, orderId, currentTag) {
     // console.log('=== DIRECT editTagNew called:', orderId, currentTag);
@@ -4265,16 +4135,23 @@ function editTagNew(tagElement, orderId, currentTag) {
         border: 2px solid #3b82f6 !important;
         padding: 4px 8px !important;
         border-radius: 12px !important;
-        font-size: 11px !important;
+        font-size: 10px !important;
         outline: none !important;
         background: white !important;
         width: auto !important;
-        min-width: 80px !important;
+        min-width: 50px !important;
     `;
     
     tagElement.innerHTML = '';
     tagElement.appendChild(input);
     input.focus();
+    // Add "Add Tag" label after the input for dummy tag
+    if (isDummyTag) {
+        const afterLabel = document.createElement('span');
+        afterLabel.textContent = 'Add Tag';
+        afterLabel.style.cssText = 'color: white; font-size:10px !important';
+        tagElement.appendChild(afterLabel);
+    }
     if (currentTag) input.select();
     
     let saved = false;
@@ -4284,7 +4161,6 @@ function editTagNew(tagElement, orderId, currentTag) {
         saved = true;
         
         const newTag = input.value.trim();
-        console.log('=== DIRECT Saving edit from', currentTag, 'to', newTag);
         
         if (newTag) {
             // Direct localStorage manipulation
@@ -4299,14 +4175,12 @@ function editTagNew(tagElement, orderId, currentTag) {
                     if (!currentTags.includes(newTag)) {
                         currentTags.push(newTag);
                         order.tags = currentTags.join(' ');
-                        console.log('=== DUMMY New tag added:', newTag);
                     }
                 } else {
                     // Editing existing tag
                     if (newTag !== currentTag) {
                         const updatedTags = currentTags.map(tag => tag === currentTag ? newTag : tag);
                         order.tags = updatedTags.join(' ');
-                        console.log('=== DIRECT Tag updated');
                     }
                 }
                 
@@ -4361,7 +4235,6 @@ function editTagNew(tagElement, orderId, currentTag) {
 
 
 function removeTagNew(event, orderId, tagToRemove) {
-    console.log('removeTagNew called:', orderId, tagToRemove);
     event.stopPropagation();
     event.preventDefault();
     
@@ -4381,7 +4254,6 @@ function removeTagNew(event, orderId, tagToRemove) {
 }
 
 function addTagToOrderNew(orderId, newTag) {
-    console.log('addTagToOrderNew called:', orderId, newTag);
     
     let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
     const order = allOrders.find(o => o.id == orderId);
@@ -4406,7 +4278,6 @@ function addTagToOrderNew(orderId, newTag) {
 
 
 function refreshTagsUINew(orderId) {
-    console.log('refreshTagsUINew called:', orderId);
     
     let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
     const order = allOrders.find(o => o.id == orderId);
