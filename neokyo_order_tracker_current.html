@@ -814,6 +814,8 @@
                 animation: fadeIn 0.2s;
             }
 
+
+
             .floating-panel.show {
                 display: block;
             }
@@ -846,12 +848,14 @@
             </button>
                 <button class="hamburger-btn" id="batchModeHamburger" aria-label="Toggle Batch Mode" onclick="toggleBatchMode()">
                     <span>☑️</span>
-                    <span class="tooltip">Toggle Batch Mode</span>
+                    <span class="tooltip">Batch Move</span>
                 </button>
             <!-- <button class="hamburger-btn" id="viewHamburger" aria-label="View Controls" onclick="toggleFloatingPanel('viewPanel', this)">
                 <span>&#9881;</span>
                 <span class="tooltip">Grid/Table View</span>
             </button> -->
+
+    <div class="hamburger-divider"></div>
 <button class="hamburger-btn" id="formatsHamburger" onclick="toggleFloatingPanel('formatsModal', this, true)">
     <span>📚</span>
                 <span class="tooltip">Manage Formats</span>
@@ -909,6 +913,13 @@
                 .hamburger-btn:hover .tooltip {
                     display: block;
                 }
+
+                .hamburger-divider {
+                width: 24px;
+                height: 1px;
+                background: #d1d5db;
+                margin: 12px 0;
+            }
             </style>
         </div>
 
