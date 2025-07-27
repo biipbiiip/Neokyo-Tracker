@@ -750,13 +750,244 @@
             transform: translateX(0);
                 animation: fadeInRight 0.6s;
         ">
-            <div class="parcel-header" style="margin-bottom: 18px;">
-                <h2>Parcel Calculator</h2>
-                <button class="btn" onclick="openParcelModal()">Add Parcel</button>
-                <button class="btn" onclick="toggleParcelSection()">Close</button>
+<div class="parcel-header">
+    <h2>Parcel Calculator</h2>
+    <button class="btn" onclick="openParcelModal()">Add Parcel</button>
+</div>
+    <div class="parcel-tabs">
+        <div class="parcel-tab active" id="planning-tab" onclick="switchParcelTab('planning')">
+            <div class="tab-main">
+                📦 Planning
+                <span class="tab-count" id="planning-count">0</span>
             </div>
+            <div class="tab-stats" id="planning-stats">0 parcels • 0g estimated • $0.00/item</div>
+        </div>
+        <div class="parcel-tab" id="shipped-tab" onclick="switchParcelTab('shipped')">
+            <div class="tab-main">
+                🚚 Shipped
+                <span class="tab-count" id="shipped-count">0</span>
+            </div>
+            <div class="tab-stats" id="shipped-stats">0 parcels • $0.00 total • $0.00 avg</div>
+        </div>
+    </div>
+<div class="parcel-stats-bar active" id="planning-stats-bar">
+    <div class="stats-bar-items">
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="planning-weight">0g</div>
+            <div class="stats-bar-label">Est. Weight</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="planning-value">$0.00</div>
+            <div class="stats-bar-label">Total Value</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="planning-per-item">$0.00</div>
+            <div class="stats-bar-label">Per Item</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="planning-per-item-plus-ship">0%</div>
+            <div class="stats-bar-label">Per Item + Ship</div>
+        </div>
+    </div>
+</div>
+<div class="parcel-stats-bar" id="shipped-stats-bar">
+    <div class="stats-bar-items">
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-total">$0.00</div>
+            <div class="stats-bar-label">Total Shipping</div>
+        </div>
+        <!-- <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-avg">$0.00</div>
+            <div class="stats-bar-label">Avg Shipping</div>
+        </div> -->
+        <!-- <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-weight">0kg</div>
+            <div class="stats-bar-label">Avg Weight</div>
+        </div> -->
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-per-item-only">$0.00</div>
+            <div class="stats-bar-label">Per Item</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-per-item">$0.00</div>
+            <div class="stats-bar-label">Per Item + Ship</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-days">0 days</div>
+            <div class="stats-bar-label">Avg Ship Time</div>
+        </div>
+    </div>
+</div>
             <div id="parcelGrid" class="parcel-grid"></div>
         </div>
+
+<script>// Tab switching function
+function switchParcelTab(tab) {
+    currentParcelTab = tab;
+    
+    // Update tab visual states
+    document.querySelectorAll('.parcel-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab + '-tab').classList.add('active');
+    
+    // Update stats bars
+    document.querySelectorAll('.parcel-stats-bar').forEach(bar => bar.classList.remove('active'));
+    document.getElementById(tab + '-stats-bar').classList.add('active');
+    
+    // Re-render parcels for current tab
+    renderParcels();
+    updateParcelTabStats();
+}
+
+// Update tab counts and stats
+function updateParcelTabStats() {
+    const planningParcels = parcels.filter(p => p.status === 'planning');
+    const shippedParcels = parcels.filter(p => p.status === 'shipped');
+    
+    // Update counts
+    document.getElementById('planning-count').textContent = planningParcels.length;
+    document.getElementById('shipped-count').textContent = shippedParcels.length;
+    
+    // Calculate planning stats
+    updatePlanningStats(planningParcels);
+    updateShippedStats(shippedParcels);
+}
+
+function updatePlanningStats(planningParcels) {
+    let totalWeight = 0;
+    let totalValue = 0;
+    let totalItems = 0;
+    let totalCapacity = 0;
+    let totalMaxVolume = 0;
+    
+    // Get all orders from localStorage for accurate calculations
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    planningParcels.forEach(parcel => {
+        const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
+        let parcelWeight = parcel.boxWeight;
+        let parcelValue = 0;
+        let parcelItems = 0;
+        
+        assignedOrders.forEach(order => {
+            const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
+            const defaultFormat = bookFormats[defaultFormatName] || { weight: 190 };
+            const format = bookFormats[order.bookFormat] || defaultFormat;
+            const volumes = order.volumes || 1;
+            const itemWeight = format.weight * volumes * order.quantity;
+            
+            parcelWeight += itemWeight;
+            parcelValue += order.usd || 0;
+            parcelItems += volumes * order.quantity;
+        });
+        
+        totalWeight += parcelWeight;
+        totalValue += parcelValue;
+        totalItems += parcelItems;
+        
+        // Calculate capacity
+        const availableVolume = (parcel.length - parcel.padding * 2) * 
+                               (parcel.width - parcel.padding * 2) * 
+                               (parcel.height - parcel.padding * 2);
+        totalMaxVolume += availableVolume;
+        
+        let usedVolume = 0;
+        assignedOrders.forEach(order => {
+            const format = bookFormats[order.bookFormat] || bookFormats[Object.keys(bookFormats)[0]];
+            const volumes = order.volumes || 1;
+            usedVolume += format.width * format.height * (format.thickness * volumes) * order.quantity;
+        });
+        totalCapacity += usedVolume;
+    });
+    
+    let totalEstimatedShipping = 0;
+    planningParcels.forEach(parcel => {
+        // Use actual shipping cost if filled in, otherwise estimate $10 per parcel
+        if (parcel.shippingCost && parcel.shippingCost > 0) {
+            totalEstimatedShipping += parcel.shippingCost;
+        } else {
+            totalEstimatedShipping += 10; // Default estimate per parcel
+        }
+    });
+
+const perItemWithEstShip = totalItems > 0 ? ((totalValue + totalEstimatedShipping) / totalItems) : 0;
+
+    const perItem = totalItems > 0 ? (totalValue / totalItems) : 0;
+    
+    // Update planning tab stats
+    document.getElementById('planning-stats').textContent = 
+        `${planningParcels.length} parcels • ${totalWeight.toFixed(0)}g estimated • $${perItem.toFixed(2)}/item`;
+    
+    // Update planning stats bar
+    document.getElementById('planning-weight').textContent = `${totalWeight.toFixed(0)}g`;
+    document.getElementById('planning-per-item-plus-ship').textContent = `$${perItemWithEstShip.toFixed(2)}`;
+    document.getElementById('planning-value').textContent = `$${totalValue.toFixed(2)}`;
+    document.getElementById('planning-per-item').textContent = `$${perItem.toFixed(2)}`;
+}
+
+function updateShippedStats(shippedParcels) {
+    let totalShipping = 0;
+    let totalWeight = 0;
+    let totalItems = 0;
+    let totalValue = 0;
+    let totalShipDays = 0;
+    let parcelsWithDates = 0;
+    
+    // Get all orders for value calculation
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    shippedParcels.forEach(parcel => {
+        totalShipping += parcel.shippingCost || 0;
+        totalWeight += parcel.actualWeight || parcel.boxWeight || 0;
+        
+        // Calculate shipping days if we have both dates
+        if (parcel.shipDate && parcel.arrivalDate) {
+            const shipDate = new Date(parcel.shipDate);
+            const arrivalDate = new Date(parcel.arrivalDate);
+            const daysDiff = Math.ceil((arrivalDate - shipDate) / (1000 * 60 * 60 * 24));
+            if (daysDiff > 0) {
+                totalShipDays += daysDiff;
+                parcelsWithDates++;
+            }
+        }
+        
+        // Calculate items and value for this parcel
+        const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
+        assignedOrders.forEach(order => {
+            const volumes = order.volumes || 1;
+            totalItems += volumes * order.quantity;
+            totalValue += order.usd || 0;
+        });
+    });
+    
+    const avgShipping = shippedParcels.length > 0 ? (totalShipping / shippedParcels.length) : 0;
+    const avgWeight = shippedParcels.length > 0 ? (totalWeight / shippedParcels.length / 1000) : 0; // Convert to kg
+    const perItemWithShip = totalItems > 0 ? ((totalValue + totalShipping) / totalItems) : 0;
+const avgShipDays = parcelsWithDates > 0 ? Math.round(totalShipDays / parcelsWithDates) : 0;
+    const perItemOnly = totalItems > 0 ? (totalValue / totalItems) : 0;
+    
+    // Update shipped tab stats
+    document.getElementById('shipped-stats').textContent = 
+        `${shippedParcels.length} parcels • $${totalShipping.toFixed(2)} total • $${avgShipping.toFixed(2)} avg`;
+    
+    // Update shipped stats bar
+    document.getElementById('shipped-total').textContent = `$${totalShipping.toFixed(2)}`;
+    document.getElementById('shipped-per-item').textContent = `$${perItemWithShip.toFixed(2)}`;
+    document.getElementById('shipped-days').textContent = `${avgShipDays} days`;
+    document.getElementById('shipped-per-item-only').textContent = `$${perItemOnly.toFixed(2)}`;
+    
+}
+function closeEditParcelModal() {
+    document.getElementById('editParcelModal').classList.add('hidden');
+    currentEditingParcel = null;
+}
+
+function closeEditParcelModalOnOutsideClick(event) {
+    if (event.target.classList.contains('modal')) {
+        closeEditParcelModal();
+    }
+}
+
+</script>
 
         <!-- Hamburger Menus for Filters, Totals, and View Controls -->
         <style>
@@ -1763,6 +1994,7 @@ function applyBatchChanges() {
         applyFilters();
         renderView();
         renderParcels();
+        updateParcelTabStats();
         updateTotals();
         renderTagsDropdown();
         
@@ -1839,10 +2071,14 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
     <!-- Edit Parcel Modal -->
-    <div id="editParcelModal" class="modal hidden" onclick="closeEditParcelModalOnOutsideClick(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>Edit Parcel</h3>
-            <span></span>
+<!-- Enhanced Edit Parcel Modal -->
+<div id="editParcelModal" class="modal hidden" onclick="closeEditParcelModalOnOutsideClick(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <h3>Edit Parcel</h3>
+        
+        <!-- Basic Info Section -->
+        <div class="form-section">
+            <h4>Basic Information</h4>
             <div class="form-row">
                 <div class="form-group">
                     <label>Name</label>
@@ -1873,17 +2109,67 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="number" id="editParcelBoxWeight" value="2000">
                 </div>
             </div>
+        </div>
+        
+        <!-- Shipping Info Section -->
+        <div class="form-section" id="editShippingSection">
+            <h4>Shipping Information</h4>
             <div class="form-row">
-                <button class="btn" onclick="saveParcelEdit()">Save Changes</button>
-                <button class="btn btn-secondary" onclick="closeEditParcelModal()">Cancel</button>
+                <div class="form-group">
+                    <label>Shipping Method</label>
+                    <select id="editParcelShippingMethod">
+                        <option value="">Select shipping method...</option>
+                        <option value="EMS">EMS</option>
+                        <option value="Japan Post Small Packet">Japan Post Small Packet</option>
+                        <option value="Japan Post SAL">Japan Post SAL</option>
+                        <option value="FedEx">FedEx</option>
+                        <option value="UPS Saver">UPS Saver</option>
+                        <option value="DHL">DHL</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Shipping Cost (USD)</label>
+                    <input type="number" id="editParcelShippingCost" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ship Date</label>
+                    <input type="date" id="editParcelShipDate">
+                </div>
+                <div class="form-group">
+                    <label>Arrival Date</label>
+                    <input type="date" id="editParcelArrivalDate">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Actual Weight (g)</label>
+                    <input type="number" id="editParcelActualWeight" placeholder="Leave empty if unknown">
+                </div>
+                <div class="form-group">
+                    <label>Tracking Number</label>
+                    <input type="text" id="editParcelTrackingNumber" placeholder="Optional">
+                </div>
             </div>
         </div>
+        
+        <div class="form-row">
+            <button class="btn" onclick="saveParcelEdit()">Save Changes</button>
+            <button class="btn btn-secondary" onclick="closeEditParcelModal()">Cancel</button>
+        </div>
     </div>
+</div>
 
     <!-- Parcel Modal -->
-    <div id="parcelModal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>Add New Parcel</h3>
+<div id="parcelModal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <h3 id="parcelModalTitle">Add New Parcel</h3>
+        
+        <!-- Basic Info Section -->
+        <div class="form-section">
+            <h4>Basic Information</h4>
             <div class="form-row">
                 <div class="form-group">
                     <label>Name</label>
@@ -1906,7 +2192,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Padding/Save Zone (cm)</label>
+                    <label>Padding/Safe Zone (cm)</label>
                     <input type="number" id="parcelPadding" step="1" value="20">
                 </div>
                 <div class="form-group">
@@ -1914,17 +2200,65 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="number" id="parcelBoxWeight" value="2000">
                 </div>
             </div>
+        </div>
+        
+        <!-- Shipping Info Section (shown when on shipped tab) -->
+        <div class="form-section" id="shippingSection" style="display: none;">
+            <h4>Shipping Information</h4>
             <div class="form-row">
-                <button class="btn" onclick="addParcel()">Add Parcel</button>
-                <button class="btn btn-secondary" onclick="closeParcelModal()">Cancel</button>
+                <div class="form-group">
+                    <label>Shipping Method</label>
+                    <select id="parcelShippingMethod">
+                        <option value="">Select shipping method...</option>
+                        <option value="EMS">EMS</option>
+                        <option value="Japan Post Small Packet">Japan Post Small Packet</option>
+                        <option value="Japan Post SAL">Japan Post SAL</option>
+                        <option value="FedEx">FedEx</option>
+                        <option value="UPS Saver">UPS Saver</option>
+                        <option value="DHL">DHL</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Shipping Cost (USD)</label>
+                    <input type="number" id="parcelShippingCost" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ship Date</label>
+                    <input type="date" id="parcelShipDate">
+                </div>
+                <div class="form-group">
+                    <label>Arrival Date</label>
+                    <input type="date" id="parcelArrivalDate">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Actual Weight (g)</label>
+                    <input type="number" id="parcelActualWeight" placeholder="Leave empty if unknown">
+                </div>
+                <div class="form-group">
+                    <label>Tracking Number</label>
+                    <input type="text" id="parcelTrackingNumber" placeholder="Optional">
+                </div>
             </div>
         </div>
+        
+        <div class="form-row">
+            <button class="btn" onclick="saveParcel()">Save Parcel</button>
+            <button class="btn btn-secondary" onclick="closeParcelModal()">Cancel</button>
+        </div>
     </div>
+</div>
 
     <script>
         // Data storage
         let orders = [];
         let parcels = [];
+        
+        let currentParcelTab = 'planning'; // 'planning' or 'shipped'
 
         // Custom header text from localStorage or default
         let customHeaderText = localStorage.getItem('customHeaderText') || 'Neo_ Order Tracker';
@@ -2027,34 +2361,55 @@ document.addEventListener('DOMContentLoaded', function() {
             'A6 Shinshoban': { width: 11.0, height: 17.0, thickness: 1.4, weight: 150 }
         };
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('header').textContent = customHeaderText;
-            // Load column visibility preferences
-            try {
-                const savedVisibility = localStorage.getItem('columnVisibility');
-                if (savedVisibility) {
-                    columnVisibility = { ...columnVisibility, ...JSON.parse(savedVisibility) };
-                    // Update checkboxes
-                    Object.keys(columnVisibility).forEach(col => {
-                        const checkbox = document.getElementById(`col-${col}`);
-                        if (checkbox) {
-                            checkbox.checked = columnVisibility[col];
-                        }
-                    });
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('header').textContent = customHeaderText;
+    // Load column visibility preferences
+    try {
+        const savedVisibility = localStorage.getItem('columnVisibility');
+        if (savedVisibility) {
+            columnVisibility = { ...columnVisibility, ...JSON.parse(savedVisibility) };
+            Object.keys(columnVisibility).forEach(col => {
+                const checkbox = document.getElementById(`col-${col}`);
+                if (checkbox) {
+                    checkbox.checked = columnVisibility[col];
                 }
-            } catch (e) {
-                console.error('Error loading column visibility:', e);
-            }
+            });
+        }
+    } catch (e) {
+        console.error('Error loading column visibility:', e);
+    }
 
-            renderTagsDropdown(); // Initialize tags dropdown
-            renderFormatDropdown(); // Initialize format dropdown
-            renderStatusDropdown(); // Initialize status dropdown
-            renderParcelDropdown(); // Initialize parcel dropdown
-            renderView();
-            renderParcels();
-            updateTotals();
-        });
+    // Initialize parcel tab stats
+    updateParcelTabStats();
+    
+    // Make sure all existing parcels have the new status field
+    let needsSave = false;
+    parcels.forEach(parcel => {
+        if (!parcel.status) {
+            parcel.status = 'planning';
+            needsSave = true;
+        }
+        if (parcel.shippingMethod === undefined) parcel.shippingMethod = '';
+        if (parcel.shippingCost === undefined) parcel.shippingCost = 0;
+        if (parcel.actualWeight === undefined) parcel.actualWeight = 0;
+        if (parcel.shipDate === undefined) parcel.shipDate = '';
+        if (parcel.arrivalDate === undefined) parcel.arrivalDate = '';
+        if (parcel.trackingNumber === undefined) parcel.trackingNumber = '';
+    });
+    
+    if (needsSave) {
+        localStorage.setItem('parcels', JSON.stringify(parcels));
+    }
+
+    renderTagsDropdown();
+    renderFormatDropdown();
+    renderStatusDropdown();
+    renderParcelDropdown();
+    renderView();
+    renderParcels();
+    updateParcelTabStats();
+    updateTotals();
+});
 
 function parseHTML() {
     const htmlInput = document.getElementById('htmlInput').value;
@@ -2595,10 +2950,8 @@ function makeEditable(cell, orderId, field, value, type = 'text') {
                 
                 updateTotals();
                 renderParcels(); // Update parcel calculations
+                updateParcelTabStats();
                 
-                    updateTotals();
-    renderParcels();
-    
     // Check if the new value matches or doesn't match the filter
     let matches = true;
     
@@ -2670,6 +3023,7 @@ function deleteOrder(orderId) {
         renderView();
         updateTotals();
         renderParcels();
+        updateParcelTabStats();
     }
 }
 
@@ -2911,9 +3265,38 @@ function updateTotals() {
 }
 
         // Parcel functions
-        function openParcelModal() {
-            document.getElementById('parcelModal').classList.remove('hidden');
-        }
+function openParcelModal() {
+    const modal = document.getElementById('parcelModal');
+    const shippingSection = document.getElementById('shippingSection');
+    const modalTitle = document.getElementById('parcelModalTitle');
+    
+    // Reset form
+    document.getElementById('parcelName').value = '';
+    document.getElementById('parcelLength').value = '60';
+    document.getElementById('parcelWidth').value = '45';
+    document.getElementById('parcelHeight').value = '62';
+    document.getElementById('parcelPadding').value = '20';
+    document.getElementById('parcelBoxWeight').value = '2000';
+    
+    // Reset shipping fields
+    document.getElementById('parcelShippingMethod').value = '';
+    document.getElementById('parcelShippingCost').value = '';
+    document.getElementById('parcelShipDate').value = '';
+    document.getElementById('parcelArrivalDate').value = '';
+    document.getElementById('parcelActualWeight').value = '';
+    document.getElementById('parcelTrackingNumber').value = '';
+    
+    // Show/hide shipping section based on current tab
+    if (currentParcelTab === 'shipped') {
+        shippingSection.style.display = 'block';
+        modalTitle.textContent = 'Add Shipped Parcel';
+    } else {
+        shippingSection.style.display = 'none';
+        modalTitle.textContent = 'Add New Parcel';
+    }
+    
+    modal.classList.remove('hidden');
+}
 
         function closeParcelModal() {
             document.getElementById('parcelModal').classList.add('hidden');
@@ -3126,6 +3509,7 @@ function saveFormats() {
     renderView(); // Refresh dropdowns
     updateTotals(); // Recalculate weights
     renderParcels(); // Update parcel calculations
+    updateParcelTabStats();
     alert('Format changes saved successfully!');
     
     // Alert user about any changes
@@ -3276,6 +3660,7 @@ function clearActivityLog() {
         clearFilters();
         renderView();
         renderParcels();
+        updateParcelTabStats();
         renderStatusDropdown();
         renderFormatDropdown();
         renderParcelDropdown();
@@ -3409,69 +3794,49 @@ function renderFormatsTable() {
             }
         }
 
-        function addParcel() {
-            const name = document.getElementById('parcelName').value || `Parcel ${parcels.length + 1}`;
-            const length = parseFloat(document.getElementById('parcelLength').value) || 60;
-            const width = parseFloat(document.getElementById('parcelWidth').value) || 45;
-            const height = parseFloat(document.getElementById('parcelHeight').value) || 62;
-            const padding = parseFloat(document.getElementById('parcelPadding').value) || 2;
-            const boxWeight = parseFloat(document.getElementById('parcelBoxWeight').value) || 2000;
+function saveParcel() {
+    const name = document.getElementById('parcelName').value || `Parcel ${parcels.length + 1}`;
+    const length = parseFloat(document.getElementById('parcelLength').value) || 60;
+    const width = parseFloat(document.getElementById('parcelWidth').value) || 45;
+    const height = parseFloat(document.getElementById('parcelHeight').value) || 62;
+    const padding = parseFloat(document.getElementById('parcelPadding').value) || 20;
+    const boxWeight = parseFloat(document.getElementById('parcelBoxWeight').value) || 2000;
+    
+    // Get shipping info
+    const shippingMethod = document.getElementById('parcelShippingMethod').value || '';
+    const shippingCost = parseFloat(document.getElementById('parcelShippingCost').value) || 0;
+    const shipDate = document.getElementById('parcelShipDate').value || '';
+    const arrivalDate = document.getElementById('parcelArrivalDate').value || '';
+    const actualWeight = parseFloat(document.getElementById('parcelActualWeight').value) || 0;
+    const trackingNumber = document.getElementById('parcelTrackingNumber').value || '';
 
-            const parcel = {
-                id: Date.now().toString(),
-                name,
-                length,
-                width,
-                height,
-                padding,
-                boxWeight
-            };
+    const parcel = {
+        id: Date.now().toString(),
+        name,
+        length,
+        width,
+        height,
+        padding,
+        boxWeight,
+        status: currentParcelTab, // 'planning' or 'shipped'
+        shippingMethod,
+        shippingCost,
+        actualWeight,
+        actualDimensions: { length: 0, width: 0, height: 0 },
+        shipDate,
+        arrivalDate,
+        trackingNumber
+    };
 
-            parcels.push(parcel);
-            localStorage.setItem('parcels', JSON.stringify(parcels));
-            
-            // Clear form
-            document.getElementById('parcelName').value = '';
-            document.getElementById('parcelLength').value = '60';
-            document.getElementById('parcelWidth').value = '45';
-            document.getElementById('parcelHeight').value = '62';
-            document.getElementById('parcelPadding').value = '2';
-            document.getElementById('parcelBoxWeight').value = '2000';
-            
-            closeParcelModal();
-            renderParcels();
-            renderParcelDropdown(); // Update dropdowns
-            renderView(); // Update dropdowns
-        }
-
-        function editParcel(parcelId) {
-            const parcel = parcels.find(p => p.id === parcelId);
-            if (!parcel) return;
-            
-            currentEditingParcel = parcelId;
-            
-            // Populate form with current values
-            document.getElementById('editParcelName').value = parcel.name;
-            document.getElementById('editParcelLength').value = parcel.length;
-            document.getElementById('editParcelWidth').value = parcel.width;
-            document.getElementById('editParcelHeight').value = parcel.height;
-            document.getElementById('editParcelPadding').value = parcel.padding;
-            document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
-            
-            // Open modal
-            document.getElementById('editParcelModal').classList.remove('hidden');
-        }
-
-        function closeEditParcelModal() {
-            document.getElementById('editParcelModal').classList.add('hidden');
-            currentEditingParcel = null;
-        }
-
-        function closeEditParcelModalOnOutsideClick(event) {
-            if (event.target.classList.contains('modal')) {
-                closeEditParcelModal();
-            }
-        }
+    parcels.push(parcel);
+    localStorage.setItem('parcels', JSON.stringify(parcels));
+    
+    closeParcelModal();
+    renderParcels();
+    updateParcelTabStats();
+    renderParcelDropdown();
+    renderView();
+}
 
         function deleteParcel(parcelId) {
             if (confirm('Are you sure you want to delete this parcel?')) {
@@ -3505,82 +3870,93 @@ function renderFormatsTable() {
                 });
                 
                 renderParcels();
+                updateParcelTabStats();
                 renderView();
             }
         }
 
-        function editParcel(parcelId) {
-            const parcel = parcels.find(p => p.id === parcelId);
-            if (!parcel) return;
-            
-            currentEditingParcel = parcelId;
-            
-            // Populate form with current values
-            document.getElementById('editParcelName').value = parcel.name;
-            document.getElementById('editParcelLength').value = parcel.length;
-            document.getElementById('editParcelWidth').value = parcel.width;
-            document.getElementById('editParcelHeight').value = parcel.height;
-            document.getElementById('editParcelPadding').value = parcel.padding;
-            document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
-            
-            // Open modal
-            document.getElementById('editParcelModal').classList.remove('hidden');
-        }
+function editParcel(parcelId) {
+    const parcel = parcels.find(p => p.id === parcelId);
+    if (!parcel) return;
+    
+    currentEditingParcel = parcelId;
+    
+    // Populate basic fields
+    document.getElementById('editParcelName').value = parcel.name;
+    document.getElementById('editParcelLength').value = parcel.length;
+    document.getElementById('editParcelWidth').value = parcel.width;
+    document.getElementById('editParcelHeight').value = parcel.height;
+    document.getElementById('editParcelPadding').value = parcel.padding;
+    document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
+    
+    // Populate shipping fields
+    document.getElementById('editParcelShippingMethod').value = parcel.shippingMethod || '';
+    document.getElementById('editParcelShippingCost').value = parcel.shippingCost || '';
+    document.getElementById('editParcelShipDate').value = parcel.shipDate || '';
+    document.getElementById('editParcelArrivalDate').value = parcel.arrivalDate || '';
+    document.getElementById('editParcelActualWeight').value = parcel.actualWeight || '';
+    document.getElementById('editParcelTrackingNumber').value = parcel.trackingNumber || '';
+    
+    // Show edit modal
+    document.getElementById('editParcelModal').classList.remove('hidden');
+}
 
-        function closeEditParcelModal() {
-            document.getElementById('editParcelModal').classList.add('hidden');
-            currentEditingParcel = null;
-        }
-
-        function closeEditParcelModalOnOutsideClick(event) {
-            if (event.target.classList.contains('modal')) {
-                closeEditParcelModal();
-            }
-        }
-
-        function saveParcelEdit() {
-            if (!currentEditingParcel) return;
-            
-            const parcelIndex = parcels.findIndex(p => p.id === currentEditingParcel);
-            if (parcelIndex === -1) return;
-            
-            const oldName = parcels[parcelIndex].name;
-            const newName = document.getElementById('editParcelName').value || `Parcel ${parcels.length}`;
-            const length = parseFloat(document.getElementById('editParcelLength').value) || 12;
-            const width = parseFloat(document.getElementById('editParcelWidth').value) || 8;
-            const height = parseFloat(document.getElementById('editParcelHeight').value) || 6;
-            const padding = parseFloat(document.getElementById('editParcelPadding').value) || 0.5;
-            const boxWeight = parseFloat(document.getElementById('editParcelBoxWeight').value) || 100;
-            
-            // Update parcel
-            parcels[parcelIndex] = {
-                ...parcels[parcelIndex],
-                name: newName,
-                length,
-                width,
-                height,
-                padding,
-                boxWeight
-            };
-            
-            localStorage.setItem('parcels', JSON.stringify(parcels));
-            
-            // If name changed, we don't need to update orders since they store parcel ID, not name
-            // The parcel dropdowns will automatically show the new name
-            
-            closeEditParcelModal();
-            renderParcels();
-            renderView(); // Update dropdowns with new parcel name
-            
-            if (oldName !== newName) {
-                alert(`Parcel renamed from "${oldName}" to "${newName}" and updated successfully!`);
-            } else {
-                alert('Parcel updated successfully!');
-            }
-        }
+function saveParcelEdit() {
+    if (!currentEditingParcel) return;
+    
+    const parcelIndex = parcels.findIndex(p => p.id === currentEditingParcel);
+    if (parcelIndex === -1) return;
+    
+    const oldName = parcels[parcelIndex].name;
+    
+    // Get basic info
+    const newName = document.getElementById('editParcelName').value || `Parcel ${parcels.length}`;
+    const length = parseFloat(document.getElementById('editParcelLength').value) || 12;
+    const width = parseFloat(document.getElementById('editParcelWidth').value) || 8;
+    const height = parseFloat(document.getElementById('editParcelHeight').value) || 6;
+    const padding = parseFloat(document.getElementById('editParcelPadding').value) || 0.5;
+    const boxWeight = parseFloat(document.getElementById('editParcelBoxWeight').value) || 100;
+    
+    // Get shipping info
+    const shippingMethod = document.getElementById('editParcelShippingMethod').value || '';
+    const shippingCost = parseFloat(document.getElementById('editParcelShippingCost').value) || 0;
+    const shipDate = document.getElementById('editParcelShipDate').value || '';
+    const arrivalDate = document.getElementById('editParcelArrivalDate').value || '';
+    const actualWeight = parseFloat(document.getElementById('editParcelActualWeight').value) || 0;
+    const trackingNumber = document.getElementById('editParcelTrackingNumber').value || '';
+    
+    // Update parcel
+    parcels[parcelIndex] = {
+        ...parcels[parcelIndex],
+        name: newName,
+        length,
+        width,
+        height,
+        padding,
+        boxWeight,
+        shippingMethod,
+        shippingCost,
+        actualWeight,
+        shipDate,
+        arrivalDate,
+        trackingNumber
+    };
+    
+    localStorage.setItem('parcels', JSON.stringify(parcels));
+    
+    closeEditParcelModal();
+    renderParcels();
+    updateParcelTabStats();
+    renderView();
+    
+    alert(`Parcel "${newName}" updated successfully!`);
+}
 
 function renderParcels() {
     const parcelGrid = document.getElementById('parcelGrid');
+    
+    // Filter parcels by current tab
+    const filteredParcels = parcels.filter(parcel => parcel.status === currentParcelTab);
     
     // Always get ALL orders from localStorage, not the filtered ones
     let allOrders = [];
@@ -3591,8 +3967,18 @@ function renderParcels() {
         allOrders = [];
     }
     
-    parcelGrid.innerHTML = parcels.map(parcel => {
-        // Use allOrders instead of the filtered orders array
+    if (filteredParcels.length === 0) {
+        parcelGrid.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #6b7280; font-style: italic;">
+                ${currentParcelTab === 'planning' ? 
+                    'No parcels being planned yet. Click "Add Parcel" to get started!' : 
+                    'No shipped parcels yet. Mark parcels as shipped to see them here.'}
+            </div>
+        `;
+        return;
+    }
+    
+    parcelGrid.innerHTML = filteredParcels.map(parcel => {
         const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
         
         let totalWeight = parcel.boxWeight;
@@ -3602,13 +3988,9 @@ function renderParcels() {
         let totalValueUSD = 0;
         
         assignedOrders.forEach(order => {
-            // Get a default format if the order's format doesn't exist
             const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
             const defaultFormat = bookFormats[defaultFormatName] || {
-                width: 12.8,
-                height: 18.2,
-                thickness: 1.7,
-                weight: 190
+                width: 12.8, height: 18.2, thickness: 1.7, weight: 190
             };
             
             const format = bookFormats[order.bookFormat] || defaultFormat;
@@ -3619,8 +4001,6 @@ function renderParcels() {
             totalWeight += itemWeight;
             totalVolume += itemVolume;
             totalOrderVolumes += volumes * order.quantity;
-            
-            // Add up the values
             totalValueYen += order.yen || 0;
             totalValueUSD += order.usd || 0;
         });
@@ -3633,18 +4013,55 @@ function renderParcels() {
         const spaceUsed = (totalVolume / maxVolume * 100).toFixed(1);
         const spaceRemaining = Math.max(0, maxVolume - totalVolume).toFixed(2);
 
+        // Calculate additional stats for shipped parcels
+        let additionalStats = '';
+        if (currentParcelTab === 'shipped') {
+            const perItemWithShip = totalOrderVolumes > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / totalOrderVolumes) : 0;
+            const costPerGramWithShip = totalWeight > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / totalWeight) : 0;
+            const shipDays = calculateShipDays(parcel.shipDate, parcel.arrivalDate);
+            
+            additionalStats = `
+                <div class="stat">
+                    <div class="stat-value">$${perItemWithShip.toFixed(2)}</div>
+                    <div class="stat-label">Per Item + Ship</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">$${costPerGramWithShip.toFixed(3)}</div>
+                    <div class="stat-label">Cost/g + Ship</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">$${(parcel.shippingCost || 0).toFixed(2)}</div>
+                    <div class="stat-label">Shipping Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${parcel.shippingMethod || 'N/A'}</div>
+                    <div class="stat-label">Ship Method</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${shipDays >= 0 ? shipDays + ' days' : 'N/A'}</div>
+                    <div class="stat-label">Ship Time</div>
+                </div>
+            `;
+        }
+
         return `
             <div class="parcel-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h3>${parcel.name}</h3>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-small btn-secondary" onclick="editParcel('${parcel.id}')">Edit</button>
+                        ${currentParcelTab === 'planning' ? 
+                            `<button class="btn btn-small" onclick="markAsShipped('${parcel.id}')" style="background: #059669;">Ship It!</button>` :
+                            `<button class="btn btn-small btn-secondary" onclick="markAsPlanning('${parcel.id}')">Unship</button>`
+                        }
                         <button class="btn btn-small btn-secondary" onclick="deleteParcel('${parcel.id}')" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button>
                     </div>
                 </div>
                 <div style="font-size: 12px; color: rgb(106, 92, 201); margin-bottom: 8px;">
                     Dimensions: ${parcel.length}cm × ${parcel.width}cm × ${parcel.height}cm<br>
                     Available (After Padding): ${availableLength.toFixed(1)}cm × ${availableWidth.toFixed(1)}cm × ${availableHeight.toFixed(1)}cm
+                    ${currentParcelTab === 'shipped' && parcel.shippingMethod ? `<br>Shipped via: ${parcel.shippingMethod}` : ''}
+                    ${currentParcelTab === 'shipped' && parcel.trackingNumber ? `<br>Tracking: ${parcel.trackingNumber}` : ''}
                 </div>
                 <div class="parcel-stats">
                     <div class="stat">
@@ -3663,14 +4080,11 @@ function renderParcels() {
                         <div class="stat-value">${spaceUsed}%</div>
                         <div class="stat-label">Space Used</div>
                     </div>
-                    <!--- <div class="stat">
-                        <div class="stat-value">¥${totalValueYen.toLocaleString()}</div>
-                        <div class="stat-label">Total Yen</div>
-                    </div> -->
                     <div class="stat">
                         <div class="stat-value">$${totalValueUSD.toFixed(2)}</div>
                         <div class="stat-label">Total USD</div>
                     </div>
+                    ${additionalStats}
                 </div>
 
                 <div style="margin-top: 12px; max-height: 120px; overflow-y: auto;">
@@ -3685,6 +4099,52 @@ function renderParcels() {
     }).join('');
 }
 
+// Helper function to calculate shipping days
+function calculateShipDays(shipDate, arrivalDate) {
+    if (!shipDate || !arrivalDate) return -1;
+    
+    const ship = new Date(shipDate);
+    const arrival = new Date(arrivalDate);
+    const diffTime = arrival - ship;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays > 0 ? diffDays : -1;
+}
+
+// Mark parcel as shipped
+function markAsShipped(parcelId) {
+    const parcel = parcels.find(p => p.id === parcelId);
+    if (!parcel) return;
+    
+    parcel.status = 'shipped';
+    localStorage.setItem('parcels', JSON.stringify(parcels));
+    
+    // Switch to shipped tab to show the result
+    switchParcelTab('shipped');
+    alert(`${parcel.name} marked as shipped! You can now edit it to add shipping details.`);
+}
+
+// Mark parcel back as planning (unship)
+function markAsPlanning(parcelId) {
+    if (confirm('Move this parcel back to planning? This will clear shipping information.')) {
+        const parcel = parcels.find(p => p.id === parcelId);
+        if (!parcel) return;
+        
+        // Clear shipping data
+        parcel.status = 'planning';
+        parcel.shippingMethod = '';
+        parcel.shippingCost = 0;
+        parcel.actualWeight = 0;
+        parcel.actualDimensions = { length: 0, width: 0, height: 0 };
+        parcel.shipDate = '';
+        parcel.arrivalDate = '';
+        parcel.trackingNumber = '';
+        
+        localStorage.setItem('parcels', JSON.stringify(parcels));
+        switchParcelTab('planning');
+        alert(`${parcel.name} moved back to planning.`);
+    }
+}
 
 
 function toggleViewDirect() {
@@ -3834,7 +4294,6 @@ function createColumnPanel() {
     function importData(event) {
 
         // Clear all data
-        exportData();
         const file = event.target.files[0];
         if (!file) return;
 
@@ -3876,6 +4335,7 @@ function createColumnPanel() {
                 renderParcelDropdown(); // Initialize parcel dropdown
                 renderView();
                 renderParcels();
+                updateParcelTabStats();
                 updateTotals();
                 alert('Data imported successfully!');
             } catch (error) {
@@ -4711,5 +5171,152 @@ function refreshTagsUINew(orderId) {
     renderTagsDropdown();
 }
 </script>
+        <style>/* Updated Parcel tabs styling - Option B style */
+.parcel-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+    margin-bottom: 0px; /* No gap between tabs and stats bar */
+    overflow: hidden;
+    background: white;
+}
+
+.parcel-tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    position: relative;
+    border-bottom: 3px solid transparent;
+    flex: 1;
+    background: #f9fafb;
+    border-right: 1px solid #e5e7eb;
+}
+
+.parcel-tab:last-child {
+    border-right: none;
+}
+
+.parcel-tab.active {
+    color: #6366f1;
+    border-bottom-color: #6366f1;
+    background: white;
+    position: relative;
+    z-index: 1;
+}
+
+.parcel-tab:not(.active) {
+    color: #6b7280;
+}
+
+.parcel-tab:not(.active):hover {
+    color: #374151;
+    background: #f3f4f6;
+}
+
+.tab-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    justify-content: center;
+}
+
+.tab-count {
+    background: #6366f1;
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+}
+
+.parcel-tab:not(.active) .tab-count {
+    background: #9ca3af;
+}
+
+.tab-stats {
+    font-size: 11px;
+    opacity: 0.8;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.parcel-tab.active .tab-stats {
+    opacity: 1;
+    color: #6366f1;
+}
+
+/* Updated Stats bar styling - cleaner Option B style */
+.parcel-stats-bar {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-top: none; /* Connects seamlessly to active tab */
+    border-radius: 0 0 8px 8px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    display: none;
+    
+}
+
+.parcel-stats-bar.active {
+    display: block;
+}
+
+
+.stats-bar-items {
+    display: grid;
+    gap: 10px;
+    /* align-items: center; */
+    grid-auto-flow: column;
+    grid-template-columns: auto;
+}
+
+.stats-bar-item {
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+    text-align: center;
+    min-width: 0; /* Allow shrinking */
+}
+
+.stats-bar-value {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+    font-size:10px !important
+}
+
+.stats-bar-label {
+    color: #64748b;
+    font-weight: 500;
+    font-size:10px !important
+}
+
+/* Remove the old slideDown animation and add a subtle fade */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.parcel-stats-bar {
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content h3 {font-weight:700}
+.modal-content label {font-size:11px !important}</style>
 </body>
 </html>
