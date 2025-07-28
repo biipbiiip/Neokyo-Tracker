@@ -1714,19 +1714,30 @@ function removeFormatTags(tag) {
     applyFilters();
 }
 
-function removeParcelTags(parcelId) {
-    selectedParcels = selectedParcels.filter(id => id !== parcelId);
-    document.getElementById(`parcel-${parcelId}`).checked = false;
-    renderParcelTags();
+function removeTagsTags(tag) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+    if (tag === 'Untagged') {
+        const checkbox = document.getElementById('tag-untagged');
+        if (checkbox) checkbox.checked = false;
+    } else {
+        const safeId = tag.replace(/[^a-z0-9]/gi, '-');
+        const checkbox = document.getElementById(`tag-${safeId}`);
+        if (checkbox) checkbox.checked = false;
+    }
+    renderTagsTags();
     applyFilters();
 }
 
-function removeTagsTags(tag) {
-    selectedTags = selectedTags.filter(t => t !== tag);
-    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
-    const checkbox = document.getElementById(`tag-${safeId}`);
-    if (checkbox) checkbox.checked = false;
-    renderTagsTags();
+function removeParcelTags(parcelId) {
+    selectedParcels = selectedParcels.filter(id => id !== parcelId);
+    if (parcelId === '__NO_PARCEL__') {
+        const checkbox = document.getElementById('parcel-no-parcel');
+        if (checkbox) checkbox.checked = false;
+    } else {
+        const checkbox = document.getElementById(`parcel-${parcelId}`);
+        if (checkbox) checkbox.checked = false;
+    }
+    renderParcelTags();
     applyFilters();
 }
 
@@ -1758,12 +1769,18 @@ function renderFormatDropdown() {
 
 function renderParcelDropdown() {
     const dropdown = document.getElementById('parcelDropdown');
-    dropdown.innerHTML = parcels.map(parcel => `
+    dropdown.innerHTML = `
         <div class="multi-select-option">
-            <input type="checkbox" id="parcel-${parcel.id}" value="${parcel.id}" onchange="updateMultiSelectFilter('Parcels')">
-            <label for="parcel-${parcel.id}">${parcel.name}</label>
+            <input type="checkbox" id="parcel-no-parcel" value="__NO_PARCEL__" onchange="updateMultiSelectFilter('Parcels')">
+            <label for="parcel-no-parcel">No Parcel</label>
         </div>
-    `).join('');
+        ${parcels.map(parcel => `
+            <div class="multi-select-option">
+                <input type="checkbox" id="parcel-${parcel.id}" value="${parcel.id}" onchange="updateMultiSelectFilter('Parcels')">
+                <label for="parcel-${parcel.id}">${parcel.name}</label>
+            </div>
+        `).join('')}
+    `;
 }
 
 function renderTagsDropdown() {
@@ -1771,16 +1788,28 @@ function renderTagsDropdown() {
     const uniqueTags = getUniqueTags();
     
     if (uniqueTags.length === 0) {
-        dropdown.innerHTML = '<div style="padding: 8px; color: #9ca3af;">No tags found</div>';
+        dropdown.innerHTML = `
+            <div class="multi-select-option">
+                <input type="checkbox" id="tag-untagged" value="Untagged" onchange="updateMultiSelectFilter('Tags')">
+                <label for="tag-untagged">Untagged</label>
+            </div>
+            <div style="padding: 8px; color: #9ca3af;">No other tags found</div>
+        `;
         return;
     }
     
-    dropdown.innerHTML = uniqueTags.map(tag => `
+    dropdown.innerHTML = `
         <div class="multi-select-option">
-            <input type="checkbox" id="tag-${tag.replace(/[^a-z0-9]/gi, '-')}" value="${tag}" onchange="updateMultiSelectFilter('Tags')">
-            <label for="tag-${tag.replace(/[^a-z0-9]/gi, '-')}">${tag}</label>
+            <input type="checkbox" id="tag-untagged" value="Untagged" onchange="updateMultiSelectFilter('Tags')">
+            <label for="tag-untagged">Untagged</label>
         </div>
-    `).join('');
+        ${uniqueTags.map(tag => `
+            <div class="multi-select-option">
+                <input type="checkbox" id="tag-${tag.replace(/[^a-z0-9]/gi, '-')}" value="${tag}" onchange="updateMultiSelectFilter('Tags')">
+                <label for="tag-${tag.replace(/[^a-z0-9]/gi, '-')}">${tag}</label>
+            </div>
+        `).join('')}
+    `;
 }
 
         </script>
@@ -3699,47 +3728,59 @@ function deleteOrder(orderId) {
             renderView();
         }
 
-        function applyFilters() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const searchTerms = search.split(',').map(term => term.trim()).filter(Boolean);
-            // const tags = document.getElementById('tagsInput').value.toLowerCase();
-            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
-            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const searchTerms = search.split(',').map(term => term.trim()).filter(Boolean);
+    const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+    const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
 
-            const filteredOrders = JSON.parse(localStorage.getItem('orders') || '[]').filter(order => {
-                const matchesSearch = searchTerms.length === 0 || 
-                    searchTerms.some(term =>
-                        order.orderId.toLowerCase().includes(term) ||
-                        order.title.toLowerCase().includes(term)
-                    );
-                
-                const matchesTags = selectedTags.length === 0 || 
-                    selectedTags.some(selectedTag => {
-                        const orderTags = String(order.tags || '').split(' ').filter(t => t.trim());
-                        return orderTags.includes(selectedTag);
-                    });
-
-                
-                const matchesPrice = order.yen >= minPrice && order.yen <= maxPrice;
-                
-                const matchesFormat = selectedFormats.length === 0 || 
-                    selectedFormats.includes(order.bookFormat);
-                
-                const matchesStatus = selectedStatuses.length === 0 || 
-                    selectedStatuses.some(selectedStatus => 
-                        (order.status || '').toLowerCase().includes(selectedStatus.toLowerCase()));
-
-                const matchesParcel = selectedParcels.length === 0 || 
-                selectedParcels.includes(order.parcel);
-
-                return matchesSearch && matchesTags && matchesPrice && matchesFormat && matchesStatus && matchesParcel;
+    const filteredOrders = JSON.parse(localStorage.getItem('orders') || '[]').filter(order => {
+        const matchesSearch = searchTerms.length === 0 || 
+            searchTerms.some(term =>
+                order.orderId.toLowerCase().includes(term) ||
+                order.title.toLowerCase().includes(term)
+            );
+        
+        // Updated tags filter logic
+        const matchesTags = selectedTags.length === 0 || 
+            selectedTags.some(selectedTag => {
+                if (selectedTag === 'Untagged') {
+                    // Check if order has no tags or empty tags
+                    return !order.tags || order.tags.trim() === '';
+                } else {
+                    const orderTags = String(order.tags || '').split(' ').filter(t => t.trim());
+                    return orderTags.includes(selectedTag);
+                }
             });
 
-            orders = filteredOrders;
-            applySortToOrders();
-            renderView();
-            updateTotals();
-        }
+        const matchesPrice = order.yen >= minPrice && order.yen <= maxPrice;
+        
+        const matchesFormat = selectedFormats.length === 0 || 
+            selectedFormats.includes(order.bookFormat);
+        
+        const matchesStatus = selectedStatuses.length === 0 || 
+            selectedStatuses.some(selectedStatus => 
+                (order.status || '').toLowerCase().includes(selectedStatus.toLowerCase()));
+
+        // Updated parcel filter logic
+        const matchesParcel = selectedParcels.length === 0 || 
+            selectedParcels.some(selectedParcel => {
+                if (selectedParcel === '__NO_PARCEL__') {
+                    // Check if order has no parcel assigned
+                    return !order.parcel || order.parcel === '';
+                } else {
+                    return order.parcel === selectedParcel;
+                }
+            });
+
+        return matchesSearch && matchesTags && matchesPrice && matchesFormat && matchesStatus && matchesParcel;
+    });
+
+    orders = filteredOrders;
+    applySortToOrders();
+    renderView();
+    updateTotals();
+}
 
         function clearFilters() {
             document.getElementById('searchInput').value = '';
