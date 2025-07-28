@@ -727,15 +727,6 @@
 
         <!--- dont laugh devs i am heavily assisted by the bff we can always talk to at like 2:33AM w/ showerthoughts and receive affirmations from instead of yelling  :( -->
 
-        <!---<div id="parcelSection" class="parcel-section" style="margin-bottom: 24px;">
-            <div class="parcel-header">
-                <h2>Parcel Calculator</h2>
-                <h3>✋‼️ NOTE: Space Used/Space Left is ONLY a simple calculation.<br />It can't play Tetris to account for the various box sizes, it's only to gauge.</h3>
-                
-                <button class="btn" onclick="openParcelModal()">Add Parcel</button>
-            </div>
-            <div id="parcelGrid" class="parcel-grid"></div>
-        </div>--->
         <div id="parcelSection" style="
             position: fixed;
             top: 0;
@@ -754,6 +745,7 @@
 <div class="parcel-header">
     <h2>Parcel Calculator</h2>
     <button class="btn" onclick="openParcelModal()">Add Parcel</button>
+                <button class="btn" onclick="toggleParcelSection()">Close</button>
 </div>
     <div class="parcel-tabs">
         <div class="parcel-tab active" id="planning-tab" onclick="switchParcelTab('planning')">
@@ -777,7 +769,7 @@
         </div>
         <div class="stats-bar-item">
             <div class="stats-bar-value" id="planning-value">$0.00</div>
-            <div class="stats-bar-label">Total Value</div>
+            <div class="stats-bar-label">Total USD</div>
         </div>
         <div class="stats-bar-item">
             <div class="stats-bar-value" id="planning-per-item">$0.00</div>
@@ -795,14 +787,6 @@
             <div class="stats-bar-value" id="shipped-total">$0.00</div>
             <div class="stats-bar-label">Total Shipping</div>
         </div>
-        <!-- <div class="stats-bar-item">
-            <div class="stats-bar-value" id="shipped-avg">$0.00</div>
-            <div class="stats-bar-label">Avg Shipping</div>
-        </div> -->
-        <!-- <div class="stats-bar-item">
-            <div class="stats-bar-value" id="shipped-weight">0kg</div>
-            <div class="stats-bar-label">Avg Weight</div>
-        </div> -->
         <div class="stats-bar-item">
             <div class="stats-bar-value" id="shipped-per-item-only">$0.00</div>
             <div class="stats-bar-label">Per Item</div>
@@ -857,6 +841,10 @@ function updatePlanningStats(planningParcels) {
     let totalItems = 0;
     let totalCapacity = 0;
     let totalMaxVolume = 0;
+    let totalVolume = 0;
+    let totalOrderVolumes = 0;
+    let totalValueYen = 0;
+    let totalValueUSD = 0;
     
     // Get all orders from localStorage for accurate calculations
     let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -865,23 +853,28 @@ function updatePlanningStats(planningParcels) {
         const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
         let parcelWeight = parcel.boxWeight;
         let parcelValue = 0;
-        let parcelItems = 0;
         
-        assignedOrders.forEach(order => {
-            const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
-            const defaultFormat = bookFormats[defaultFormatName] || { weight: 190 };
-            const format = bookFormats[order.bookFormat] || defaultFormat;
-            const volumes = order.volumes || 1;
-            const itemWeight = format.weight * volumes * order.quantity;
-            
-            parcelWeight += itemWeight;
-            parcelValue += order.usd || 0;
-            parcelItems += volumes * order.quantity;
-        });
+assignedOrders.forEach(order => {
+        const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
+        const defaultFormat = bookFormats[defaultFormatName] || {
+            width: 10.0, height: 10.0, thickness: 10.0, weight: 10
+        };
         
-        totalWeight += parcelWeight;
-        totalValue += parcelValue;
-        totalItems += parcelItems;
+        const format = bookFormats[order.bookFormat] || defaultFormat;
+        const volumes = order.volumes || 1;
+        const itemWeight = format.weight * volumes * order.quantity;
+        const itemVolume = format.width * format.height * (format.thickness * volumes) * order.quantity;
+        
+        totalWeight += itemWeight;
+        totalVolume += itemVolume;
+        totalOrderVolumes += volumes * order.quantity;
+        totalValueYen += order.yen || 0;
+        totalValueUSD += order.usd || 0;
+    });
+        
+        totalWeight += parcelWeight; // would be incorrect for planning if we're doing actual weight
+        totalValue += totalValueUSD;
+        totalItems += totalOrderVolumes; // mfw i started off counting these as volumes bc manga and then it just became items but im too lazy to change it now that i even have claude confused
         
         // Calculate capacity
         const availableVolume = (parcel.length - parcel.padding * 2) * 
@@ -898,24 +891,19 @@ function updatePlanningStats(planningParcels) {
         totalCapacity += usedVolume;
     });
     
-    let totalEstimatedShipping = 0;
+    let totalEstimatedShipping = 0; // we don't need to estimate shipping for planning so this is useless but im not removing it
     planningParcels.forEach(parcel => {
-        // Use actual shipping cost if filled in, otherwise estimate $10 per parcel
+        // Use actual shipping cost if filled in
         if (parcel.shippingCost && parcel.shippingCost > 0) {
             totalEstimatedShipping += parcel.shippingCost;
         } else {
-            totalEstimatedShipping += 10; // Default estimate per parcel
+            totalEstimatedShipping += 0; // Default estimate per parcel
         }
     });
 
+    const perItem = totalItems > 0 ? (totalValue / totalItems) : 0;
 const perItemWithEstShip = totalItems > 0 ? ((totalValue + totalEstimatedShipping) / totalItems) : 0;
 
-    const perItem = totalItems > 0 ? (totalValue / totalItems) : 0;
-    
-    // // Update planning tab stats
-    // document.getElementById('planning-stats').textContent = 
-    //     `${planningParcels.length} parcels • ${totalWeight.toFixed(0)}g estimated • $${perItem.toFixed(2)}/item`;
-    
     // Update planning stats bar
     document.getElementById('planning-weight').textContent = `${totalWeight.toFixed(0)}g`;
     document.getElementById('planning-per-item-plus-ship').textContent = `$${perItemWithEstShip.toFixed(2)}`;
@@ -2160,7 +2148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="number" id="editParcelActualWeight" placeholder="Leave empty if unknown">
                 </div>
     <div class="form-group">
-        <label>Declared Value (USD)</label>
+        <label>Declared Value (Yen)</label>
         <input type="number" id="parcelDeclaredValue" step="0.01" placeholder="Pro forma invoice value">
     </div>
                 <div class="form-group">
@@ -2258,6 +2246,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label>Actual Weight (g)</label>
                     <input type="number" id="parcelActualWeight" placeholder="Leave empty if unknown">
                 </div>
+    <div class="form-group">
+        <label>Declared Value (Yen)</label>
+        <input type="number" id="editParcelDeclaredValue" step="0.01" placeholder="Pro forma invoice value">
+    </div>
+</div>
                 <div class="form-group">
                     <label>Tracking Number</label>
                     <input type="text" id="parcelTrackingNumber" placeholder="Optional">
@@ -2401,7 +2394,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
         console.error('Error loading column visibility:', e);
     }
-
+    
     // Initialize parcel tab stats
     updateParcelTabStats();
     
@@ -2419,6 +2412,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (parcel.arrivalDate === undefined) parcel.arrivalDate = '';
         if (parcel.trackingNumber === undefined) parcel.trackingNumber = '';
         if (parcel.trackingURL === undefined) parcel.trackingURL = '';
+        if (parcel.declaredValue === undefined) parcel.declaredValue = 0;
     });
     
     if (needsSave) {
@@ -3832,6 +3826,7 @@ function saveParcel() {
     const shipDate = document.getElementById('parcelShipDate').value || '';
     const arrivalDate = document.getElementById('parcelArrivalDate').value || '';
     const actualWeight = parseFloat(document.getElementById('parcelActualWeight').value) || 0;
+    const declaredValue = parseFloat(document.getElementById('parcelDeclaredValue').value) || 0;
     const trackingNumber = document.getElementById('parcelTrackingNumber').value || '';
     const trackingURL = document.getElementById('parcelTrackingURL').value || '';   
     
@@ -3848,7 +3843,7 @@ function saveParcel() {
         shippingMethod,
         shippingCost,
         actualWeight,
-        actualDimensions: { length: 0, width: 0, height: 0 },
+        declaredValue,
         shipDate,
         arrivalDate,
         trackingNumber,
@@ -3922,6 +3917,7 @@ function editParcel(parcelId) {
     document.getElementById('editParcelShipDate').value = parcel.shipDate || '';
     document.getElementById('editParcelArrivalDate').value = parcel.arrivalDate || '';
     document.getElementById('editParcelActualWeight').value = parcel.actualWeight || '';
+    document.getElementById('editParcelDeclaredValue').value = parcel.declaredValue || '';
     document.getElementById('editParcelTrackingNumber').value = parcel.trackingNumber || '';
     document.getElementById('editParcelTrackingURL').value = parcel.trackingURL || '';
 
@@ -3951,6 +3947,7 @@ function saveParcelEdit() {
     const shipDate = document.getElementById('editParcelShipDate').value || '';
     const arrivalDate = document.getElementById('editParcelArrivalDate').value || '';
     const actualWeight = parseFloat(document.getElementById('editParcelActualWeight').value) || 0;
+    const declaredValue = parseFloat(document.getElementById('editParcelDeclaredValue').value) || 0;
     const trackingNumber = document.getElementById('editParcelTrackingNumber').value || '';
     const trackingURL = document.getElementById('editParcelTrackingURL').value || '';
     
@@ -3966,6 +3963,7 @@ function saveParcelEdit() {
         shippingMethod,
         shippingCost,
         actualWeight,
+        declaredValue,
         shipDate,
         arrivalDate,
         trackingNumber,
@@ -4020,7 +4018,7 @@ function renderParcels() {
         assignedOrders.forEach(order => {
             const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
             const defaultFormat = bookFormats[defaultFormatName] || {
-                width: 12.8, height: 18.2, thickness: 1.7, weight: 190
+                width: 10.0, height: 10.0, thickness: 10.0, weight: 10.0
             };
             
             const format = bookFormats[order.bookFormat] || defaultFormat;
@@ -4035,44 +4033,53 @@ function renderParcels() {
             totalValueUSD += order.usd || 0;
         });
 
-        const availableLength = parcel.length - (parcel.padding * 2);
-        const availableWidth = parcel.width - (parcel.padding * 2);
-        const availableHeight = parcel.height - (parcel.padding * 2);
-        const maxVolume = availableLength * availableWidth * availableHeight;
-        
-        const spaceUsed = (totalVolume / maxVolume * 100).toFixed(1);
-        const spaceRemaining = Math.max(0, maxVolume - totalVolume).toFixed(2);
 
-        // Calculate additional stats for shipped parcels
-        let additionalStats = '';
-        if (currentParcelTab === 'shipped') {
-            const perItemWithShip = totalOrderVolumes > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / totalOrderVolumes) : 0;
-            const costPerGramWithShip = totalWeight > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / totalWeight) : 0;
-            const shipDays = calculateShipDays(parcel.shipDate, parcel.arrivalDate);
-            
-            additionalStats = `
-                <div class="stat">
-                    <div class="stat-value">$${perItemWithShip.toFixed(2)}</div>
-                    <div class="stat-label">Per Item + Ship</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">$${costPerGramWithShip.toFixed(3)}</div>
-                    <div class="stat-label">Cost/g + Ship</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">$${(parcel.shippingCost || 0).toFixed(2)}</div>
-                    <div class="stat-label">Shipping Total</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">${parcel.shippingMethod || 'N/A'}</div>
-                    <div class="stat-label">Ship Method</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">${shipDays >= 0 ? shipDays + ' days' : 'N/A'}</div>
-                    <div class="stat-label">Ship Time</div>
-                </div>
-            `;
-        }
+if (currentParcelTab === 'shipped' && parcel.actualWeight && parcel.actualWeight > 0) {
+    totalWeight = parcel.actualWeight; // Use actual weight for items
+}
+
+const availableLength = parcel.length - (parcel.padding * 2);
+const availableWidth = parcel.width - (parcel.padding * 2);
+const availableHeight = parcel.height - (parcel.padding * 2);
+const maxVolume = availableLength * availableWidth * availableHeight;
+
+const spaceUsed = (totalVolume / maxVolume * 100).toFixed(1);
+const spaceRemaining = Math.max(0, maxVolume - totalVolume).toFixed(2);
+
+// Calculate additional stats for shipped parcels
+let additionalStats = '';
+if (currentParcelTab === 'shipped') {
+    const perItemWithShip = totalOrderVolumes > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / totalOrderVolumes) : 0;
+    const costPerKgWithShip = totalWeight > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / (totalWeight / 1000)) : 0;
+    const shipDays = calculateShipDays(parcel.shipDate, parcel.arrivalDate);
+    
+    additionalStats = `
+        <div class="stat">
+            <div class="stat-value">$${perItemWithShip.toFixed(2)}</div>
+            <div class="stat-label">Per Item + Ship</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">$${costPerKgWithShip.toFixed(2)}</div>
+            <div class="stat-label">Cost/kg + Ship</div>
+        </div>
+    `;
+} else if (currentParcelTab === 'planning') {
+    // Estimate shipping cost - use parcel's shipping cost if set, otherwise default $10
+    const estimatedShipping = (parcel.shippingCost && parcel.shippingCost > 0) ? parcel.shippingCost : 10;
+    const perItemWithEstShip = totalOrderVolumes > 0 ? ((totalValueUSD + estimatedShipping) / totalOrderVolumes) : 0;
+    const perItem = totalOrderVolumes > 0 ? (totalValueUSD / totalOrderVolumes) : 0;
+    
+    additionalStats = `
+        <div class="stat">
+            <div class="stat-value">$${perItemWithEstShip.toFixed(2)}</div>
+            <div class="stat-label">Per Item + Ship</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">$${perItem.toFixed(2)}</div>
+            <div class="stat-label">Per Item</div>
+        </div>
+    `;
+}
 
         return `
             <div class="parcel-card">
@@ -4089,8 +4096,7 @@ function renderParcels() {
                 </div>
                 <div style="font-size: 12px; color: rgb(106, 92, 201); margin-bottom: 8px;">
                     Dimensions: ${parcel.length}cm × ${parcel.width}cm × ${parcel.height}cm<br>
-                    Available (After Padding): ${availableLength.toFixed(1)}cm × ${availableWidth.toFixed(1)}cm × ${availableHeight.toFixed(1)}cm
-                    ${currentParcelTab === 'shipped' && parcel.shippingMethod ? `<br>Shipped via: ${parcel.shippingMethod}` : ''}
+                    ${currentParcelTab === 'shipped' && parcel.shippingMethod ? `<br>Shipped via: ${parcel.shippingMethod}` : ''} ($${(parcel.shippingCost || 0).toFixed(2)})
                     ${currentParcelTab === 'shipped' && parcel.trackingNumber ? `<br>Tracking: ${parcel.trackingNumber}` : ''}
                 </div>
                 <div class="parcel-stats">
@@ -4104,7 +4110,7 @@ function renderParcels() {
                     </div>
                     <div class="stat">
                         <div class="stat-value">${totalWeight.toFixed(0)}g</div>
-                        <div class="stat-label">Weight</div>
+                        <div class="stat-label">${(currentParcelTab === 'shipped' && parcel.actualWeight && parcel.actualWeight > 0) ? 'Actual Weight' : 'Weight'}</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value">${spaceUsed}%</div>
@@ -4114,6 +4120,9 @@ function renderParcels() {
                         <div class="stat-value">$${totalValueUSD.toFixed(2)}</div>
                         <div class="stat-label">Total USD</div>
                     </div>
+                </div>
+                <div class="parcel-stats">
+                    <style>.stat div {display:inline}</style>
                     ${additionalStats}
                 </div>
 
