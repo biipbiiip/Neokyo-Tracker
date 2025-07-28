@@ -2296,6 +2296,14 @@ function applySortToOrders() {
                     <label>Name</label>
                     <input type="text" id="editParcelName" placeholder="Parcel 1">
                 </div>
+                <div class="form-group">
+                    <label>Padding/Safe Zone (cm)</label>
+                    <input type="number" id="editParcelPadding" step="1" value="5">
+                </div>
+                <div class="form-group">
+                    <label>Package Materials/Box Weight (g)</label>
+                    <input type="number" id="editParcelBoxWeight" value="2000">
+                </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -2309,16 +2317,6 @@ function applySortToOrders() {
                 <div class="form-group">
                     <label>Height (cm)</label>
                     <input type="number" id="editParcelHeight" step="1" value="62">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Padding/Safe Zone (cm)</label>
-                    <input type="number" id="editParcelPadding" step="1" value="5">
-                </div>
-                <div class="form-group">
-                    <label>Package Materials/Box Weight (g)</label>
-                    <input type="number" id="editParcelBoxWeight" value="2000">
                 </div>
             </div>
         </div>
@@ -2391,40 +2389,46 @@ function applySortToOrders() {
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
         <h3 id="parcelModalTitle">Add New Parcel</h3>
         
+<div class="form-section" id="presetSection">
+    <h4>Quick Presets</h4>
+    <div class="neokyo-note">NOTE: These are based on common box sizes from the Neokyo community/Discord. There may be more, and you can always edit the dimensions yourself at any time. Please always assume that your items may not be fitted into the box you expect, this calculator is just to help you plan/gauge!.</div><br />
+    <div class="preset-grid">
+        <!-- js renderparcelpresets -->
+    </div>
+</div>
+
         <!-- Basic Info Section -->
-        <div class="form-section">
-            <h4>Basic Information</h4>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="parcelName" placeholder="Parcel 1">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Length (cm)</label>
-                    <input type="number" id="parcelLength" step="1" value="60">
-                </div>
-                <div class="form-group">
-                    <label>Width (cm)</label>
-                    <input type="number" id="parcelWidth" step="1" value="45">
-                </div>
-                <div class="form-group">
-                    <label>Height (cm)</label>
-                    <input type="number" id="parcelHeight" step="1" value="62">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Padding/Safe Zone (cm)</label>
-                    <input type="number" id="parcelPadding" step="1" value="20">
-                </div>
-                <div class="form-group">
-                    <label>Package Materials/Box Weight (g)</label>
-                    <input type="number" id="parcelBoxWeight" value="2000">
-                </div>
-            </div>
+<div class="form-section">
+    <h4>Basic Information</h4>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="parcelName" placeholder="Parcel 1">
         </div>
+        <div class="form-group">
+            <label>Length (cm)</label>
+            <input type="number" id="parcelLength" step="1" value="25">
+        </div>
+        <div class="form-group">
+            <label>Width (cm)</label>
+            <input type="number" id="parcelWidth" step="1" value="19">
+        </div>
+        <div class="form-group">
+            <label>Height (cm)</label>
+            <input type="number" id="parcelHeight" step="1" value="34">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Padding/Safe Zone (cm)</label>
+            <input type="number" id="parcelPadding" step="1" value="2">
+        </div>
+        <div class="form-group">
+            <label>Package Materials/Box Weight (g)</label>
+            <input type="number" id="parcelBoxWeight" value="800">
+        </div>
+    </div>
+</div>
         
         <!-- Shipping Info Section (shown when on shipped tab) -->
         <div class="form-section" id="shippingSection" style="display: none;">
@@ -2488,8 +2492,292 @@ function applySortToOrders() {
         </div>
     </div>
 </div>
+<style>/* parcel preset cards */.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Smaller minimum */
+    gap: 8px; /* Smaller gap */
+    margin-bottom: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+}
 
+.preset-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f9fafb;
+    width: 100%; /* Ensure full width */
+}
+        
+.preset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.preset-descriptor {
+    font-size: 11px;
+    color: rgb(106, 92, 201);
+    font-family: monospace;
+    background: #f3f4f6;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+        
+.preset-name {
+    font-weight: 700;
+    color: #374151;
+    font-size: 15px;
+}
+
+.form-section {
+    margin-bottom: 20px;
+}
+
+.form-section h4 {
+    margin: 0 0 12px 0;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#presetSection * {font-size:10px !important}
+</style>
     <script>
+        // add parcel presets + fns
+        // Preset definitions with packaging weights
+const parcelPresets = {
+    'photocard-ultra': {
+        name: '8×19×21cm',
+        descriptor: 'Small',
+        dimensions: { length: 8, width: 19, height: 21, padding: 1 },
+        boxWeight: 300,
+        examples: [
+            // EXACT: 8/19/21
+            '70 photocards + 2 keychains = 342g',
+            '19 TCG cards = 200g',
+            '42 photocards + notebook + 2 plushies = 435g',
+            'Single CD + 6 photocards = 271g',
+            'New 3DS = 384g',
+            'Digital camera + charger = 315g',
+            'Single t-shirt = 379g',
+            // CLOSE: 7/18/21
+            'New 3DS LL = 658g'
+        ],
+        tags: ['Photocards', 'Trading cards', 'Small badges', 'Keychains', 'Small electronics']
+    },
+    'community-mvp': {
+        name: '25×19×34cm',
+        descriptor: 'Medium',
+        dimensions: { length: 25, width: 19, height: 34, padding: 2 },
+        boxWeight: 800,
+        examples: [
+            // EXACT: 25/19/34
+            '1/7 figure + light novel + VN game = 1,128g',
+            '7 artbooks + socks + plush = 4,342g',
+            '3 manga + 1/8 figure + 2 PSP games = 1,725g',
+            'PSP + camera + 14 UMD games = 2,292g',
+            '62 photocards + photobook + hoodie = 1,970g',
+            '30 photocards + album + washi tape + plushies = 1,723g',
+            '4 pokemon cards + lunch bag + magazines + CDs = 2,360g',
+            '2 small figures + keychains + books = 2,966g'
+        ],
+        tags: ['1-8 manga', 'Scale figures', 'CDs & games', 'Small clothing', 'Electronics', 'Mixed orders']
+    },
+    'magazine-heavy': {
+        name: '25×12×35cm',
+        descriptor: 'Medium/Heavy',
+        dimensions: { length: 25, width: 12, height: 35, padding: 2 },
+        boxWeight: 600,
+        examples: [
+            // EXACT: 25/12/34-35
+            '11 magazines = 6,018g',
+            '10 magazines = 5,109g',
+            '8 CD albums + artbook + cards = 1,843g',
+            '11 doujinshi + 4 plushies = 1,383g',
+            '2 belts + shirt + 2 dresses = 1,644g',
+            '4 albums + 26 photocards + keychains = 1,810g',
+            '6 CDs + manga + standee + cards = 1,294g',
+            'Acrylic standee + towel + sailor suit = 1,047g'
+        ],
+        tags: ['Magazines', 'Artbooks', 'Manga sets', 'Flat items', 'Books']
+    },
+    'mixed-merch': {
+        name: '27×24×38cm',
+        descriptor: 'Medium/Mixed',
+        dimensions: { length: 27, width: 24, height: 38, padding: 2 },
+        boxWeight: 1000,
+        examples: [
+            // EXACT: 27/24/38
+            '6 prize figures = 1,878g',
+            '1/8 figure + 3 prize figures + PSP game = 1,713g',
+            '4 CDs + magazines + plush + hoodie = 2,490g',
+            '1/6 figure + postcards + keychains = 2,006g',
+            '~775 sticker sheets + washi tape + figures = 7,900g',
+            'Cosplay set + figures + badges + CDs = 3,457g',
+            '4 blouses + dress + pouches + figures = 2,390g',
+            '2 plushies + makeup + pouches + photocards = 1,839g',
+            'Ichiban kuji + Nendoroid + small figures = 1,961g'
+        ],
+        tags: ['Plushies', 'Prize figures', 'Accessories', 'Mixed collections']
+    },
+    'big-box': {
+        name: '30×33×47cm',
+        descriptor: 'Large',
+        dimensions: { length: 30, width: 33, height: 47, padding: 2 },
+        boxWeight: 1200,
+        examples: [
+            // EXACT: 30/33/47
+            '16 small + 2 medium + 1 large figure = 3,500g',
+            '1/7 + 1/8 figure + dakimakura = 2,950g',
+            '1/7 figure + acrylic stands + cards = 1,890g',
+            '6 used collectible figures + book = 2,650g',
+            'Shorts + t-shirt + figure + Kirby warmer = 2,385g',
+            // CLOSE: 33/30/47
+            '6 plushies + pajamas + CDs + camera = 5,161g',
+            '7 prize figures + 2 with boxes + notes = 3,100g',
+            'Scale + banpresto + trading figures = 1,850g'
+        ],
+        tags: ['Scale figures', 'Clothing bundles', 'Large collectibles', 'Mixed large orders']
+    },
+    'going-big': {
+        name: '41×31×54cm',
+        descriptor: 'Large/Bulk Orders',
+        dimensions: { length: 41, width: 31, height: 54, padding: 2 },
+        boxWeight: 1800,
+        examples: [
+            // EXACT: 41/31/54
+            '20+ kpop albums + bags + vinyl = 11,724g',
+            'Yarn + clothing + plushies + figures = 8,100g',
+            '1/7 + 1/5 + 8 prize figures + plushies = 5,900g',
+            '34 CDs + electronics + clothes = 13,800g',
+            '2x 35mm camera bodies + 16 lenses = 9,850g',
+            'Kyun Charas + premium figure + mugs + shirts = 7,850g',
+            'Tapestry + keychains + artbooks + dress = 6,650g',
+            // CLOSE: 40/31/54 
+            'Cardigan + skirt + shorts + shirts + keychains = 9,000g'
+        ],
+        tags: ['Large collections', 'Heavy items', 'Special shapes']
+    }
+};
+
+// Function to render presets in the modal
+function renderParcelPresets() {
+    const presetGrid = document.querySelector('.preset-grid');
+    if (!presetGrid) return;
+    
+    presetGrid.innerHTML = Object.entries(parcelPresets).map(([key, preset]) => `
+        <div class="preset-card" onclick="selectParcelPreset('${key}')" style="
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+        ">
+            <div style="font-weight: 700; color: #374151; font-size: 13px; margin-bottom: 8px; pointer-events:none">
+                <div class="preset-header">
+                    <div class="preset-name">${preset.name}</div>
+                    <div class="preset-descriptor">${preset.descriptor}</div>
+                </div>
+            </div>
+            <div style="font-size: 11px; color: #059669; background: #ecfdf5; padding: 6px 8px; border-radius: 4px; margin-bottom: 8px; overflow-y: auto; pointer-events:none">
+                ${preset.examples.slice(0, 10).map(ex => `• ${ex}`).join('<br>')}
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; pointer-events:none">
+                ${preset.tags.slice(0, 10).map(tag => `
+                    <span style="background: rgba(167, 139, 250, 0.1); color: rgba(153,145,216,1); padding: 2px 6px; border-radius: 12px; font-size: 10px;">
+                        ${tag}
+                    </span>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Function to apply selected preset
+function selectParcelPreset(presetKey) {
+    const preset = parcelPresets[presetKey];
+    if (!preset) return;
+    
+    // Remove selection from all preset cards
+    document.querySelectorAll('.preset-card').forEach(card => {
+        card.style.borderColor = '#e5e7eb';
+        card.style.background = '#f9fafb';
+    });
+    
+    // Highlight selected card
+    event.target.style.borderColor = 'rgb(106, 92, 201)';
+    event.target.style.background = '#f0f9ff';
+    
+    // Generate default parcel name (Parcel 1, Parcel 2, etc.)
+    const defaultName = generateDefaultParcelName();
+    
+    // Fill in the form fields
+    document.getElementById('parcelName').value = defaultName;
+    document.getElementById('parcelLength').value = preset.dimensions.length;
+    document.getElementById('parcelWidth').value = preset.dimensions.width;
+    document.getElementById('parcelHeight').value = preset.dimensions.height;
+    document.getElementById('parcelPadding').value = preset.dimensions.padding;
+    document.getElementById('parcelBoxWeight').value = preset.boxWeight;
+}
+
+function generateDefaultParcelName() {
+    let counter = 1;
+    let name = `Parcel ${counter}`;
+    
+    // Check if name already exists
+    while (parcels.some(parcel => parcel.name === name)) {
+        counter++;
+        name = `Parcel ${counter}`;
+    }
+    
+    return name;
+}
+
+
+// Update the openParcelModal function to include presets
+function openParcelModal() {
+    const modal = document.getElementById('parcelModal');
+    const shippingSection = document.getElementById('shippingSection');
+    const modalTitle = document.getElementById('parcelModalTitle');
+    
+    // Reset form
+    document.getElementById('parcelName').value = '';
+    document.getElementById('parcelLength').value = '25';  // Default to most popular
+    document.getElementById('parcelWidth').value = '19';
+    document.getElementById('parcelHeight').value = '34';
+    document.getElementById('parcelPadding').value = '2';
+    document.getElementById('parcelBoxWeight').value = '800';
+    
+    // Reset shipping fields
+    document.getElementById('parcelShippingMethod').value = '';
+    document.getElementById('parcelShippingCost').value = '';
+    document.getElementById('parcelShipDate').value = '';
+    document.getElementById('parcelArrivalDate').value = '';
+    document.getElementById('parcelActualWeight').value = '';
+    document.getElementById('parcelTrackingNumber').value = '';
+    
+    // Show/hide shipping section based on current tab
+    if (currentParcelTab === 'shipped') {
+        shippingSection.style.display = 'block';
+        modalTitle.textContent = 'Add Shipped Parcel';
+    } else {
+        shippingSection.style.display = 'none';
+        modalTitle.textContent = 'Add New Parcel';
+    }
+    
+    // Render presets
+    renderParcelPresets();
+    
+    modal.classList.remove('hidden');
+}
+
+
+        // parcels/shipped then formats
         // Data storage
         let orders = [];
         let parcels = [];
@@ -3567,40 +3855,6 @@ document.getElementById('avgUSDPerItem').textContent = `${currConfig.symbol}${av
     document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(0)}g`;
     document.getElementById('totalVolumes').textContent = totalVolumes;
 
-}
-
-        // Parcel functions
-function openParcelModal() {
-    const modal = document.getElementById('parcelModal');
-    const shippingSection = document.getElementById('shippingSection');
-    const modalTitle = document.getElementById('parcelModalTitle');
-    
-    // Reset form
-    document.getElementById('parcelName').value = '';
-    document.getElementById('parcelLength').value = '60';
-    document.getElementById('parcelWidth').value = '45';
-    document.getElementById('parcelHeight').value = '62';
-    document.getElementById('parcelPadding').value = '20';
-    document.getElementById('parcelBoxWeight').value = '2000';
-    
-    // Reset shipping fields
-    document.getElementById('parcelShippingMethod').value = '';
-    document.getElementById('parcelShippingCost').value = '';
-    document.getElementById('parcelShipDate').value = '';
-    document.getElementById('parcelArrivalDate').value = '';
-    document.getElementById('parcelActualWeight').value = '';
-    document.getElementById('parcelTrackingNumber').value = '';
-    
-    // Show/hide shipping section based on current tab
-    if (currentParcelTab === 'shipped') {
-        shippingSection.style.display = 'block';
-        modalTitle.textContent = 'Add Shipped Parcel';
-    } else {
-        shippingSection.style.display = 'none';
-        modalTitle.textContent = 'Add New Parcel';
-    }
-    
-    modal.classList.remove('hidden');
 }
 
         function closeParcelModal() {
