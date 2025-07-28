@@ -759,7 +759,7 @@
 <div class="parcel-header">
     <h2>Parcel Calculator</h2>
     <button class="btn" onclick="openParcelModal()">Add Parcel</button>
-                <button class="btn" onclick="toggleParcelSection()">Close</button>
+                <button class="btn btn-secondary" onclick="toggleParcelSection()">Close</button>
 </div>
     <div class="parcel-tabs">
         <div class="parcel-tab active" id="planning-tab" onclick="switchParcelTab('planning')">
@@ -4459,7 +4459,6 @@ function markAsShipped(parcelId) {
 
 // Mark parcel back as planning (unship)
 function markAsPlanning(parcelId) {
-    if (confirm('Move this parcel back to planning?')) {
         const parcel = parcels.find(p => p.id === parcelId);
         if (!parcel) return;
         
@@ -4475,9 +4474,8 @@ function markAsPlanning(parcelId) {
         
         localStorage.setItem('parcels', JSON.stringify(parcels));
         switchParcelTab('planning');
-        alert(`${parcel.name} moved back to planning.`);
     }
-}
+
 
 function showShippingDetailsToast(parcelId, parcelName) {
     // Remove any existing toast
@@ -4492,52 +4490,42 @@ function showShippingDetailsToast(parcelId, parcelName) {
     toast.style.cssText = `
         position: fixed;
         top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #059669, #047857);
-        color: white;
+        right: 18px;
         padding: 16px 20px;
         border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+        border: 1px solid #e5e7eb;
         z-index: 1010;
-        font-family: "Manrope", sans-serif;
-        font-weight: 600;
-        min-width: 300px;
-        animation: slideInFromRight 0.3s ease;
+        min-width: 294px;
+        background:rgb(84 151 221);color:white;
     `;
     
     toast.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <span style="font-size: 18px;">✅</span>
-            <span>${parcelName} marked as shipped!</span>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+        font-weight: 800;">
+            ${parcelName} marked as shipped!
         </div>
-        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 12px;">
+        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 12px;color:white">
             Add shipping details while it's fresh?
         </div>
         <div style="display: flex; gap: 8px;">
-            <button onclick="openEditParcelFromToast('${parcelId}')" style="
-                background: rgba(255,255,255,0.2);
-                border: 1px solid rgba(255,255,255,0.3);
-                color: white;
+            <button class="btn btn-secondary" onclick="openEditParcelFromToast('${parcelId}')" style="
                 padding: 6px 12px;
                 border-radius: 6px;
-                cursor: pointer;
                 font-size: 11px;
                 font-weight: 600;
-                transition: all 0.2s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                transition: all 0.2s;background:rgba(255,255,255,0.9);
+            " onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.9)'">
                 Add Details
             </button>
-            <button onclick="dismissShippingToast()" style="
-                background: transparent;
-                border: 1px solid rgba(255,255,255,0.3);
-                color: white;
+            <button onclick="dismissShippingToast()" class="btn" style="
                 padding: 6px 12px;
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 11px;
                 font-weight: 600;
+                background: rgba(255,255,255,0.2);
                 transition: all 0.2s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
                 Maybe Later
             </button>
         </div>
