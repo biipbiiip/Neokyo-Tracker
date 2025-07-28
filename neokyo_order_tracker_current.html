@@ -2046,6 +2046,195 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
+
+<div id="gridSortControls" style="display: none; margin-bottom: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+    <span style="font-weight: 600; color: #374151;">Sort by:</span>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('orderId')" id="sort-orderId">
+        Order # <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('title')" id="sort-title">
+        Title <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('yen')" id="sort-yen">
+        Price <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('storageDays')" id="sort-storageDays">
+        Storage Days <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('created')" id="sort-created">
+        Date Created <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="clearGridSort()">
+        Clear Sort
+    </button>
+</div>
+<script>// for grid view sort
+    let gridSortState = { field: null, direction: 'asc' };
+
+function sortGridBy(field) {
+    // Toggle direction if same field, otherwise start with ascending
+    if (gridSortState.field === field) {
+        gridSortState.direction = gridSortState.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        gridSortState.field = field;
+        gridSortState.direction = 'asc';
+    }
+    
+    // Sort the orders
+    orders.sort((a, b) => {
+        let aVal = a[field];
+        let bVal = b[field];
+        
+        // Handle null/undefined values
+        if (aVal == null) aVal = '';
+        if (bVal == null) bVal = '';
+        
+        // Special handling for different field types
+        if (field === 'orderId') {
+            // Convert to numbers for proper numeric sorting
+            aVal = parseInt(aVal) || 0;
+            bVal = parseInt(bVal) || 0;
+        } else if (field === 'yen' || field === 'storageDays') {
+            // Numeric fields
+            aVal = Number(aVal) || 0;
+            bVal = Number(bVal) || 0;
+        } else if (field === 'created') {
+            // Date field - convert MM/DD/YYYY to comparable format
+            aVal = convertDateForSorting(aVal);
+            bVal = convertDateForSorting(bVal);
+        } else {
+            // String fields (title, etc.)
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+        }
+        
+        // Compare values
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return gridSortState.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+            if (gridSortState.direction === 'asc') {
+                return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+            } else {
+                return bVal < aVal ? -1 : bVal > aVal ? 1 : 0;
+            }
+        }
+    });
+    
+    updateSortIndicators();
+    renderView();
+}
+
+function convertDateForSorting(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return new Date(0);
+    // Convert MM/DD/YYYY to YYYY-MM-DD for proper sorting
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        return new Date(parts[2], parts[0] - 1, parts[1]);
+    }
+    return new Date(dateStr);
+}
+
+function clearGridSort() {
+    gridSortState = { field: null, direction: 'asc' };
+    
+    // Reload original order from localStorage
+    try {
+        const originalOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        // Reapply current filters
+        applyFilters();
+    } catch (e) {
+        console.error('Error reloading orders:', e);
+    }
+    
+    updateSortIndicators();
+    renderView();
+}
+
+function updateSortIndicators() {
+    // Clear all indicators
+    document.querySelectorAll('.sort-indicator').forEach(indicator => {
+        indicator.textContent = '';
+        indicator.parentElement.classList.remove('sort-active');
+    });
+    
+    // Set active indicator
+    if (gridSortState.field) {
+        const activeBtn = document.getElementById(`sort-${gridSortState.field}`);
+        if (activeBtn) {
+            const indicator = activeBtn.querySelector('.sort-indicator');
+            indicator.textContent = gridSortState.direction === 'asc' ? '↑' : '↓';
+            activeBtn.classList.add('sort-active');
+        }
+    }
+}
+
+// used in applyFilters()
+function applySortToOrders() {
+    if (!gridSortState.field) return; // No sort applied
+    
+    orders.sort((a, b) => {
+        let aVal = a[gridSortState.field];
+        let bVal = b[gridSortState.field];
+        
+        // Handle null/undefined values
+        if (aVal == null) aVal = '';
+        if (bVal == null) bVal = '';
+        
+        // Same sorting logic from sortGridBy...
+        if (gridSortState.field === 'orderId') {
+            aVal = parseInt(aVal) || 0;
+            bVal = parseInt(bVal) || 0;
+        } else if (gridSortState.field === 'yen' || gridSortState.field === 'storageDays') {
+            aVal = Number(aVal) || 0;
+            bVal = Number(bVal) || 0;
+        } else if (gridSortState.field === 'created') {
+            aVal = convertDateForSorting(aVal);
+            bVal = convertDateForSorting(bVal);
+        } else {
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+        }
+        
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return gridSortState.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+            if (gridSortState.direction === 'asc') {
+                return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+            } else {
+                return bVal < aVal ? -1 : bVal > aVal ? 1 : 0;
+            }
+        }
+    });
+}
+</script>
+<style>/* for grid view sort */
+    .sort-btn {
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sort-btn.sort-active {
+    background: rgb(143 134 205) !important;
+    color: white !important;
+    border-color: rgb(143 134 205) !important
+}
+
+.sort-indicator {
+    font-size: 10px !important;
+    font-weight: bold;
+}
+
+#gridSortControls {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+}
+</style>
         <div id="gridView" class="grid-view"></div>
         <div id="tableView" class="table-view hidden"></div>
     </div>
@@ -3247,6 +3436,7 @@ function deleteOrder(orderId) {
             });
 
             orders = filteredOrders;
+            applySortToOrders();
             renderView();
             updateTotals();
         }
@@ -4179,7 +4369,7 @@ if (currentParcelTab === 'shipped') {
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-small btn-secondary" onclick="editParcel('${parcel.id}')">Edit</button>
                         ${currentParcelTab === 'planning' ? 
-                            `<button class="btn btn-small" onclick="markAsShipped('${parcel.id}')" style="background: #059669;">Ship It!</button>` :
+                            `<button class="btn btn-small" onclick="markAsShipped('${parcel.id}')" style="background: rgb(84 151 221);">Ship</button>` :
                             `<button class="btn btn-small btn-secondary" onclick="markAsPlanning('${parcel.id}')">Unship</button>`
                         }
                         <button class="btn btn-small btn-secondary" onclick="deleteParcel('${parcel.id}')" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button>
@@ -4381,26 +4571,22 @@ function toggleViewDirect() {
     const icon = document.getElementById('viewToggleIcon');
     const tooltip = document.getElementById('viewToggleTooltip');
     const columnBtn = document.getElementById('columnToggleHamburger');
+    const gridSortControls = document.getElementById('gridSortControls');
     
     if (currentView === 'grid') {
         // Switch to table view
         currentView = 'table';
         icon.textContent = '📇';
         tooltip.textContent = 'Grid View';
-        columnBtn.style.display = 'flex'; // Show column toggle button
+        columnBtn.style.display = 'flex';
+        if (gridSortControls) gridSortControls.style.display = 'none'; // Hide grid sort
     } else {
         // Switch to grid view
         currentView = 'grid';
         icon.textContent = '📋';
         tooltip.textContent = 'Table View';
-        columnBtn.style.display = 'none'; // Hide column toggle button
-        
-        // Close column panel if it's open
-        const columnPanel = document.getElementById('columnPanel');
-        if (columnPanel && columnPanel.classList.contains('show')) {
-            columnPanel.classList.remove('show');
-            document.getElementById('columnToggleHamburger').classList.remove('active');
-        }
+        columnBtn.style.display = 'none';
+        if (gridSortControls) gridSortControls.style.display = 'flex'; // Show grid sort
     }
     
     renderView();
@@ -5450,8 +5636,8 @@ function changeCurrency(newCurrency) {
 }
 
 .parcel-tab.active {
-    color: #6366f1;
-    border-bottom-color: #6366f1;
+    color: rgb(106, 92, 201);
+    border-bottom-color: rgb(151 141 217);
     background: white;
     position: relative;
     z-index: 1;
@@ -5475,7 +5661,7 @@ function changeCurrency(newCurrency) {
 }
 
 .tab-count {
-    background: #6366f1;
+    background: rgb(151 141 217);
     color: white;
     font-size: 11px;
     padding: 2px 8px;
