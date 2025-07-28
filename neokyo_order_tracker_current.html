@@ -675,6 +675,7 @@
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn btn-instructions" onclick="toggleInstructionsSection()">How to Use</button>
                 <button class="btn" onclick="toggleImportSection()">Import HTML</button>
+                <button class="btn btn-secondary" onclick="toggleChangelogSection()" style="background:#7c829a;color:white" >Changelog</button>
                 <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
                 <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
                 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Data</button>
@@ -683,8 +684,7 @@
                     <div class="neokyo-note" style="margin:10px; margin-top:20px; display:flex; align-items: center"><div><img src="https://sohvi.neocities.org/cookie.png" width="35px"/></div><div style="margin-left:5px; padding:10px">🍪 All data is saved on your own browser and not a server. Refreshing the page won't delete anything <u>unless</u> you clear browser cache/cookies/etc. If you do, just remember to export your data and re-import after. <br />
                         <br />❗ Also, this is NOT an official Neokyo tool. It's not endorsed by Neokyo and I'm not affiliated, but had permission to post. It's one I made to keep track of my own things i,, hope this is ok idk it's usable if it's not lmk!! - 4th nini in discord (apothecariae)<br /><br />
                         Btw don't count on Space Used metric in parcels bc it can't play tetris u_u</div></div>
-            
-                    <div id="instructionsSection" class="import-section hidden">
+             <div id="instructionsSection" class="import-section hidden">
 
                 <h1 style="font-weight:600">Demo/Example</h1>
                         <img src="https://sohvi.neocities.org/ordertracker.png" width="600px"/><br />
@@ -704,39 +704,43 @@
                     <li>Click into the code window <b style="font-family:monospace; color:red">where the letters look like this</b>.</li>
                     <li>Then just repeat steps 4-7.</li>
                 </ol>
-
-                <h1>Other notes</h1>
-                <ol style="padding:25px 35px">
-                    <li>
-                        You can specify an item's dimensions and weight in the "Manage Formats" section, and assign them to orders.
-                    </li>
-                    <li>
-                        When filtering, the totals row on the top right will reflect what's in your filters.
-                    </li>
-                    <li>
-                        All your data is saved locally in your browser, so if you refresh it won't go away unless you clear cache/cookies. You can simply export/import your data to a file and re-import it in a click. NOTE: Again it's highly recommended to export your data if you frequently do so.
-                    </li>
-                    <li>
-                        Add, edit, and remove custom tags for orders; and filter by tags in the filters dropdown. It's inclusive of all tags, so if you have items tagged "manga", and others tagged "movies", checking both will show all of them.
-                    </li>
-                    <li>
-                        You can search several terms in filters by separating them with commas. For example, if you search for "123,456", it will match orders with either "123" or "456" in the order ID or title.
-                    </li>
-                    <li>
-                        You can manage and edit item formats (size/weight) and assign them to orders for parcel calculation estimates.
-                    </li>
-                    <li>
-                        Use the Parcel Calculator to group orders into parcels and see total weight. You can look on the Neokyo Discord's "shipping-sample" channel to gauge what size box you might need, and this for further weight calculations/keeping notes.
-                    </li>
-                    <li>
-                        Switch between grid and table views in View Controls, and customize which columns are visible in the table.
-                    </li>
-                    <li>
-                        In table view, quickly edit order details inline, including tags, parcel assignment etc.
-                    </li>
-                </ol>
                 <button class="btn btn-secondary" onclick="toggleInstructionsSection()">Close</button>
             </div>
+</div><script>function toggleChangelogSection() {
+    const changelogSection = document.getElementById('changelogSection');
+    changelogSection.classList.toggle('hidden');
+}</script>
+                    <div id="changelogSection" class="import-section hidden">
+    <div style="padding:15px 25px; background: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
+        
+        <h3 style="color: rgb(106, 92, 201); margin-bottom: 10px;">Changes</h3>
+        <ul style="padding-left: 20px; line-height: 1.6;">
+            <li><strong>Parcel presets</strong> based on community's shipment-examples in Discord</li>
+            <li><strong>Parcel calculator tabs</strong> - move planned parcels to shipped tab; enter in official details + tracking URL etc. and access it from there</li>
+            <li><strong>Currencies</strong> - can now Import HTML if your currency is set to anything beside USD; all currencies on Neokyo supported.<br />NOTE: If you had it in USD, this doesn't autoconvert the prices!! You'll have to Import HTML for those pages (or for the nerds, you know what to do w/ the exports ;-; key is still named 'usd')</li>
+            <li><strong>Sorting in grid view</strong> - can now sort ascending/descending in the card view</li>
+            <li><strong>Scroll horizontally in table view</strong> - overflow-x set!! amazing</li>
+            <li><strong>Fixed misaligned table view headers</strong> - headers didn't match the rows; were off by one. Now they do!</li>
+            <li><strong>Removed auto-export on importing data</strong> - that was overkill, but it still remains when you clear data</li>
+            <li><strong>Change the tracker name</strong> - click the header at very top to rename the tracker :3</li>
+        </ul>
+
+        <h3 style="color: rgb(106, 92, 201); margin: 20px 0 10px 0;">Features/Notes</h3>
+        <ul style="padding-left: 20px; line-height: 1.6;">
+            <li><strong>Works offline</strong> - data is all stored in your browser + can be exported/imported any time!! just dont clear ur cache before u export </li>
+            <li><strong>Format management</strong> - create and edit item formats with real dimensions/weights (I originally made this for manga so I kept it all in,, you can delete them!)</li>
+            <li><strong>Tag system</strong> - add custom tags to orders and filter by them; separate each tag by spaces</li>
+            <li><strong>Multi-select filters</strong> - filter dropdowns are additive, so checking multiple will show items tied to that filter condition</li>
+            <li><strong>Batch/bulk edit mode</strong> - select multiple orders and bulk assign formats, parcels, and tags at a time</li>
+            <li><strong>Table editing</strong> - click cells in table view to edit inline; toggle columns on and off via 2nd button on far bottom left corner that appears when you click Table View </li>
+            <li><strong>Activity log</strong> - logs HTML import changes and updates. Currencies other than Yen are not static on the Orders page - they change daily - so if it's not a significant change (ex. 50 cents or less), the original imported value remains</li>
+            <li><strong>Note:</strong> Storage Days is useless,, I didn't add in a counter/log exact import date so they are just... there...</li>
+            <li><strong>Things to bother w/ later (never):</strong> width of tags col in table view, maybe smth to save/dl images to be polite and not hotlink as if ppl still mind in twenty twenty five, UI and reorganizing style and script sections</li>
+        </ul><br />
+                <button class="btn btn-secondary" onclick="toggleChangelogSection()">Close</button>
+    </div>
+
+                   
         </div>
 
         <!--- dont laugh devs i am heavily assisted by the bff we can always talk to at like 2:33AM w/ showerthoughts and receive affirmations from instead of yelling  :( -->
@@ -2391,7 +2395,7 @@ function applySortToOrders() {
         
 <div class="form-section" id="presetSection">
     <h4>Quick Presets</h4>
-    <div class="neokyo-note">NOTE: These are based on common box sizes from the Neokyo community/Discord. There may be more, and you can always edit the dimensions yourself at any time. Please always assume that your items may not be fitted into the box you expect, this calculator is just to help you plan/gauge!.</div><br />
+    <div class="neokyo-note">NOTE: These are based on common box sizes from the Neokyo community/Discord. There may be more, and you can always edit the dimensions yourself at any time. Please always assume that your items may not be fitted into the box you expect, this calculator is just to help you plan/gauge!</div><br />
     <div class="preset-grid">
         <!-- js renderparcelpresets -->
     </div>
