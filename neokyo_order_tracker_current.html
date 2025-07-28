@@ -656,7 +656,21 @@
 </head>
 <body>
     <div id="container" class="container parcel-section-active">
+            <div style="margin-left: auto; display:grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;align-items: start;">
         <h1 id="header" onclick="makeHeaderEditable()" title="Click to edit">Neo_ Order Tracker</h1>
+        <select id="currencySelector" onchange="changeCurrency(this.value)" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; background: white;">
+            <option value="USD">US Dollar ($)</option>
+            <option value="GBP">Pounds (£)</option>
+            <option value="EUR">Euro (€)</option>
+            <option value="MXN">Mex. Peso (MX$)</option>
+            <option value="CAD">Canadian Dollar (C$)</option>
+            <option value="HKD">HK Dollar (HK$)</option>
+            <option value="TWD">Taiwan Dollar (NT$)</option>
+            <option value="PHP">Philippine Pesos (₱)</option>
+            <option value="AUD">Australian Dollar (A$)</option>
+            <option value="KRW">Korean Won (₩)</option>
+        </select>
+    </div>
         <div class="header">
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn btn-instructions" onclick="toggleInstructionsSection()">How to Use</button>
@@ -763,13 +777,13 @@
     </div>
 <div class="parcel-stats-bar active" id="planning-stats-bar">
     <div class="stats-bar-items">
-        <div class="stats-bar-item">
-            <div class="stats-bar-value" id="planning-weight">0g</div>
-            <div class="stats-bar-label">Est. Weight</div>
-        </div>
+<div class="stats-bar-item">
+    <div class="stats-bar-value" id="planning-shipping-cost">$0.00</div>
+    <div class="stats-bar-label">Total Shipping</div>
+</div>
         <div class="stats-bar-item">
             <div class="stats-bar-value" id="planning-value">$0.00</div>
-            <div class="stats-bar-label">Total USD</div>
+            <div class="stats-bar-label" data-label="Total USD">Total USD</div>
         </div>
         <div class="stats-bar-item">
             <div class="stats-bar-value" id="planning-per-item">$0.00</div>
@@ -891,7 +905,7 @@ assignedOrders.forEach(order => {
         totalCapacity += usedVolume;
     });
     
-    let totalEstimatedShipping = 0; // we don't need to estimate shipping for planning so this is useless but im not removing it
+    let totalEstimatedShipping = 0;
     planningParcels.forEach(parcel => {
         // Use actual shipping cost if filled in
         if (parcel.shippingCost && parcel.shippingCost > 0) {
@@ -903,12 +917,16 @@ assignedOrders.forEach(order => {
 
     const perItem = totalItems > 0 ? (totalValue / totalItems) : 0;
 const perItemWithEstShip = totalItems > 0 ? ((totalValue + totalEstimatedShipping) / totalItems) : 0;
+const currConfig = getCurrentCurrencyConfig();
+const totalShip = totalEstimatedShipping;
 
     // Update planning stats bar
-    document.getElementById('planning-weight').textContent = `${totalWeight.toFixed(0)}g`;
-    document.getElementById('planning-per-item-plus-ship').textContent = `$${perItemWithEstShip.toFixed(2)}`;
-    document.getElementById('planning-value').textContent = `$${totalValue.toFixed(2)}`;
-    document.getElementById('planning-per-item').textContent = `$${perItem.toFixed(2)}`;
+    document.getElementById('planning-shipping-cost').textContent = `${currConfig.symbol}${totalShip.toFixed(2)}`;
+    document.getElementById('planning-per-item-plus-ship').textContent = `${currConfig.symbol}${perItemWithEstShip.toFixed(2)}`;
+    document.getElementById('planning-value').textContent = `${currConfig.symbol}${totalValue.toFixed(2)}`;
+    document.getElementById('planning-per-item').textContent = `${currConfig.symbol}${perItem.toFixed(2)}`;
+
+    
 }
 
 function updateShippedStats(shippedParcels) {
@@ -967,12 +985,14 @@ function updateShippedStats(shippedParcels) {
     const perItemWithShip = totalItems > 0 ? ((totalValue + totalShipping) / totalItems) : 0;
 const avgShipDays = parcelsWithDates > 0 ? Math.round(totalShipDays / parcelsWithDates) : 0;
     const perItemOnly = totalItems > 0 ? (totalValue / totalItems) : 0;
-    
+    const currConfig = getCurrentCurrencyConfig();
+
     // Update shipped stats bar
-    document.getElementById('shipped-total').textContent = `$${totalShipping.toFixed(2)}`;
-    document.getElementById('shipped-per-item').textContent = `$${perItemWithShip.toFixed(2)}`;
+        document.getElementById('shipped-total').textContent = `${currConfig.symbol}${totalShipping.toFixed(2)}`;
+    document.getElementById('shipped-per-item').textContent = `${currConfig.symbol}${perItemWithShip.toFixed(2)}`;
     document.getElementById('shipped-days').textContent = `${avgShipDays} days`;
-    document.getElementById('shipped-per-item-only').textContent = `$${perItemOnly.toFixed(2)}`;
+    document.getElementById('shipped-per-item-only').textContent = `${currConfig.symbol}${perItemOnly.toFixed(2)}`;
+
     
 }
 function closeEditParcelModal() {
@@ -1219,7 +1239,7 @@ function closeEditParcelModalOnOutsideClick(event) {
                     <div class="total-value" id="totalYen">¥0</div>
                 </div>
                 <div class="total-item">
-                    <div class="total-label">Total USD</div>
+                    <div class="total-label" id="totalCurrencyLabel" data-label="Total USD">Total USD</div>
                     <div class="total-value" id="totalUSD">$0</div>
                 </div>
                 <div class="total-item">
@@ -1227,7 +1247,7 @@ function closeEditParcelModalOnOutsideClick(event) {
                     <div class="total-value" id="totalWeight">0g</div>
                 </div>
                 <div class="total-item">
-                    <div class="total-label">USD per Item</div>
+                    <div class="total-label" data-label="USD per Item">USD per Item</div>
                     <div class="total-value" id="avgUSDPerItem">$0.00</div>
                 </div>
             </div>
@@ -1863,7 +1883,7 @@ function updateSelectedCount() {
 }
 
 function updateOrderHighlight(orderId) {
-    const isSelected = selectedOrders.has(orderId);
+    const isSelected = selectedOrders.has(String(orderId));
     
     if (currentView === 'grid') {
         const gridItems = document.querySelectorAll('.grid-item');
@@ -1891,8 +1911,12 @@ function updateOrderHighlight(orderId) {
 }
 
 function selectAllVisible() {
+    // Clear existing selections first
+    selectedOrders.clear();
+    
+    // Add all visible orders
     orders.forEach(order => {
-        selectedOrders.add(order.id);
+        selectedOrders.add(String(order.id)); // Ensure consistent string type
         const checkbox = document.getElementById(`batch-${order.id}`);
         if (checkbox) {
             checkbox.checked = true;
@@ -2128,7 +2152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Shipping Cost (USD)</label>
+                    <label data-label="USD">Shipping Cost (USD)</label>
                     <input type="number" id="editParcelShippingCost" step="0.01" placeholder="0.00">
                 </div>
             </div>
@@ -2147,10 +2171,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label>Actual Weight (g)</label>
                     <input type="number" id="editParcelActualWeight" placeholder="Leave empty if unknown">
                 </div>
-    <div class="form-group">
-        <label>Declared Value (Yen)</label>
-        <input type="number" id="parcelDeclaredValue" step="0.01" placeholder="Pro forma invoice value">
-    </div>
+                <div class="form-group">
+                    <label>Declared Value (Yen)</label>
+                    <input type="number" id="parcelDeclaredValue" step="0.01" placeholder="Pro forma invoice value">
+                </div>
                 <div class="form-group">
                     <label>Tracking Number</label>
                     <input type="text" id="editParcelTrackingNumber" placeholder="Optional">
@@ -2227,7 +2251,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Shipping Cost (USD)</label>
+                    <label data-label="USD">Shipping Cost (USD)</label>
                     <input type="number" id="parcelShippingCost" step="0.01" placeholder="0.00">
                 </div>
             </div>
@@ -2250,7 +2274,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <label>Declared Value (Yen)</label>
         <input type="number" id="editParcelDeclaredValue" step="0.01" placeholder="Pro forma invoice value">
     </div>
-</div>
                 <div class="form-group">
                     <label>Tracking Number</label>
                     <input type="text" id="parcelTrackingNumber" placeholder="Optional">
@@ -2377,6 +2400,26 @@ document.addEventListener('DOMContentLoaded', function() {
             'A6 Shinshoban': { width: 11.0, height: 17.0, thickness: 1.4, weight: 150 }
         };
 
+                // Currency configuration
+        let currentCurrency = localStorage.getItem('selectedCurrency') || 'USD';
+
+        const currencyConfig = {
+            'USD': { name: 'USD', symbol: '$', parseRegex: /US\$\s*([\d.]+)/, displayName: 'USD' },
+            'GBP': { name: 'GBP', symbol: '£', parseRegex: /£\s*([\d.]+)/, displayName: 'GBP' },
+            'EUR': { name: 'EUR', symbol: '€', parseRegex: /€\s*([\d.]+)/, displayName: 'EUR' },
+            'MXN': { name: 'MXN', symbol: 'MX$', parseRegex: /MXN\$\s*([\d.]+)/, displayName: 'MXN' },
+            'CAD': { name: 'CAD', symbol: 'C$', parseRegex: /CAD\$\s*([\d.]+)/, displayName: 'CAD' },
+            'HKD': { name: 'HKD', symbol: 'HK$', parseRegex: /HK\$\s*([\d.]+)/, displayName: 'HKD' },
+            'TWD': { name: 'TWD', symbol: 'NT$', parseRegex: /NT\$\s*([\d.]+)/, displayName: 'TWD' },
+            'PHP': { name: 'PHP', symbol: '₱', parseRegex: /PHP\$\s*([\d.]+)/, displayName: 'PHP' },
+            'AUD': { name: 'AUD', symbol: 'A$', parseRegex: /AUD\$\s*([\d.]+)/, displayName: 'AUD' },
+            'KRW': { name: 'KRW', symbol: '₩', parseRegex: /KRW₩\s*([\d.]+)/, displayName: 'KRW' }
+        };
+
+        function getCurrentCurrencyConfig() {
+            return currencyConfig[currentCurrency];
+        }
+
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('header').textContent = customHeaderText;
     // Load column visibility preferences
@@ -2397,6 +2440,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize parcel tab stats
     updateParcelTabStats();
+
+    // Initialize currency selector
+    document.getElementById('currencySelector').value = currentCurrency;
+    document.getElementById('totalCurrencyLabel').textContent = `Total ${getCurrentCurrencyConfig().displayName}`;
+    
     
     // Make sure all existing parcels have the new status field
     let needsSave = false;
@@ -2428,6 +2476,30 @@ document.addEventListener('DOMContentLoaded', function() {
     updateParcelTabStats();
     updateTotals();
 });
+
+function parseAnyCurrency(billingText) {
+    // Look for any currency pattern: (SYMBOL AMOUNT) or (CODE$ AMOUNT)
+    const patterns = [
+        /\(US\$\s*([\d.]+)\)/,
+        /\(£\s*([\d.]+)\)/,
+        /\(€\s*([\d.]+)\)/,
+        /\(MXN\$\s*([\d.]+)\)/,
+        /\(CAD\$\s*([\d.]+)\)/,
+        /\(HK\$\s*([\d.]+)\)/,
+        /\(NT\$\s*([\d.]+)\)/,
+        /\(PHP\$\s*([\d.]+)\)/,
+        /\(AUD\$\s*([\d.]+)\)/,
+        /\(KRW₩\s*([\d.]+)\)/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = billingText.match(pattern);
+        if (match) {
+            return parseFloat(match[1]);
+        }
+    }
+    return 0;
+}
 
 function parseHTML() {
     const htmlInput = document.getElementById('htmlInput').value;
@@ -2502,7 +2574,7 @@ function parseHTML() {
             
             const billingCell = cells[3];
             const yenMatch = billingCell.innerHTML.match(/(\d+)\s*yen/);
-            const usdMatch = billingCell.innerHTML.match(/US\$\s*([\d.]+)/);
+            const currencyAmount = parseAnyCurrency(billingCell.innerHTML);
             
             const actionsCell = cells[4];
             const linkMatch = actionsCell.innerHTML.match(/href=['"]([^'"]+)['"]/);
@@ -2544,27 +2616,27 @@ function parseHTML() {
                     }
 
                     const newYen = yenMatch ? parseInt(yenMatch[1]) : existingOrder.yen;
-                    const newUsd = usdMatch ? parseFloat(usdMatch[1]) : existingOrder.usd;
+                    const newUsd = currencyAmount || existingOrder.usd;
 
                     if (existingOrder.yen !== newYen) {
                         changes.yen = {
                             from: existingOrder.yen,
                             to: newYen
                         };
+                    }
+
+                    // Only update USD if the difference is significant (over 50 cents)
+                    if (existingOrder.usd !== newUsd) {
+                        const priceDifference = Math.abs(existingOrder.usd - newUsd);
                         
-                        // Only log USD change if Yen also changed
-                        if (existingOrder.usd !== newUsd) {
+                        if (priceDifference > 0.50) {
                             changes.usd = {
                                 from: existingOrder.usd,
                                 to: newUsd
                             };
-
-                            // Update USD only if Yen changed
-                            existingOrder.usd = newUsd;
+                            existingOrder.usd = newUsd; // Only update if significant
                         }
                     }
-
-                    existingOrder.yen = newYen;
                     
                     if (Object.keys(changes).length > 0) {
                         // UPDATE existing order with changes
@@ -2596,7 +2668,7 @@ function parseHTML() {
                         title: title,
                         quantity: parseInt(quantityMatch[1]),
                         yen: yenMatch ? parseInt(yenMatch[1]) : 0,
-                        usd: usdMatch ? parseFloat(usdMatch[1]) : 0,
+                        usd: currencyAmount,
                         created: createdMatch ? createdMatch[1] : '',
                         storageDays: storageDaysMatch ? parseInt(storageDaysMatch[1]) : 0,
                         status: status,
@@ -2656,7 +2728,7 @@ function parseHTML() {
                 const fieldName = field === 'storageDays' ? 'Storage Days' : 
                 field === 'neokyoNotes' ? 'Notes' : 
                 field === 'yen' ? 'Yen Price' :
-                field === 'usd' ? 'USD Price' :
+                field === 'usd' ? `${getCurrentCurrencyConfig().displayName} Price` :
                 field.charAt(0).toUpperCase() + field.slice(1);
                 return `   • ${fieldName}: "${change.from}" → "${change.to}"`;
             });
@@ -2703,7 +2775,7 @@ function renderGridView() {
             <a href="${order.url}" target="_blank" onclick="event.stopPropagation()"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='"></a>
             <div class="order-id">#${order.orderId}</div>
             <h3>${order.title}</h3>
-            <div class="price">¥${order.yen} (${order.usd})</div>
+            <div class="price">¥${order.yen} (${getCurrentCurrencyConfig().symbol}${order.usd})</div>
             <div class="details">
                 <span>Qty <span class="detail-val">${order.quantity}</span></span>
                 <span>Days <span class="detail-val">${order.storageDays}</span></span>
@@ -2784,7 +2856,7 @@ function renderTableView() {
                     <th onclick="sortBy('quantity')" class="${columnVisibility.quantity ? '' : 'hidden-column'} ${getSortClass('quantity')}">Qty</th>
                     <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Items</th>
                     <th onclick="sortBy('yen')" class="${columnVisibility.yen ? '' : 'hidden-column'} ${getSortClass('yen')}">Yen</th>
-                    <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">USD</th>
+                    <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">${getCurrentCurrencyConfig().displayName}</th>
                     <th onclick="sortBy('created')" class="${columnVisibility.created ? '' : 'hidden-column'} ${getSortClass('created')}">Created</th>
                     <th onclick="sortBy('storageDays')" class="${columnVisibility.storageDays ? '' : 'hidden-column'} ${getSortClass('storageDays')}">Storage Days</th>
                     <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
@@ -3275,10 +3347,27 @@ function updateTotals() {
 
     document.getElementById('totalItems').textContent = totalItems;
     document.getElementById('totalYen').textContent = `¥${totalYen.toLocaleString()}`;
-    document.getElementById('totalUSD').textContent = `$${totalUSD.toFixed(2)}`;
+    const currConfig = getCurrentCurrencyConfig();
+    document.getElementById('totalUSD').textContent = `${currConfig.symbol}${totalUSD.toFixed(2)}`;
+document.getElementById('avgUSDPerItem').textContent = `${currConfig.symbol}${avgUSDPerItem.toFixed(2)}`;
+
+    const usdSymbols = document.querySelectorAll('[data-label*="Currency"]');
+    usdSymbols.forEach(label => {
+        label.textContent = label.textContent.replace('$', currConfig.symbol);
+    });
+
+    const usdLabels = document.querySelectorAll('[data-label*="USD"]');
+    usdLabels.forEach(label => {
+        label.textContent = label.textContent.replace('USD', currConfig.displayName);
+    });
+    
+    const totalCurrencyLabel = document.querySelector('[data-label="Total USD"]');
+    if (totalCurrencyLabel) {
+        totalCurrencyLabel.textContent = `Total ${currConfig.displayName}`;
+    }
+
     document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(0)}g`;
     document.getElementById('totalVolumes').textContent = totalVolumes;
-    document.getElementById('avgUSDPerItem').textContent = `$${avgUSDPerItem.toFixed(2)}`;
 
 }
 
@@ -4051,31 +4140,33 @@ let additionalStats = '';
 if (currentParcelTab === 'shipped') {
     const perItemWithShip = totalOrderVolumes > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / totalOrderVolumes) : 0;
     const costPerKgWithShip = totalWeight > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / (totalWeight / 1000)) : 0;
-    const shipDays = calculateShipDays(parcel.shipDate, parcel.arrivalDate);
+    
+    const currConfig = getCurrentCurrencyConfig(); // why do they do this i might as well just rename the function to currConfig instead of declaring it again but ig not
     
     additionalStats = `
         <div class="stat">
-            <div class="stat-value">$${perItemWithShip.toFixed(2)}</div>
+            <div class="stat-value">${currConfig.symbol}${perItemWithShip.toFixed(2)}</div>
             <div class="stat-label">Per Item + Ship</div>
         </div>
         <div class="stat">
-            <div class="stat-value">$${costPerKgWithShip.toFixed(2)}</div>
+            <div class="stat-value">${currConfig.symbol}${costPerKgWithShip.toFixed(2)}</div>
             <div class="stat-label">Cost/kg + Ship</div>
         </div>
     `;
 } else if (currentParcelTab === 'planning') {
-    // Estimate shipping cost - use parcel's shipping cost if set, otherwise default $10
     const estimatedShipping = (parcel.shippingCost && parcel.shippingCost > 0) ? parcel.shippingCost : 10;
     const perItemWithEstShip = totalOrderVolumes > 0 ? ((totalValueUSD + estimatedShipping) / totalOrderVolumes) : 0;
     const perItem = totalOrderVolumes > 0 ? (totalValueUSD / totalOrderVolumes) : 0;
     
+    const currConfig = getCurrentCurrencyConfig();
+    
     additionalStats = `
         <div class="stat">
-            <div class="stat-value">$${perItemWithEstShip.toFixed(2)}</div>
+            <div class="stat-value">${currConfig.symbol}${perItemWithEstShip.toFixed(2)}</div>
             <div class="stat-label">Per Item + Ship</div>
         </div>
         <div class="stat">
-            <div class="stat-value">$${perItem.toFixed(2)}</div>
+            <div class="stat-value">${currConfig.symbol}${perItem.toFixed(2)}</div>
             <div class="stat-label">Per Item</div>
         </div>
     `;
@@ -4118,7 +4209,7 @@ if (currentParcelTab === 'shipped') {
                     </div>
                     <div class="stat">
                         <div class="stat-value">$${totalValueUSD.toFixed(2)}</div>
-                        <div class="stat-label">Total USD</div>
+                        <div class="stat-label">Total Cost</div>
                     </div>
                 </div>
                 <div class="parcel-stats">
@@ -5308,6 +5399,28 @@ function refreshTagsUINew(orderId) {
     }
     
     renderTagsDropdown();
+}
+
+
+function changeCurrency(newCurrency) {
+    currentCurrency = newCurrency;
+    localStorage.setItem('selectedCurrency', currentCurrency);
+    
+    const currConfig = getCurrentCurrencyConfig();
+    
+    // Update the specific total labels
+    document.getElementById('totalCurrencyLabel').textContent = `Total ${currConfig.displayName}`;
+    
+    const usdPerItemLabel = document.querySelector('[data-label="USD per Item"]');
+    if (usdPerItemLabel) {
+        usdPerItemLabel.textContent = `${currConfig.displayName} per Item`;
+    }
+    
+    // Update displays (this will refresh the values with new currency symbols)
+    updateTotals();
+    renderView();
+    renderParcels();
+    updateParcelTabStats();
 }
 </script>
         <style>/* Updated Parcel tabs styling - Option B style */
