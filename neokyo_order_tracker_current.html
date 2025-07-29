@@ -722,6 +722,48 @@
                 </ol>
                 <button class="btn btn-secondary" onclick="toggleInstructionsSection()">Close</button>
             </div>
+</div><script>function toggleChangelogSection() {
+    const changelogSection = document.getElementById('changelogSection');
+    changelogSection.classList.toggle('hidden');
+}</script>
+                    <div id="changelogSection" class="import-section hidden">
+    <div style="padding:15px 25px; background: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
+        
+        <h3 style="color: rgb(106, 92, 201); margin-bottom: 10px;">Changes</h3>
+        <ul style="padding-left: 20px; line-height: 1.6;">
+            July 29, 2025 
+            <li>Fixed How to Use panel not showing up</li>
+            <li>Fixed Japan Post Surface showing as SAL in Shipped panel; if you've already set it to Surface prior, you'll have to click the option again</li>
+            <li><strong>Added filtering options "(no tags)" and "(no parcels)"</strong> - easier now to spot what's untagged or what you might've forgotten to include in parcels</li>
+        </ul> <br />
+        <ul style="padding-left: 20px; line-height: 1.6;">
+            July 28, 2025
+            <li><strong>Parcel presets</strong> based on community's shipment-examples in Discord</li>
+            <li><strong>Parcel calculator tabs</strong> - move planned parcels to shipped tab; enter in official details + tracking URL etc. and access it from there</li>
+            <li><strong>Currencies</strong> - can now Import HTML if your currency is set to anything beside USD; all currencies on Neokyo supported.<br />NOTE: If you had it in USD, this doesn't autoconvert the prices!! You'll have to Import HTML for those pages (or for the nerds, you know what to do w/ the exports ;-; key is still named 'usd' - the only thing currency affects is the labeling/symbols not actual values)</li>
+            <li><strong>Sorting in grid view</strong> - can now sort ascending/descending in the card view</li>
+            <li><strong>Scroll horizontally in table view</strong> - overflow-x set!! amazing</li>
+            <li><strong>Fixed misaligned table view headers</strong> - headers didn't match the rows; were off by one. Now they do!</li>
+            <li><strong>Removed auto-export on importing data</strong> - that was overkill, but it still remains when you clear data</li>
+            <li><strong>Change the tracker name</strong> - click the header at very top to rename the tracker :3</li>
+        </ul>
+
+        <h3 style="color: rgb(106, 92, 201); margin: 20px 0 10px 0;">Features/Notes</h3>
+        <ul style="padding-left: 20px; line-height: 1.6;">
+            <li><strong>Works offline</strong> - data is all stored in your browser + can be exported/imported any time!! just dont clear ur cache before u export </li>
+            <li><strong>Format management</strong> - create and edit item formats with real dimensions/weights (I originally made this for manga so I kept it all in,, you can delete them!)</li>
+            <li><strong>Tag system</strong> - add custom tags to orders and filter by them; separate each tag by spaces</li>
+            <li><strong>Multi-select filters</strong> - filter dropdowns are additive, so checking multiple will show items tied to that filter condition</li>
+            <li><strong>Batch/bulk edit mode</strong> - select multiple orders and bulk assign formats, parcels, and tags at a time</li>
+            <li><strong>Table editing</strong> - click cells in table view to edit inline; toggle columns on and off via 2nd button on far bottom left corner that appears when you click Table View </li>
+            <li><strong>Activity log</strong> - logs HTML import changes and updates. Currencies other than Yen are not static on the Orders page - they change daily - so if it's not a significant change (ex. 50 cents or less), the original imported value remains</li>
+            <li><strong>Note:</strong> Storage Days is useless,, I didn't add in a counter/log exact import date so they are just... there...</li>
+            <li><strong>Things to bother w/ later (never):</strong> width of tags col in table view, maybe smth to save/dl images to be polite and not hotlink as if ppl still mind in twenty twenty five, UI and reorganizing style and script sections</li>
+        </ul><br />
+                <button class="btn btn-secondary" onclick="toggleChangelogSection()">Close</button>
+    </div>
+
+                   
         </div>
 
         <!--- dont laugh devs i am heavily assisted by the bff we can always talk to at like 2:33AM w/ showerthoughts and receive affirmations from instead of yelling  :( -->
@@ -947,11 +989,11 @@
                     left: 110%;
                     top: 50%;
                     transform: translateY(-50%);
-                    background: rgb(84 151 221);
+                    background: #000000;/* rgb(84 151 221); */
                     color: #fff;
                     padding: 8px 12px;
                     border-radius: 5px;
-                    font-size: 11px !important;
+                    font-size: 12px !important;
                     white-space: nowrap;
                     z-index: 1003;
                     pointer-events: none;
@@ -1423,6 +1465,10 @@ function renderMultiSelectTags(type, removeFunction) {
 }
 
 function getParcelsName(parcelId) {
+    if (parcelId === 'No Parcel') {
+        return '(none)';
+    }
+
     const parcel = parcels.find(p => p.id === parcelId);
     return parcel ? parcel.name : 'Unknown';
 }
@@ -1469,10 +1515,28 @@ function removeParcelTags(parcelId) {
 
 function removeTagsTags(tag) {
     selectedTags = selectedTags.filter(t => t !== tag);
-    const safeId = tag.replace(/[^a-z0-9]/gi, '-');
-    const checkbox = document.getElementById(`tag-${safeId}`);
-    if (checkbox) checkbox.checked = false;
+    if (tag === '(no tags)') {
+        const checkbox = document.getElementById('tag-untagged');
+        if (checkbox) checkbox.checked = false;
+    } else {
+        const safeId = tag.replace(/[^a-z0-9]/gi, '-');
+        const checkbox = document.getElementById(`tag-${safeId}`);
+        if (checkbox) checkbox.checked = false;
+    }
     renderTagsTags();
+    applyFilters();
+}
+
+function removeParcelTags(parcelId) {
+    selectedParcels = selectedParcels.filter(id => id !== parcelId);
+    if (parcelId === 'No Parcel') {
+        const checkbox = document.getElementById('parcel-no-parcel');
+        if (checkbox) checkbox.checked = false;
+    } else {
+        const checkbox = document.getElementById(`parcel-${parcelId}`);
+        if (checkbox) checkbox.checked = false;
+    }
+    renderParcelTags();
     applyFilters();
 }
 
@@ -1504,12 +1568,18 @@ function renderFormatDropdown() {
 
 function renderParcelDropdown() {
     const dropdown = document.getElementById('parcelDropdown');
-    dropdown.innerHTML = parcels.map(parcel => `
+    dropdown.innerHTML = `
         <div class="multi-select-option">
-            <input type="checkbox" id="parcel-${parcel.id}" value="${parcel.id}" onchange="updateMultiSelectFilter('Parcels')">
-            <label for="parcel-${parcel.id}">${parcel.name}</label>
+            <input type="checkbox" id="parcel-no-parcel" value="No Parcel" onchange="updateMultiSelectFilter('Parcels')">
+            <label for="parcel-no-parcel">No Parcel</label>
         </div>
-    `).join('');
+        ${parcels.map(parcel => `
+            <div class="multi-select-option">
+                <input type="checkbox" id="parcel-${parcel.id}" value="${parcel.id}" onchange="updateMultiSelectFilter('Parcels')">
+                <label for="parcel-${parcel.id}">${parcel.name}</label>
+            </div>
+        `).join('')}
+    `;
 }
 
 function renderTagsDropdown() {
@@ -1517,16 +1587,28 @@ function renderTagsDropdown() {
     const uniqueTags = getUniqueTags();
     
     if (uniqueTags.length === 0) {
-        dropdown.innerHTML = '<div style="padding: 8px; color: #9ca3af;">No tags found</div>';
+        dropdown.innerHTML = `
+            <div class="multi-select-option">
+                <input type="checkbox" id="tag-untagged" value="(no tags)" onchange="updateMultiSelectFilter('Tags')">
+                <label for="tag-untagged">(no tags)</label>
+            </div>
+            <div style="padding: 8px; color: #9ca3af;">No other tags found</div>
+        `;
         return;
     }
     
-    dropdown.innerHTML = uniqueTags.map(tag => `
+    dropdown.innerHTML = `
         <div class="multi-select-option">
-            <input type="checkbox" id="tag-${tag.replace(/[^a-z0-9]/gi, '-')}" value="${tag}" onchange="updateMultiSelectFilter('Tags')">
-            <label for="tag-${tag.replace(/[^a-z0-9]/gi, '-')}">${tag}</label>
+            <input type="checkbox" id="tag-untagged" value="(no tags)" onchange="updateMultiSelectFilter('Tags')">
+            <label for="tag-untagged">(no tags)</label>
         </div>
-    `).join('');
+        ${uniqueTags.map(tag => `
+            <div class="multi-select-option">
+                <input type="checkbox" id="tag-${tag.replace(/[^a-z0-9]/gi, '-')}" value="${tag}" onchange="updateMultiSelectFilter('Tags')">
+                <label for="tag-${tag.replace(/[^a-z0-9]/gi, '-')}">${tag}</label>
+            </div>
+        `).join('')}
+    `;
 }
 
         </script>
@@ -1865,8 +1947,21 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Padding/Safe Zone (cm)</label>
-                    <input type="number" id="editParcelPadding" step="1" value="5">
+                    <label>Shipping Method</label>
+                    <select id="editParcelShippingMethod">
+                        <option value="">Select shipping method...</option>
+                        <option value="Japan Post EMS">Japan Post EMS</option>
+                        <option value="Japan Post Airmail">Japan Post Airmail</option>
+                        <option value="Japan Post Small Packet">Japan Post Small Packet</option>
+                        <option value="Japan Post Surface">Japan Post Surface</option>
+                        <option value="FedEx Intl Priority">FedEx Intl Priority</option>
+                        <option value="FedEx Intl Econoomy">FedEx Intl Econoomy</option>
+                        <option value="FedEx Intl Connect Plus">FedEx Intl Connect Plus</option>
+                        <option value="UPS Express Saver">UPS Express Saver</option>
+                        <option value="DHL Express">DHL Express</option>
+                        <option value="DHL EXPRESS 1200">DHL EXPRESS 12:00</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Package Materials/Box Weight (g)</label>
@@ -2773,31 +2868,44 @@ function deleteOrder(orderId) {
             const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
             const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
 
-            const filteredOrders = JSON.parse(localStorage.getItem('orders') || '[]').filter(order => {
-                const matchesSearch = searchTerms.length === 0 || 
-                    searchTerms.some(term =>
-                        order.orderId.toLowerCase().includes(term) ||
-                        order.title.toLowerCase().includes(term)
-                    );
-                
-                const matchesTags = selectedTags.length === 0 || 
-                    selectedTags.some(selectedTag => {
-                        const orderTags = String(order.tags || '').split(' ').filter(t => t.trim());
-                        return orderTags.includes(selectedTag);
-                    });
+    const filteredOrders = JSON.parse(localStorage.getItem('orders') || '[]').filter(order => {
+        const matchesSearch = searchTerms.length === 0 || 
+            searchTerms.some(term =>
+                order.orderId.toLowerCase().includes(term) ||
+                order.title.toLowerCase().includes(term)
+            );
+        
+        // Updated tags filter logic
+        const matchesTags = selectedTags.length === 0 || 
+            selectedTags.some(selectedTag => {
+                if (selectedTag === '(no tags)') {
+                    // Check if order has no tags or empty tags
+                    return !order.tags || order.tags.trim() === '';
+                } else {
+                    const orderTags = String(order.tags || '').split(' ').filter(t => t.trim());
+                    return orderTags.includes(selectedTag);
+                }
+            });
 
-                
-                const matchesPrice = order.yen >= minPrice && order.yen <= maxPrice;
-                
-                const matchesFormat = selectedFormats.length === 0 || 
-                    selectedFormats.includes(order.bookFormat);
-                
-                const matchesStatus = selectedStatuses.length === 0 || 
-                    selectedStatuses.some(selectedStatus => 
-                        (order.status || '').toLowerCase().includes(selectedStatus.toLowerCase()));
+        const matchesPrice = order.yen >= minPrice && order.yen <= maxPrice;
+        
+        const matchesFormat = selectedFormats.length === 0 || 
+            selectedFormats.includes(order.bookFormat);
+        
+        const matchesStatus = selectedStatuses.length === 0 || 
+            selectedStatuses.some(selectedStatus => 
+                (order.status || '').toLowerCase().includes(selectedStatus.toLowerCase()));
 
-                const matchesParcel = selectedParcels.length === 0 || 
-                selectedParcels.includes(order.parcel);
+        // Updated parcel filter logic
+        const matchesParcel = selectedParcels.length === 0 || 
+            selectedParcels.some(selectedParcel => {
+                if (selectedParcel === 'No Parcel') {
+                    // Check if order has no parcel assigned
+                    return !order.parcel || order.parcel === '';
+                } else {
+                    return order.parcel === selectedParcel;
+                }
+            });
 
                 return matchesSearch && matchesTags && matchesPrice && matchesFormat && matchesStatus && matchesParcel;
             });
