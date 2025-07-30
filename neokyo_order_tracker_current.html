@@ -1201,11 +1201,11 @@ function closeEditParcelModalOnOutsideClick(event) {
                     left: 110%;
                     top: 50%;
                     transform: translateY(-50%);
-                    background: rgb(84 151 221);
+                    background: #000000;/* rgb(84 151 221); */
                     color: #fff;
                     padding: 8px 12px;
                     border-radius: 5px;
-                    font-size: 11px !important;
+                    font-size: 12px !important;
                     white-space: nowrap;
                     z-index: 1003;
                     pointer-events: none;
@@ -1677,6 +1677,10 @@ function renderMultiSelectTags(type, removeFunction) {
 }
 
 function getParcelsName(parcelId) {
+    if (parcelId === 'No Parcel') {
+        return '(none)';
+    }
+
     const parcel = parcels.find(p => p.id === parcelId);
     return parcel ? parcel.name : 'Unknown';
 }
