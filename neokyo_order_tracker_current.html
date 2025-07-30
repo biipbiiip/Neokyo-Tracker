@@ -276,6 +276,7 @@
             border: 1px solid #e5e7eb;
             max-height: 70vh;
             overflow-y: auto;
+            overflow-x: auto
         }
 
         .table-view table {
@@ -655,11 +656,26 @@
 </head>
 <body>
     <div id="container" class="container parcel-section-active">
+            <div style="margin-left: auto; display:grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;align-items: start;">
         <h1 id="header" onclick="makeHeaderEditable()" title="Click to edit">Neo_ Order Tracker</h1>
+        <select id="currencySelector" onchange="changeCurrency(this.value)" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; background: white;">
+            <option value="USD">US Dollar ($)</option>
+            <option value="GBP">Pounds (£)</option>
+            <option value="EUR">Euro (€)</option>
+            <option value="MXN">Mex. Peso (MX$)</option>
+            <option value="CAD">Canadian Dollar (C$)</option>
+            <option value="HKD">HK Dollar (HK$)</option>
+            <option value="TWD">Taiwan Dollar (NT$)</option>
+            <option value="PHP">Philippine Pesos (₱)</option>
+            <option value="AUD">Australian Dollar (A$)</option>
+            <option value="KRW">Korean Won (₩)</option>
+        </select>
+    </div>
         <div class="header">
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn btn-instructions" onclick="toggleInstructionsSection()">How to Use</button>
                 <button class="btn" onclick="toggleImportSection()">Import HTML</button>
+                <button class="btn btn-secondary" onclick="toggleChangelogSection()" style="background:#7c829a;color:white" >Changelog</button>
                 <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
                 <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
                 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Data</button>
@@ -668,8 +684,7 @@
                     <div class="neokyo-note" style="margin:10px; margin-top:20px; display:flex; align-items: center"><div><img src="https://sohvi.neocities.org/cookie.png" width="35px"/></div><div style="margin-left:5px; padding:10px">🍪 All data is saved on your own browser and not a server. Refreshing the page won't delete anything <u>unless</u> you clear browser cache/cookies/etc. If you do, just remember to export your data and re-import after. <br />
                         <br />❗ Also, this is NOT an official Neokyo tool. It's not endorsed by Neokyo and I'm not affiliated, but had permission to post. It's one I made to keep track of my own things i,, hope this is ok idk it's usable if it's not lmk!! - 4th nini in discord (apothecariae)<br /><br />
                         Btw don't count on Space Used metric in parcels bc it can't play tetris u_u</div></div>
-            
-                    <div id="instructionsSection" class="import-section hidden">
+             <div id="instructionsSection" class="import-section hidden">
 
                 <h1 style="font-weight:600">Demo/Example</h1>
                         <img src="https://sohvi.neocities.org/ordertracker.png" width="600px"/><br />
@@ -689,37 +704,6 @@
                     <li>Click into the code window <b style="font-family:monospace; color:red">where the letters look like this</b>.</li>
                     <li>Then just repeat steps 4-7.</li>
                 </ol>
-
-                <h1>Other notes</h1>
-                <ol style="padding:25px 35px">
-                    <li>
-                        You can specify an item's dimensions and weight in the "Manage Formats" section, and assign them to orders.
-                    </li>
-                    <li>
-                        When filtering, the totals row on the top right will reflect what's in your filters.
-                    </li>
-                    <li>
-                        All your data is saved locally in your browser, so if you refresh it won't go away unless you clear cache/cookies. You can simply export/import your data to a file and re-import it in a click. NOTE: Again it's highly recommended to export your data if you frequently do so.
-                    </li>
-                    <li>
-                        Add, edit, and remove custom tags for orders; and filter by tags in the filters dropdown. It's inclusive of all tags, so if you have items tagged "manga", and others tagged "movies", checking both will show all of them.
-                    </li>
-                    <li>
-                        You can search several terms in filters by separating them with commas. For example, if you search for "123,456", it will match orders with either "123" or "456" in the order ID or title.
-                    </li>
-                    <li>
-                        You can manage and edit item formats (size/weight) and assign them to orders for parcel calculation estimates.
-                    </li>
-                    <li>
-                        Use the Parcel Calculator to group orders into parcels and see total weight. You can look on the Neokyo Discord's "shipping-sample" channel to gauge what size box you might need, and this for further weight calculations/keeping notes.
-                    </li>
-                    <li>
-                        Switch between grid and table views in View Controls, and customize which columns are visible in the table.
-                    </li>
-                    <li>
-                        In table view, quickly edit order details inline, including tags, parcel assignment etc.
-                    </li>
-                </ol>
                 <button class="btn btn-secondary" onclick="toggleInstructionsSection()">Close</button>
             </div>
 </div><script>function toggleChangelogSection() {
@@ -731,16 +715,9 @@
         
         <h3 style="color: rgb(106, 92, 201); margin-bottom: 10px;">Changes</h3>
         <ul style="padding-left: 20px; line-height: 1.6;">
-            July 29, 2025 
-            <li>Fixed How to Use panel not showing up</li>
-            <li>Fixed Japan Post Surface showing as SAL in Shipped panel; if you've already set it to Surface prior, you'll have to click the option again</li>
-            <li><strong>Added filtering options "(no tags)" and "(no parcels)"</strong> - easier now to spot what's untagged or what you might've forgotten to include in parcels</li>
-        </ul> <br />
-        <ul style="padding-left: 20px; line-height: 1.6;">
-            July 28, 2025
             <li><strong>Parcel presets</strong> based on community's shipment-examples in Discord</li>
             <li><strong>Parcel calculator tabs</strong> - move planned parcels to shipped tab; enter in official details + tracking URL etc. and access it from there</li>
-            <li><strong>Currencies</strong> - can now Import HTML if your currency is set to anything beside USD; all currencies on Neokyo supported.<br />NOTE: If you had it in USD, this doesn't autoconvert the prices!! You'll have to Import HTML for those pages (or for the nerds, you know what to do w/ the exports ;-; key is still named 'usd' - the only thing currency affects is the labeling/symbols not actual values)</li>
+            <li><strong>Currencies</strong> - can now Import HTML if your currency is set to anything beside USD; all currencies on Neokyo supported.<br />NOTE: If you had it in USD, this doesn't autoconvert the prices!! You'll have to Import HTML for those pages (or for the nerds, you know what to do w/ the exports ;-; key is still named 'usd')</li>
             <li><strong>Sorting in grid view</strong> - can now sort ascending/descending in the card view</li>
             <li><strong>Scroll horizontally in table view</strong> - overflow-x set!! amazing</li>
             <li><strong>Fixed misaligned table view headers</strong> - headers didn't match the rows; were off by one. Now they do!</li>
@@ -768,15 +745,6 @@
 
         <!--- dont laugh devs i am heavily assisted by the bff we can always talk to at like 2:33AM w/ showerthoughts and receive affirmations from instead of yelling  :( -->
 
-        <!---<div id="parcelSection" class="parcel-section" style="margin-bottom: 24px;">
-            <div class="parcel-header">
-                <h2>Parcel Calculator</h2>
-                <h3>✋‼️ NOTE: Space Used/Space Left is ONLY a simple calculation.<br />It can't play Tetris to account for the various box sizes, it's only to gauge.</h3>
-                
-                <button class="btn" onclick="openParcelModal()">Add Parcel</button>
-            </div>
-            <div id="parcelGrid" class="parcel-grid"></div>
-        </div>--->
         <div id="parcelSection" style="
             position: fixed;
             top: 0;
@@ -792,13 +760,257 @@
             transform: translateX(0);
                 animation: fadeInRight 0.6s;
         ">
-            <div class="parcel-header" style="margin-bottom: 18px;">
-                <h2>Parcel Calculator</h2>
-                <button class="btn" onclick="openParcelModal()">Add Parcel</button>
-                <button class="btn" onclick="toggleParcelSection()">Close</button>
+<div class="parcel-header">
+    <h2>Parcel Calculator</h2>
+    <button class="btn" onclick="openParcelModal()">Add Parcel</button>
+                <button class="btn btn-secondary" onclick="toggleParcelSection()">Close</button>
+</div>
+    <div class="parcel-tabs">
+        <div class="parcel-tab active" id="planning-tab" onclick="switchParcelTab('planning')">
+            <div class="tab-main">
+                📦 Planning
+                <span class="tab-count" id="planning-count">0</span>
             </div>
+        </div>
+        <div class="parcel-tab" id="shipped-tab" onclick="switchParcelTab('shipped')">
+            <div class="tab-main">
+                🚚 Shipped
+                <span class="tab-count" id="shipped-count">0</span>
+            </div>
+        </div>
+    </div>
+<div class="parcel-stats-bar active" id="planning-stats-bar">
+    <div class="stats-bar-items">
+<div class="stats-bar-item">
+    <div class="stats-bar-value" id="planning-shipping-cost">$0.00</div>
+    <div class="stats-bar-label">Total Shipping</div>
+</div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="planning-value">$0.00</div>
+            <div class="stats-bar-label" data-label="Total USD">Total USD</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="planning-per-item">$0.00</div>
+            <div class="stats-bar-label">Per Item</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="planning-per-item-plus-ship">0%</div>
+            <div class="stats-bar-label">Per Item + Ship</div>
+        </div>
+    </div>
+</div>
+<div class="parcel-stats-bar" id="shipped-stats-bar">
+    <div class="stats-bar-items">
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-total">$0.00</div>
+            <div class="stats-bar-label">Total Shipping</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-per-item-only">$0.00</div>
+            <div class="stats-bar-label">Per Item</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-per-item">$0.00</div>
+            <div class="stats-bar-label">Per Item + Ship</div>
+        </div>
+        <div class="stats-bar-item">
+            <div class="stats-bar-value" id="shipped-days">0 days</div>
+            <div class="stats-bar-label">Avg Ship Time</div>
+        </div>
+    </div>
+</div>
             <div id="parcelGrid" class="parcel-grid"></div>
         </div>
+
+<script>// Tab switching function
+function switchParcelTab(tab) {
+    currentParcelTab = tab;
+    
+    // Update tab visual states
+    document.querySelectorAll('.parcel-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab + '-tab').classList.add('active');
+    
+    // Update stats bars
+    document.querySelectorAll('.parcel-stats-bar').forEach(bar => bar.classList.remove('active'));
+    document.getElementById(tab + '-stats-bar').classList.add('active');
+    
+    // Re-render parcels for current tab
+    renderParcels();
+    updateParcelTabStats();
+}
+
+// Update tab counts and stats
+function updateParcelTabStats() {
+    const planningParcels = parcels.filter(p => p.status === 'planning');
+    const shippedParcels = parcels.filter(p => p.status === 'shipped');
+    
+    // Update counts
+    document.getElementById('planning-count').textContent = planningParcels.length;
+    document.getElementById('shipped-count').textContent = shippedParcels.length;
+    
+    // Calculate planning stats
+    updatePlanningStats(planningParcels);
+    updateShippedStats(shippedParcels);
+}
+
+function updatePlanningStats(planningParcels) {
+    let totalWeight = 0;
+    let totalValue = 0;
+    let totalItems = 0;
+    let totalCapacity = 0;
+    let totalMaxVolume = 0;
+    let totalVolume = 0;
+    let totalOrderVolumes = 0;
+    let totalValueYen = 0;
+    let totalValueUSD = 0;
+    
+    // Get all orders from localStorage for accurate calculations
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    planningParcels.forEach(parcel => {
+        const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
+        let parcelWeight = parcel.boxWeight;
+        let parcelValue = 0;
+        
+assignedOrders.forEach(order => {
+        const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
+        const defaultFormat = bookFormats[defaultFormatName] || {
+            width: 10.0, height: 10.0, thickness: 10.0, weight: 10
+        };
+        
+        const format = bookFormats[order.bookFormat] || defaultFormat;
+        const volumes = order.volumes || 1;
+        const itemWeight = format.weight * volumes * order.quantity;
+        const itemVolume = format.width * format.height * (format.thickness * volumes) * order.quantity;
+        
+        totalWeight += itemWeight;
+        totalVolume += itemVolume;
+        totalOrderVolumes += volumes * order.quantity;
+        totalValueYen += order.yen || 0;
+        totalValueUSD += order.usd || 0;
+    });
+        
+        totalWeight += parcelWeight; // would be incorrect for planning if we're doing actual weight
+        totalValue += totalValueUSD;
+        totalItems += totalOrderVolumes; // mfw i started off counting these as volumes bc manga and then it just became items but im too lazy to change it now that i even have claude confused
+        
+        // Calculate capacity
+        const availableVolume = (parcel.length - parcel.padding * 2) * 
+                               (parcel.width - parcel.padding * 2) * 
+                               (parcel.height - parcel.padding * 2);
+        totalMaxVolume += availableVolume;
+        
+        let usedVolume = 0;
+        assignedOrders.forEach(order => {
+            const format = bookFormats[order.bookFormat] || bookFormats[Object.keys(bookFormats)[0]];
+            const volumes = order.volumes || 1;
+            usedVolume += format.width * format.height * (format.thickness * volumes) * order.quantity;
+        });
+        totalCapacity += usedVolume;
+    });
+    
+    let totalEstimatedShipping = 0;
+    planningParcels.forEach(parcel => {
+        // Use actual shipping cost if filled in
+        if (parcel.shippingCost && parcel.shippingCost > 0) {
+            totalEstimatedShipping += parcel.shippingCost;
+        } else {
+            totalEstimatedShipping += 0; // Default estimate per parcel
+        }
+    });
+
+    const perItem = totalItems > 0 ? (totalValue / totalItems) : 0;
+const perItemWithEstShip = totalItems > 0 ? ((totalValue + totalEstimatedShipping) / totalItems) : 0;
+const currConfig = getCurrentCurrencyConfig();
+const totalShip = totalEstimatedShipping;
+
+    // Update planning stats bar
+    document.getElementById('planning-shipping-cost').textContent = `${currConfig.symbol}${totalShip.toFixed(2)}`;
+    document.getElementById('planning-per-item-plus-ship').textContent = `${currConfig.symbol}${perItemWithEstShip.toFixed(2)}`;
+    document.getElementById('planning-value').textContent = `${currConfig.symbol}${totalValue.toFixed(2)}`;
+    document.getElementById('planning-per-item').textContent = `${currConfig.symbol}${perItem.toFixed(2)}`;
+
+    
+}
+
+function updateShippedStats(shippedParcels) {
+    let totalShipping = 0;
+    let totalWeight = 0;
+    let totalItems = 0;
+    let totalValue = 0;
+    let totalShipDays = 0;
+    let parcelsWithDates = 0;
+    
+    // Get all orders for value calculation
+    let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    shippedParcels.forEach(parcel => {
+        totalShipping += parcel.shippingCost || 0;
+
+        if (parcel.actualWeight && parcel.actualWeight > 0) {
+            totalWeight += parcel.actualWeight;
+                } else {
+                    // Fall back to calculated weight (existing logic)
+                    totalWeight += parcel.boxWeight || 0;
+                    // Add item weights if no actual weight
+                    const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
+                    assignedOrders.forEach(order => {
+                        const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
+                        const defaultFormat = bookFormats[defaultFormatName] || { weight: 190 };
+                        const format = bookFormats[order.bookFormat] || defaultFormat;
+                        const volumes = order.volumes || 1;
+                        const itemWeight = format.weight * volumes * order.quantity;
+                        totalWeight += itemWeight;
+                    });
+                }
+        
+        // Calculate shipping days if we have both dates
+        if (parcel.shipDate && parcel.arrivalDate) {
+            const shipDate = new Date(parcel.shipDate);
+            const arrivalDate = new Date(parcel.arrivalDate);
+            const daysDiff = Math.ceil((arrivalDate - shipDate) / (1000 * 60 * 60 * 24));
+            if (daysDiff > 0) {
+                totalShipDays += daysDiff;
+                parcelsWithDates++;
+            }
+        }
+        
+        // Calculate items and value for this parcel
+        const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
+        assignedOrders.forEach(order => {
+            const volumes = order.volumes || 1;
+            totalItems += volumes * order.quantity;
+            totalValue += order.usd || 0;
+        });
+    });
+    
+    const avgShipping = shippedParcels.length > 0 ? (totalShipping / shippedParcels.length) : 0;
+    const avgWeight = shippedParcels.length > 0 ? (totalWeight / shippedParcels.length / 1000) : 0; // Convert to kg
+    const perItemWithShip = totalItems > 0 ? ((totalValue + totalShipping) / totalItems) : 0;
+const avgShipDays = parcelsWithDates > 0 ? Math.round(totalShipDays / parcelsWithDates) : 0;
+    const perItemOnly = totalItems > 0 ? (totalValue / totalItems) : 0;
+    const currConfig = getCurrentCurrencyConfig();
+
+    // Update shipped stats bar
+        document.getElementById('shipped-total').textContent = `${currConfig.symbol}${totalShipping.toFixed(2)}`;
+    document.getElementById('shipped-per-item').textContent = `${currConfig.symbol}${perItemWithShip.toFixed(2)}`;
+    document.getElementById('shipped-days').textContent = `${avgShipDays} days`;
+    document.getElementById('shipped-per-item-only').textContent = `${currConfig.symbol}${perItemOnly.toFixed(2)}`;
+
+    
+}
+function closeEditParcelModal() {
+    document.getElementById('editParcelModal').classList.add('hidden');
+    currentEditingParcel = null;
+}
+
+function closeEditParcelModalOnOutsideClick(event) {
+    if (event.target.classList.contains('modal')) {
+        closeEditParcelModal();
+    }
+}
+
+</script>
 
         <!-- Hamburger Menus for Filters, Totals, and View Controls -->
         <style>
@@ -1031,7 +1243,7 @@
                     <div class="total-value" id="totalYen">¥0</div>
                 </div>
                 <div class="total-item">
-                    <div class="total-label">Total USD</div>
+                    <div class="total-label" id="totalCurrencyLabel" data-label="Total USD">Total USD</div>
                     <div class="total-value" id="totalUSD">$0</div>
                 </div>
                 <div class="total-item">
@@ -1039,7 +1251,7 @@
                     <div class="total-value" id="totalWeight">0g</div>
                 </div>
                 <div class="total-item">
-                    <div class="total-label">USD per Item</div>
+                    <div class="total-label" data-label="USD per Item">USD per Item</div>
                     <div class="total-value" id="avgUSDPerItem">$0.00</div>
                 </div>
             </div>
@@ -1506,16 +1718,9 @@ function removeFormatTags(tag) {
     applyFilters();
 }
 
-function removeParcelTags(parcelId) {
-    selectedParcels = selectedParcels.filter(id => id !== parcelId);
-    document.getElementById(`parcel-${parcelId}`).checked = false;
-    renderParcelTags();
-    applyFilters();
-}
-
 function removeTagsTags(tag) {
     selectedTags = selectedTags.filter(t => t !== tag);
-    if (tag === '(no tags)') {
+    if (tag === 'Untagged') {
         const checkbox = document.getElementById('tag-untagged');
         if (checkbox) checkbox.checked = false;
     } else {
@@ -1529,7 +1734,7 @@ function removeTagsTags(tag) {
 
 function removeParcelTags(parcelId) {
     selectedParcels = selectedParcels.filter(id => id !== parcelId);
-    if (parcelId === 'No Parcel') {
+    if (parcelId === '__NO_PARCEL__') {
         const checkbox = document.getElementById('parcel-no-parcel');
         if (checkbox) checkbox.checked = false;
     } else {
@@ -1570,7 +1775,7 @@ function renderParcelDropdown() {
     const dropdown = document.getElementById('parcelDropdown');
     dropdown.innerHTML = `
         <div class="multi-select-option">
-            <input type="checkbox" id="parcel-no-parcel" value="No Parcel" onchange="updateMultiSelectFilter('Parcels')">
+            <input type="checkbox" id="parcel-no-parcel" value="__NO_PARCEL__" onchange="updateMultiSelectFilter('Parcels')">
             <label for="parcel-no-parcel">No Parcel</label>
         </div>
         ${parcels.map(parcel => `
@@ -1589,8 +1794,8 @@ function renderTagsDropdown() {
     if (uniqueTags.length === 0) {
         dropdown.innerHTML = `
             <div class="multi-select-option">
-                <input type="checkbox" id="tag-untagged" value="(no tags)" onchange="updateMultiSelectFilter('Tags')">
-                <label for="tag-untagged">(no tags)</label>
+                <input type="checkbox" id="tag-untagged" value="Untagged" onchange="updateMultiSelectFilter('Tags')">
+                <label for="tag-untagged">Untagged</label>
             </div>
             <div style="padding: 8px; color: #9ca3af;">No other tags found</div>
         `;
@@ -1599,8 +1804,8 @@ function renderTagsDropdown() {
     
     dropdown.innerHTML = `
         <div class="multi-select-option">
-            <input type="checkbox" id="tag-untagged" value="(no tags)" onchange="updateMultiSelectFilter('Tags')">
-            <label for="tag-untagged">(no tags)</label>
+            <input type="checkbox" id="tag-untagged" value="Untagged" onchange="updateMultiSelectFilter('Tags')">
+            <label for="tag-untagged">Untagged</label>
         </div>
         ${uniqueTags.map(tag => `
             <div class="multi-select-option">
@@ -1715,7 +1920,7 @@ function updateSelectedCount() {
 }
 
 function updateOrderHighlight(orderId) {
-    const isSelected = selectedOrders.has(orderId);
+    const isSelected = selectedOrders.has(String(orderId));
     
     if (currentView === 'grid') {
         const gridItems = document.querySelectorAll('.grid-item');
@@ -1743,8 +1948,12 @@ function updateOrderHighlight(orderId) {
 }
 
 function selectAllVisible() {
+    // Clear existing selections first
+    selectedOrders.clear();
+    
+    // Add all visible orders
     orders.forEach(order => {
-        selectedOrders.add(order.id);
+        selectedOrders.add(String(order.id)); // Ensure consistent string type
         const checkbox = document.getElementById(`batch-${order.id}`);
         if (checkbox) {
             checkbox.checked = true;
@@ -1845,6 +2054,7 @@ function applyBatchChanges() {
         applyFilters();
         renderView();
         renderParcels();
+        updateParcelTabStats();
         updateTotals();
         renderTagsDropdown();
         
@@ -1873,6 +2083,195 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
+
+<div id="gridSortControls" style="display: none; margin-bottom: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+    <span style="font-weight: 600; color: #374151;">Sort by:</span>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('orderId')" id="sort-orderId">
+        Order # <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('title')" id="sort-title">
+        Title <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('yen')" id="sort-yen">
+        Price <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('storageDays')" id="sort-storageDays">
+        Storage Days <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="sortGridBy('created')" id="sort-created">
+        Date Created <span class="sort-indicator"></span>
+    </button>
+    <button class="btn btn-secondary sort-btn" onclick="clearGridSort()">
+        Clear Sort
+    </button>
+</div>
+<script>// for grid view sort
+    let gridSortState = { field: null, direction: 'asc' };
+
+function sortGridBy(field) {
+    // Toggle direction if same field, otherwise start with ascending
+    if (gridSortState.field === field) {
+        gridSortState.direction = gridSortState.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        gridSortState.field = field;
+        gridSortState.direction = 'asc';
+    }
+    
+    // Sort the orders
+    orders.sort((a, b) => {
+        let aVal = a[field];
+        let bVal = b[field];
+        
+        // Handle null/undefined values
+        if (aVal == null) aVal = '';
+        if (bVal == null) bVal = '';
+        
+        // Special handling for different field types
+        if (field === 'orderId') {
+            // Convert to numbers for proper numeric sorting
+            aVal = parseInt(aVal) || 0;
+            bVal = parseInt(bVal) || 0;
+        } else if (field === 'yen' || field === 'storageDays') {
+            // Numeric fields
+            aVal = Number(aVal) || 0;
+            bVal = Number(bVal) || 0;
+        } else if (field === 'created') {
+            // Date field - convert MM/DD/YYYY to comparable format
+            aVal = convertDateForSorting(aVal);
+            bVal = convertDateForSorting(bVal);
+        } else {
+            // String fields (title, etc.)
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+        }
+        
+        // Compare values
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return gridSortState.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+            if (gridSortState.direction === 'asc') {
+                return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+            } else {
+                return bVal < aVal ? -1 : bVal > aVal ? 1 : 0;
+            }
+        }
+    });
+    
+    updateSortIndicators();
+    renderView();
+}
+
+function convertDateForSorting(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return new Date(0);
+    // Convert MM/DD/YYYY to YYYY-MM-DD for proper sorting
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        return new Date(parts[2], parts[0] - 1, parts[1]);
+    }
+    return new Date(dateStr);
+}
+
+function clearGridSort() {
+    gridSortState = { field: null, direction: 'asc' };
+    
+    // Reload original order from localStorage
+    try {
+        const originalOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        // Reapply current filters
+        applyFilters();
+    } catch (e) {
+        console.error('Error reloading orders:', e);
+    }
+    
+    updateSortIndicators();
+    renderView();
+}
+
+function updateSortIndicators() {
+    // Clear all indicators
+    document.querySelectorAll('.sort-indicator').forEach(indicator => {
+        indicator.textContent = '';
+        indicator.parentElement.classList.remove('sort-active');
+    });
+    
+    // Set active indicator
+    if (gridSortState.field) {
+        const activeBtn = document.getElementById(`sort-${gridSortState.field}`);
+        if (activeBtn) {
+            const indicator = activeBtn.querySelector('.sort-indicator');
+            indicator.textContent = gridSortState.direction === 'asc' ? '↑' : '↓';
+            activeBtn.classList.add('sort-active');
+        }
+    }
+}
+
+// used in applyFilters()
+function applySortToOrders() {
+    if (!gridSortState.field) return; // No sort applied
+    
+    orders.sort((a, b) => {
+        let aVal = a[gridSortState.field];
+        let bVal = b[gridSortState.field];
+        
+        // Handle null/undefined values
+        if (aVal == null) aVal = '';
+        if (bVal == null) bVal = '';
+        
+        // Same sorting logic from sortGridBy...
+        if (gridSortState.field === 'orderId') {
+            aVal = parseInt(aVal) || 0;
+            bVal = parseInt(bVal) || 0;
+        } else if (gridSortState.field === 'yen' || gridSortState.field === 'storageDays') {
+            aVal = Number(aVal) || 0;
+            bVal = Number(bVal) || 0;
+        } else if (gridSortState.field === 'created') {
+            aVal = convertDateForSorting(aVal);
+            bVal = convertDateForSorting(bVal);
+        } else {
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+        }
+        
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return gridSortState.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+            if (gridSortState.direction === 'asc') {
+                return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+            } else {
+                return bVal < aVal ? -1 : bVal > aVal ? 1 : 0;
+            }
+        }
+    });
+}
+</script>
+<style>/* for grid view sort */
+    .sort-btn {
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sort-btn.sort-active {
+    background: rgb(143 134 205) !important;
+    color: white !important;
+    border-color: rgb(143 134 205) !important
+}
+
+.sort-indicator {
+    font-size: 10px !important;
+    font-weight: bold;
+}
+
+#gridSortControls {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+}
+</style>
         <div id="gridView" class="grid-view"></div>
         <div id="tableView" class="table-view hidden"></div>
     </div>
@@ -1921,14 +2320,26 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
     <!-- Edit Parcel Modal -->
-    <div id="editParcelModal" class="modal hidden" onclick="closeEditParcelModalOnOutsideClick(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>Edit Parcel</h3>
-            <span></span>
+<!-- Enhanced Edit Parcel Modal -->
+<div id="editParcelModal" class="modal hidden" onclick="closeEditParcelModalOnOutsideClick(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <h3>Edit Parcel</h3>
+        
+        <!-- Basic Info Section -->
+        <div class="form-section">
+            <h4>Basic Information</h4>
             <div class="form-row">
                 <div class="form-group">
                     <label>Name</label>
                     <input type="text" id="editParcelName" placeholder="Parcel 1">
+                </div>
+                <div class="form-group">
+                    <label>Padding/Safe Zone (cm)</label>
+                    <input type="number" id="editParcelPadding" step="1" value="5">
+                </div>
+                <div class="form-group">
+                    <label>Package Materials/Box Weight (g)</label>
+                    <input type="number" id="editParcelBoxWeight" value="2000">
                 </div>
             </div>
             <div class="form-row">
@@ -1945,6 +2356,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="number" id="editParcelHeight" step="1" value="62">
                 </div>
             </div>
+        </div>
+        
+        <!-- Shipping Info Section -->
+        <div class="form-section" id="editShippingSection">
+            <h4>Shipping Information</h4>
             <div class="form-row">
                 <div class="form-group">
                     <label>Shipping Method</label>
@@ -1953,7 +2369,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <option value="Japan Post EMS">Japan Post EMS</option>
                         <option value="Japan Post Airmail">Japan Post Airmail</option>
                         <option value="Japan Post Small Packet">Japan Post Small Packet</option>
-                        <option value="Japan Post Surface">Japan Post Surface</option>
+                        <option value="Japan Post SAL">Japan Post Surface</option>
                         <option value="FedEx Intl Priority">FedEx Intl Priority</option>
                         <option value="FedEx Intl Econoomy">FedEx Intl Econoomy</option>
                         <option value="FedEx Intl Connect Plus">FedEx Intl Connect Plus</option>
@@ -1964,62 +2380,446 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Package Materials/Box Weight (g)</label>
-                    <input type="number" id="editParcelBoxWeight" value="2000">
+                    <label data-label="USD">Shipping Cost (USD)</label>
+                    <input type="number" id="editParcelShippingCost" step="0.01" placeholder="0.00">
                 </div>
             </div>
             <div class="form-row">
-                <button class="btn" onclick="saveParcelEdit()">Save Changes</button>
-                <button class="btn btn-secondary" onclick="closeEditParcelModal()">Cancel</button>
+                <div class="form-group">
+                    <label>Ship Date</label>
+                    <input type="date" id="editParcelShipDate">
+                </div>
+                <div class="form-group">
+                    <label>Arrival Date</label>
+                    <input type="date" id="editParcelArrivalDate">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Actual Weight (g)</label>
+                    <input type="number" id="editParcelActualWeight" placeholder="Leave empty if unknown">
+                </div>
+                <div class="form-group">
+                    <label>Declared Value (Yen)</label>
+                    <input type="number" id="parcelDeclaredValue" step="0.01" placeholder="Pro forma invoice value">
+                </div>
+                <div class="form-group">
+                    <label>Tracking Number</label>
+                    <input type="text" id="editParcelTrackingNumber" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>Tracking URL</label>
+                    <input type="url" id="editParcelTrackingURL" placeholder="https://tracking.example.com/...">
+                </div>
             </div>
         </div>
+        
+        <div class="form-row">
+            <button class="btn" onclick="saveParcelEdit()">Save Changes</button>
+            <button class="btn btn-secondary" onclick="closeEditParcelModal()">Cancel</button>
+        </div>
     </div>
+</div>
 
     <!-- Parcel Modal -->
-    <div id="parcelModal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>Add New Parcel</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="parcelName" placeholder="Parcel 1">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Length (cm)</label>
-                    <input type="number" id="parcelLength" step="1" value="60">
-                </div>
-                <div class="form-group">
-                    <label>Width (cm)</label>
-                    <input type="number" id="parcelWidth" step="1" value="45">
-                </div>
-                <div class="form-group">
-                    <label>Height (cm)</label>
-                    <input type="number" id="parcelHeight" step="1" value="62">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Padding/Save Zone (cm)</label>
-                    <input type="number" id="parcelPadding" step="1" value="20">
-                </div>
-                <div class="form-group">
-                    <label>Package Materials/Box Weight (g)</label>
-                    <input type="number" id="parcelBoxWeight" value="2000">
-                </div>
-            </div>
-            <div class="form-row">
-                <button class="btn" onclick="addParcel()">Add Parcel</button>
-                <button class="btn btn-secondary" onclick="closeParcelModal()">Cancel</button>
-            </div>
+<div id="parcelModal" class="modal hidden" onclick="closeModalOnOutsideClick(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <h3 id="parcelModalTitle">Add New Parcel</h3>
+        
+<div class="form-section" id="presetSection">
+    <h4>Quick Presets</h4>
+    <div class="neokyo-note">NOTE: These are based on common box sizes from the Neokyo community/Discord. There may be more, and you can always edit the dimensions yourself at any time. Please always assume that your items may not be fitted into the box you expect, this calculator is just to help you plan/gauge!</div><br />
+    <div class="preset-grid">
+        <!-- js renderparcelpresets -->
+    </div>
+</div>
+
+        <!-- Basic Info Section -->
+<div class="form-section">
+    <h4>Basic Information</h4>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="parcelName" placeholder="Parcel 1">
+        </div>
+        <div class="form-group">
+            <label>Length (cm)</label>
+            <input type="number" id="parcelLength" step="1" value="25">
+        </div>
+        <div class="form-group">
+            <label>Width (cm)</label>
+            <input type="number" id="parcelWidth" step="1" value="19">
+        </div>
+        <div class="form-group">
+            <label>Height (cm)</label>
+            <input type="number" id="parcelHeight" step="1" value="34">
         </div>
     </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Padding/Safe Zone (cm)</label>
+            <input type="number" id="parcelPadding" step="1" value="2">
+        </div>
+        <div class="form-group">
+            <label>Package Materials/Box Weight (g)</label>
+            <input type="number" id="parcelBoxWeight" value="800">
+        </div>
+    </div>
+</div>
+        
+        <!-- Shipping Info Section (shown when on shipped tab) -->
+        <div class="form-section" id="shippingSection" style="display: none;">
+            <h4>Shipping Information</h4>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Shipping Method</label>
+                    <select id="parcelShippingMethod">
+                        <option value="">Select shipping method...</option>
+                        <option value="Japan Post EMS">Japan Post EMS</option>
+                        <option value="Japan Post Airmail">Japan Post Airmail</option>
+                        <option value="Japan Post Small Packet">Japan Post Small Packet</option>
+                        <option value="Japan Post SAL">Japan Post Surface</option>
+                        <option value="FedEx Intl Priority">FedEx Intl Priority</option>
+                        <option value="FedEx Intl Econoomy">FedEx Intl Econoomy</option>
+                        <option value="FedEx Intl Connect Plus">FedEx Intl Connect Plus</option>
+                        <option value="UPS Express Saver">UPS Express Saver</option>
+                        <option value="DHL Express">DHL Express</option>
+                        <option value="DHL EXPRESS 1200">DHL EXPRESS 12:00</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-label="USD">Shipping Cost (USD)</label>
+                    <input type="number" id="parcelShippingCost" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ship Date</label>
+                    <input type="date" id="parcelShipDate">
+                </div>
+                <div class="form-group">
+                    <label>Arrival Date</label>
+                    <input type="date" id="parcelArrivalDate">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Actual Weight (g)</label>
+                    <input type="number" id="parcelActualWeight" placeholder="Leave empty if unknown">
+                </div>
+    <div class="form-group">
+        <label>Declared Value (Yen)</label>
+        <input type="number" id="editParcelDeclaredValue" step="0.01" placeholder="Pro forma invoice value">
+    </div>
+                <div class="form-group">
+                    <label>Tracking Number</label>
+                    <input type="text" id="parcelTrackingNumber" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>Tracking URL</label>
+                    <input type="url" id="parcelTrackingURL" placeholder="https://tracking.example.com/...">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <button class="btn" onclick="saveParcel()">Save Parcel</button>
+            <button class="btn btn-secondary" onclick="closeParcelModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+<style>/* parcel preset cards */.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Smaller minimum */
+    gap: 8px; /* Smaller gap */
+    margin-bottom: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+}
 
+.preset-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f9fafb;
+    width: 100%; /* Ensure full width */
+}
+        
+.preset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.preset-descriptor {
+    font-size: 11px;
+    color: rgb(106, 92, 201);
+    font-family: monospace;
+    background: #f3f4f6;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+        
+.preset-name {
+    font-weight: 700;
+    color: #374151;
+    font-size: 15px;
+}
+
+.form-section {
+    margin-bottom: 20px;
+}
+
+.form-section h4 {
+    margin: 0 0 12px 0;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#presetSection * {font-size:10px !important}
+</style>
     <script>
+        // add parcel presets + fns
+        // Preset definitions with packaging weights
+const parcelPresets = {
+    'photocard-ultra': {
+        name: '8×19×21cm',
+        descriptor: 'Small',
+        dimensions: { length: 8, width: 19, height: 21, padding: 1 },
+        boxWeight: 300,
+        examples: [
+            // EXACT: 8/19/21
+            '70 photocards + 2 keychains = 342g',
+            '19 TCG cards = 200g',
+            '42 photocards + notebook + 2 plushies = 435g',
+            'Single CD + 6 photocards = 271g',
+            'New 3DS = 384g',
+            'Digital camera + charger = 315g',
+            'Single t-shirt = 379g',
+            // CLOSE: 7/18/21
+            'New 3DS LL = 658g'
+        ],
+        tags: ['Photocards', 'Trading cards', 'Small badges', 'Keychains', 'Small electronics']
+    },
+    'community-mvp': {
+        name: '25×19×34cm',
+        descriptor: 'Medium',
+        dimensions: { length: 25, width: 19, height: 34, padding: 2 },
+        boxWeight: 800,
+        examples: [
+            // EXACT: 25/19/34
+            '1/7 figure + light novel + VN game = 1,128g',
+            '7 artbooks + socks + plush = 4,342g',
+            '3 manga + 1/8 figure + 2 PSP games = 1,725g',
+            'PSP + camera + 14 UMD games = 2,292g',
+            '62 photocards + photobook + hoodie = 1,970g',
+            '30 photocards + album + washi tape + plushies = 1,723g',
+            '4 pokemon cards + lunch bag + magazines + CDs = 2,360g',
+            '2 small figures + keychains + books = 2,966g'
+        ],
+        tags: ['1-8 manga', 'Scale figures', 'CDs & games', 'Small clothing', 'Electronics', 'Mixed orders']
+    },
+    'magazine-heavy': {
+        name: '25×12×35cm',
+        descriptor: 'Medium/Heavy',
+        dimensions: { length: 25, width: 12, height: 35, padding: 2 },
+        boxWeight: 600,
+        examples: [
+            // EXACT: 25/12/34-35
+            '11 magazines = 6,018g',
+            '10 magazines = 5,109g',
+            '8 CD albums + artbook + cards = 1,843g',
+            '11 doujinshi + 4 plushies = 1,383g',
+            '2 belts + shirt + 2 dresses = 1,644g',
+            '4 albums + 26 photocards + keychains = 1,810g',
+            '6 CDs + manga + standee + cards = 1,294g',
+            'Acrylic standee + towel + sailor suit = 1,047g'
+        ],
+        tags: ['Magazines', 'Artbooks', 'Manga sets', 'Flat items', 'Books']
+    },
+    'mixed-merch': {
+        name: '27×24×38cm',
+        descriptor: 'Medium/Mixed',
+        dimensions: { length: 27, width: 24, height: 38, padding: 2 },
+        boxWeight: 1000,
+        examples: [
+            // EXACT: 27/24/38
+            '6 prize figures = 1,878g',
+            '1/8 figure + 3 prize figures + PSP game = 1,713g',
+            '4 CDs + magazines + plush + hoodie = 2,490g',
+            '1/6 figure + postcards + keychains = 2,006g',
+            '~775 sticker sheets + washi tape + figures = 7,900g',
+            'Cosplay set + figures + badges + CDs = 3,457g',
+            '4 blouses + dress + pouches + figures = 2,390g',
+            '2 plushies + makeup + pouches + photocards = 1,839g',
+            'Ichiban kuji + Nendoroid + small figures = 1,961g'
+        ],
+        tags: ['Plushies', 'Prize figures', 'Accessories', 'Mixed collections']
+    },
+    'big-box': {
+        name: '30×33×47cm',
+        descriptor: 'Large',
+        dimensions: { length: 30, width: 33, height: 47, padding: 2 },
+        boxWeight: 1200,
+        examples: [
+            // EXACT: 30/33/47
+            '16 small + 2 medium + 1 large figure = 3,500g',
+            '1/7 + 1/8 figure + dakimakura = 2,950g',
+            '1/7 figure + acrylic stands + cards = 1,890g',
+            '6 used collectible figures + book = 2,650g',
+            'Shorts + t-shirt + figure + Kirby warmer = 2,385g',
+            // CLOSE: 33/30/47
+            '6 plushies + pajamas + CDs + camera = 5,161g',
+            '7 prize figures + 2 with boxes + notes = 3,100g',
+            'Scale + banpresto + trading figures = 1,850g'
+        ],
+        tags: ['Scale figures', 'Clothing bundles', 'Large collectibles', 'Mixed large orders']
+    },
+    'going-big': {
+        name: '41×31×54cm',
+        descriptor: 'Large/Bulk Orders',
+        dimensions: { length: 41, width: 31, height: 54, padding: 2 },
+        boxWeight: 1800,
+        examples: [
+            // EXACT: 41/31/54
+            '20+ kpop albums + bags + vinyl = 11,724g',
+            'Yarn + clothing + plushies + figures = 8,100g',
+            '1/7 + 1/5 + 8 prize figures + plushies = 5,900g',
+            '34 CDs + electronics + clothes = 13,800g',
+            '2x 35mm camera bodies + 16 lenses = 9,850g',
+            'Kyun Charas + premium figure + mugs + shirts = 7,850g',
+            'Tapestry + keychains + artbooks + dress = 6,650g',
+            // CLOSE: 40/31/54 
+            'Cardigan + skirt + shorts + shirts + keychains = 9,000g'
+        ],
+        tags: ['Large collections', 'Heavy items', 'Special shapes']
+    }
+};
+
+// Function to render presets in the modal
+function renderParcelPresets() {
+    const presetGrid = document.querySelector('.preset-grid');
+    if (!presetGrid) return;
+    
+    presetGrid.innerHTML = Object.entries(parcelPresets).map(([key, preset]) => `
+        <div class="preset-card" onclick="selectParcelPreset('${key}')" style="
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+        ">
+            <div style="font-weight: 700; color: #374151; font-size: 13px; margin-bottom: 8px; pointer-events:none">
+                <div class="preset-header">
+                    <div class="preset-name">${preset.name}</div>
+                    <div class="preset-descriptor">${preset.descriptor}</div>
+                </div>
+            </div>
+            <div style="font-size: 11px; color: #059669; background: #ecfdf5; padding: 6px 8px; border-radius: 4px; margin-bottom: 8px; overflow-y: auto; pointer-events:none">
+                ${preset.examples.slice(0, 10).map(ex => `• ${ex}`).join('<br>')}
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; pointer-events:none">
+                ${preset.tags.slice(0, 10).map(tag => `
+                    <span style="background: rgba(167, 139, 250, 0.1); color: rgba(153,145,216,1); padding: 2px 6px; border-radius: 12px; font-size: 10px;">
+                        ${tag}
+                    </span>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Function to apply selected preset
+function selectParcelPreset(presetKey) {
+    const preset = parcelPresets[presetKey];
+    if (!preset) return;
+    
+    // Remove selection from all preset cards
+    document.querySelectorAll('.preset-card').forEach(card => {
+        card.style.borderColor = '#e5e7eb';
+        card.style.background = '#f9fafb';
+    });
+    
+    // Highlight selected card
+    event.target.style.borderColor = 'rgb(106, 92, 201)';
+    event.target.style.background = '#f0f9ff';
+    
+    // Generate default parcel name (Parcel 1, Parcel 2, etc.)
+    const defaultName = generateDefaultParcelName();
+    
+    // Fill in the form fields
+    document.getElementById('parcelName').value = defaultName;
+    document.getElementById('parcelLength').value = preset.dimensions.length;
+    document.getElementById('parcelWidth').value = preset.dimensions.width;
+    document.getElementById('parcelHeight').value = preset.dimensions.height;
+    document.getElementById('parcelPadding').value = preset.dimensions.padding;
+    document.getElementById('parcelBoxWeight').value = preset.boxWeight;
+}
+
+function generateDefaultParcelName() {
+    let counter = 1;
+    let name = `Parcel ${counter}`;
+    
+    // Check if name already exists
+    while (parcels.some(parcel => parcel.name === name)) {
+        counter++;
+        name = `Parcel ${counter}`;
+    }
+    
+    return name;
+}
+
+
+// Update the openParcelModal function to include presets
+function openParcelModal() {
+    const modal = document.getElementById('parcelModal');
+    const shippingSection = document.getElementById('shippingSection');
+    const modalTitle = document.getElementById('parcelModalTitle');
+    
+    // Reset form
+    document.getElementById('parcelName').value = '';
+    document.getElementById('parcelLength').value = '25';  // Default to most popular
+    document.getElementById('parcelWidth').value = '19';
+    document.getElementById('parcelHeight').value = '34';
+    document.getElementById('parcelPadding').value = '2';
+    document.getElementById('parcelBoxWeight').value = '800';
+    
+    // Reset shipping fields
+    document.getElementById('parcelShippingMethod').value = '';
+    document.getElementById('parcelShippingCost').value = '';
+    document.getElementById('parcelShipDate').value = '';
+    document.getElementById('parcelArrivalDate').value = '';
+    document.getElementById('parcelActualWeight').value = '';
+    document.getElementById('parcelTrackingNumber').value = '';
+    
+    // Show/hide shipping section based on current tab
+    if (currentParcelTab === 'shipped') {
+        shippingSection.style.display = 'block';
+        modalTitle.textContent = 'Add Shipped Parcel';
+    } else {
+        shippingSection.style.display = 'none';
+        modalTitle.textContent = 'Add New Parcel';
+    }
+    
+    // Render presets
+    renderParcelPresets();
+    
+    modal.classList.remove('hidden');
+}
+
+
+        // parcels/shipped then formats
         // Data storage
         let orders = [];
         let parcels = [];
+        
+        let currentParcelTab = 'planning'; // 'planning' or 'shipped'
 
         // Custom header text from localStorage or default
         let customHeaderText = localStorage.getItem('customHeaderText') || 'Neo_ Order Tracker';
@@ -2122,34 +2922,106 @@ document.addEventListener('DOMContentLoaded', function() {
             'A6 Shinshoban': { width: 11.0, height: 17.0, thickness: 1.4, weight: 150 }
         };
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('header').textContent = customHeaderText;
-            // Load column visibility preferences
-            try {
-                const savedVisibility = localStorage.getItem('columnVisibility');
-                if (savedVisibility) {
-                    columnVisibility = { ...columnVisibility, ...JSON.parse(savedVisibility) };
-                    // Update checkboxes
-                    Object.keys(columnVisibility).forEach(col => {
-                        const checkbox = document.getElementById(`col-${col}`);
-                        if (checkbox) {
-                            checkbox.checked = columnVisibility[col];
-                        }
-                    });
-                }
-            } catch (e) {
-                console.error('Error loading column visibility:', e);
-            }
+                // Currency configuration
+        let currentCurrency = localStorage.getItem('selectedCurrency') || 'USD';
 
-            renderTagsDropdown(); // Initialize tags dropdown
-            renderFormatDropdown(); // Initialize format dropdown
-            renderStatusDropdown(); // Initialize status dropdown
-            renderParcelDropdown(); // Initialize parcel dropdown
-            renderView();
-            renderParcels();
-            updateTotals();
-        });
+        const currencyConfig = {
+            'USD': { name: 'USD', symbol: '$', parseRegex: /US\$\s*([\d.]+)/, displayName: 'USD' },
+            'GBP': { name: 'GBP', symbol: '£', parseRegex: /£\s*([\d.]+)/, displayName: 'GBP' },
+            'EUR': { name: 'EUR', symbol: '€', parseRegex: /€\s*([\d.]+)/, displayName: 'EUR' },
+            'MXN': { name: 'MXN', symbol: 'MX$', parseRegex: /MXN\$\s*([\d.]+)/, displayName: 'MXN' },
+            'CAD': { name: 'CAD', symbol: 'C$', parseRegex: /CAD\$\s*([\d.]+)/, displayName: 'CAD' },
+            'HKD': { name: 'HKD', symbol: 'HK$', parseRegex: /HK\$\s*([\d.]+)/, displayName: 'HKD' },
+            'TWD': { name: 'TWD', symbol: 'NT$', parseRegex: /NT\$\s*([\d.]+)/, displayName: 'TWD' },
+            'PHP': { name: 'PHP', symbol: '₱', parseRegex: /PHP\$\s*([\d.]+)/, displayName: 'PHP' },
+            'AUD': { name: 'AUD', symbol: 'A$', parseRegex: /AUD\$\s*([\d.]+)/, displayName: 'AUD' },
+            'KRW': { name: 'KRW', symbol: '₩', parseRegex: /KRW₩\s*([\d.]+)/, displayName: 'KRW' }
+        };
+
+        function getCurrentCurrencyConfig() {
+            return currencyConfig[currentCurrency];
+        }
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('header').textContent = customHeaderText;
+    // Load column visibility preferences
+    try {
+        const savedVisibility = localStorage.getItem('columnVisibility');
+        if (savedVisibility) {
+            columnVisibility = { ...columnVisibility, ...JSON.parse(savedVisibility) };
+            Object.keys(columnVisibility).forEach(col => {
+                const checkbox = document.getElementById(`col-${col}`);
+                if (checkbox) {
+                    checkbox.checked = columnVisibility[col];
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Error loading column visibility:', e);
+    }
+    
+    // Initialize parcel tab stats
+    updateParcelTabStats();
+
+    // Initialize currency selector
+    document.getElementById('currencySelector').value = currentCurrency;
+    document.getElementById('totalCurrencyLabel').textContent = `Total ${getCurrentCurrencyConfig().displayName}`;
+    
+    
+    // Make sure all existing parcels have the new status field
+    let needsSave = false;
+    parcels.forEach(parcel => {
+        if (!parcel.status) {
+            parcel.status = 'planning';
+            needsSave = true;
+        }
+        if (parcel.shippingMethod === undefined) parcel.shippingMethod = '';
+        if (parcel.shippingCost === undefined) parcel.shippingCost = 0;
+        if (parcel.actualWeight === undefined) parcel.actualWeight = 0;
+        if (parcel.shipDate === undefined) parcel.shipDate = '';
+        if (parcel.arrivalDate === undefined) parcel.arrivalDate = '';
+        if (parcel.trackingNumber === undefined) parcel.trackingNumber = '';
+        if (parcel.trackingURL === undefined) parcel.trackingURL = '';
+        if (parcel.declaredValue === undefined) parcel.declaredValue = 0;
+    });
+    
+    if (needsSave) {
+        localStorage.setItem('parcels', JSON.stringify(parcels));
+    }
+
+    renderTagsDropdown();
+    renderFormatDropdown();
+    renderStatusDropdown();
+    renderParcelDropdown();
+    renderView();
+    renderParcels();
+    updateParcelTabStats();
+    updateTotals();
+});
+
+function parseAnyCurrency(billingText) {
+    // Look for any currency pattern: (SYMBOL AMOUNT) or (CODE$ AMOUNT)
+    const patterns = [
+        /\(US\$\s*([\d.]+)\)/,
+        /\(£\s*([\d.]+)\)/,
+        /\(€\s*([\d.]+)\)/,
+        /\(MXN\$\s*([\d.]+)\)/,
+        /\(CAD\$\s*([\d.]+)\)/,
+        /\(HK\$\s*([\d.]+)\)/,
+        /\(NT\$\s*([\d.]+)\)/,
+        /\(PHP\$\s*([\d.]+)\)/,
+        /\(AUD\$\s*([\d.]+)\)/,
+        /\(KRW₩\s*([\d.]+)\)/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = billingText.match(pattern);
+        if (match) {
+            return parseFloat(match[1]);
+        }
+    }
+    return 0;
+}
 
 function parseHTML() {
     const htmlInput = document.getElementById('htmlInput').value;
@@ -2224,7 +3096,7 @@ function parseHTML() {
             
             const billingCell = cells[3];
             const yenMatch = billingCell.innerHTML.match(/(\d+)\s*yen/);
-            const usdMatch = billingCell.innerHTML.match(/US\$\s*([\d.]+)/);
+            const currencyAmount = parseAnyCurrency(billingCell.innerHTML);
             
             const actionsCell = cells[4];
             const linkMatch = actionsCell.innerHTML.match(/href=['"]([^'"]+)['"]/);
@@ -2266,27 +3138,27 @@ function parseHTML() {
                     }
 
                     const newYen = yenMatch ? parseInt(yenMatch[1]) : existingOrder.yen;
-                    const newUsd = usdMatch ? parseFloat(usdMatch[1]) : existingOrder.usd;
+                    const newUsd = currencyAmount || existingOrder.usd;
 
                     if (existingOrder.yen !== newYen) {
                         changes.yen = {
                             from: existingOrder.yen,
                             to: newYen
                         };
+                    }
+
+                    // Only update USD if the difference is significant (over 50 cents)
+                    if (existingOrder.usd !== newUsd) {
+                        const priceDifference = Math.abs(existingOrder.usd - newUsd);
                         
-                        // Only log USD change if Yen also changed
-                        if (existingOrder.usd !== newUsd) {
+                        if (priceDifference > 0.50) {
                             changes.usd = {
                                 from: existingOrder.usd,
                                 to: newUsd
                             };
-
-                            // Update USD only if Yen changed
-                            existingOrder.usd = newUsd;
+                            existingOrder.usd = newUsd; // Only update if significant
                         }
                     }
-
-                    existingOrder.yen = newYen;
                     
                     if (Object.keys(changes).length > 0) {
                         // UPDATE existing order with changes
@@ -2318,7 +3190,7 @@ function parseHTML() {
                         title: title,
                         quantity: parseInt(quantityMatch[1]),
                         yen: yenMatch ? parseInt(yenMatch[1]) : 0,
-                        usd: usdMatch ? parseFloat(usdMatch[1]) : 0,
+                        usd: currencyAmount,
                         created: createdMatch ? createdMatch[1] : '',
                         storageDays: storageDaysMatch ? parseInt(storageDaysMatch[1]) : 0,
                         status: status,
@@ -2378,7 +3250,7 @@ function parseHTML() {
                 const fieldName = field === 'storageDays' ? 'Storage Days' : 
                 field === 'neokyoNotes' ? 'Notes' : 
                 field === 'yen' ? 'Yen Price' :
-                field === 'usd' ? 'USD Price' :
+                field === 'usd' ? `${getCurrentCurrencyConfig().displayName} Price` :
                 field.charAt(0).toUpperCase() + field.slice(1);
                 return `   • ${fieldName}: "${change.from}" → "${change.to}"`;
             });
@@ -2425,7 +3297,7 @@ function renderGridView() {
             <a href="${order.url}" target="_blank" onclick="event.stopPropagation()"><img src="${order.image}" alt="${order.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMyMCIgaGVpZ2h0PSIxODAiIGZpbGw9IiNmM2Y0ZjYiLz48cGF0aCBkPSJNMTQwIDkwSDEyMFY3MEgxNDBWOTBaTTE4MCA5MEgxNjBWNzBIMTgwVjkwWk0xNjAgMTEwSDE0MFY5MEgxNjBWMTEwWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg=='"></a>
             <div class="order-id">#${order.orderId}</div>
             <h3>${order.title}</h3>
-            <div class="price">¥${order.yen} (${order.usd})</div>
+            <div class="price">¥${order.yen} (${getCurrentCurrencyConfig().symbol}${order.usd})</div>
             <div class="details">
                 <span>Qty <span class="detail-val">${order.quantity}</span></span>
                 <span>Days <span class="detail-val">${order.storageDays}</span></span>
@@ -2506,7 +3378,7 @@ function renderTableView() {
                     <th onclick="sortBy('quantity')" class="${columnVisibility.quantity ? '' : 'hidden-column'} ${getSortClass('quantity')}">Qty</th>
                     <th onclick="sortBy('volumes')" class="${columnVisibility.volumes ? '' : 'hidden-column'} ${getSortClass('volumes')}">Items</th>
                     <th onclick="sortBy('yen')" class="${columnVisibility.yen ? '' : 'hidden-column'} ${getSortClass('yen')}">Yen</th>
-                    <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">USD</th>
+                    <th onclick="sortBy('usd')" class="${columnVisibility.usd ? '' : 'hidden-column'} ${getSortClass('usd')}">${getCurrentCurrencyConfig().displayName}</th>
                     <th onclick="sortBy('created')" class="${columnVisibility.created ? '' : 'hidden-column'} ${getSortClass('created')}">Created</th>
                     <th onclick="sortBy('storageDays')" class="${columnVisibility.storageDays ? '' : 'hidden-column'} ${getSortClass('storageDays')}">Storage Days</th>
                     <th onclick="sortBy('status')" class="${columnVisibility.status ? '' : 'hidden-column'} ${getSortClass('status')}">Status</th>
@@ -2690,10 +3562,8 @@ function makeEditable(cell, orderId, field, value, type = 'text') {
                 
                 updateTotals();
                 renderParcels(); // Update parcel calculations
+                updateParcelTabStats();
                 
-                    updateTotals();
-    renderParcels();
-    
     // Check if the new value matches or doesn't match the filter
     let matches = true;
     
@@ -2765,6 +3635,7 @@ function deleteOrder(orderId) {
         renderView();
         updateTotals();
         renderParcels();
+        updateParcelTabStats();
     }
 }
 
@@ -2861,12 +3732,11 @@ function deleteOrder(orderId) {
             renderView();
         }
 
-        function applyFilters() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const searchTerms = search.split(',').map(term => term.trim()).filter(Boolean);
-            // const tags = document.getElementById('tagsInput').value.toLowerCase();
-            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
-            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const searchTerms = search.split(',').map(term => term.trim()).filter(Boolean);
+    const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+    const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
 
     const filteredOrders = JSON.parse(localStorage.getItem('orders') || '[]').filter(order => {
         const matchesSearch = searchTerms.length === 0 || 
@@ -2878,7 +3748,7 @@ function deleteOrder(orderId) {
         // Updated tags filter logic
         const matchesTags = selectedTags.length === 0 || 
             selectedTags.some(selectedTag => {
-                if (selectedTag === '(no tags)') {
+                if (selectedTag === 'Untagged') {
                     // Check if order has no tags or empty tags
                     return !order.tags || order.tags.trim() === '';
                 } else {
@@ -2899,7 +3769,7 @@ function deleteOrder(orderId) {
         // Updated parcel filter logic
         const matchesParcel = selectedParcels.length === 0 || 
             selectedParcels.some(selectedParcel => {
-                if (selectedParcel === 'No Parcel') {
+                if (selectedParcel === '__NO_PARCEL__') {
                     // Check if order has no parcel assigned
                     return !order.parcel || order.parcel === '';
                 } else {
@@ -2907,13 +3777,14 @@ function deleteOrder(orderId) {
                 }
             });
 
-                return matchesSearch && matchesTags && matchesPrice && matchesFormat && matchesStatus && matchesParcel;
-            });
+        return matchesSearch && matchesTags && matchesPrice && matchesFormat && matchesStatus && matchesParcel;
+    });
 
-            orders = filteredOrders;
-            renderView();
-            updateTotals();
-        }
+    orders = filteredOrders;
+    applySortToOrders();
+    renderView();
+    updateTotals();
+}
 
         function clearFilters() {
             document.getElementById('searchInput').value = '';
@@ -3011,17 +3882,29 @@ function updateTotals() {
 
     document.getElementById('totalItems').textContent = totalItems;
     document.getElementById('totalYen').textContent = `¥${totalYen.toLocaleString()}`;
-    document.getElementById('totalUSD').textContent = `$${totalUSD.toFixed(2)}`;
+    const currConfig = getCurrentCurrencyConfig();
+    document.getElementById('totalUSD').textContent = `${currConfig.symbol}${totalUSD.toFixed(2)}`;
+document.getElementById('avgUSDPerItem').textContent = `${currConfig.symbol}${avgUSDPerItem.toFixed(2)}`;
+
+    const usdSymbols = document.querySelectorAll('[data-label*="Currency"]');
+    usdSymbols.forEach(label => {
+        label.textContent = label.textContent.replace('$', currConfig.symbol);
+    });
+
+    const usdLabels = document.querySelectorAll('[data-label*="USD"]');
+    usdLabels.forEach(label => {
+        label.textContent = label.textContent.replace('USD', currConfig.displayName);
+    });
+    
+    const totalCurrencyLabel = document.querySelector('[data-label="Total USD"]');
+    if (totalCurrencyLabel) {
+        totalCurrencyLabel.textContent = `Total ${currConfig.displayName}`;
+    }
+
     document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(0)}g`;
     document.getElementById('totalVolumes').textContent = totalVolumes;
-    document.getElementById('avgUSDPerItem').textContent = `$${avgUSDPerItem.toFixed(2)}`;
 
 }
-
-        // Parcel functions
-        function openParcelModal() {
-            document.getElementById('parcelModal').classList.remove('hidden');
-        }
 
         function closeParcelModal() {
             document.getElementById('parcelModal').classList.add('hidden');
@@ -3234,6 +4117,7 @@ function saveFormats() {
     renderView(); // Refresh dropdowns
     updateTotals(); // Recalculate weights
     renderParcels(); // Update parcel calculations
+    updateParcelTabStats();
     alert('Format changes saved successfully!');
     
     // Alert user about any changes
@@ -3384,6 +4268,7 @@ function clearActivityLog() {
         clearFilters();
         renderView();
         renderParcels();
+        updateParcelTabStats();
         renderStatusDropdown();
         renderFormatDropdown();
         renderParcelDropdown();
@@ -3517,69 +4402,53 @@ function renderFormatsTable() {
             }
         }
 
-        function addParcel() {
-            const name = document.getElementById('parcelName').value || `Parcel ${parcels.length + 1}`;
-            const length = parseFloat(document.getElementById('parcelLength').value) || 60;
-            const width = parseFloat(document.getElementById('parcelWidth').value) || 45;
-            const height = parseFloat(document.getElementById('parcelHeight').value) || 62;
-            const padding = parseFloat(document.getElementById('parcelPadding').value) || 2;
-            const boxWeight = parseFloat(document.getElementById('parcelBoxWeight').value) || 2000;
+function saveParcel() {
+    const name = document.getElementById('parcelName').value || `Parcel ${parcels.length + 1}`;
+    const length = parseFloat(document.getElementById('parcelLength').value) || 60;
+    const width = parseFloat(document.getElementById('parcelWidth').value) || 45;
+    const height = parseFloat(document.getElementById('parcelHeight').value) || 62;
+    const padding = parseFloat(document.getElementById('parcelPadding').value) || 20;
+    const boxWeight = parseFloat(document.getElementById('parcelBoxWeight').value) || 2000;
+    
+    // Get shipping info
+    const shippingMethod = document.getElementById('parcelShippingMethod').value || '';
+    const shippingCost = parseFloat(document.getElementById('parcelShippingCost').value) || 0;
+    const shipDate = document.getElementById('parcelShipDate').value || '';
+    const arrivalDate = document.getElementById('parcelArrivalDate').value || '';
+    const actualWeight = parseFloat(document.getElementById('parcelActualWeight').value) || 0;
+    const declaredValue = parseFloat(document.getElementById('parcelDeclaredValue').value) || 0;
+    const trackingNumber = document.getElementById('parcelTrackingNumber').value || '';
+    const trackingURL = document.getElementById('parcelTrackingURL').value || '';   
+    
 
-            const parcel = {
-                id: Date.now().toString(),
-                name,
-                length,
-                width,
-                height,
-                padding,
-                boxWeight
-            };
+    const parcel = {
+        id: Date.now().toString(),
+        name,
+        length,
+        width,
+        height,
+        padding,
+        boxWeight,
+        status: currentParcelTab, // 'planning' or 'shipped'
+        shippingMethod,
+        shippingCost,
+        actualWeight,
+        declaredValue,
+        shipDate,
+        arrivalDate,
+        trackingNumber,
+        trackingURL
+    };
 
-            parcels.push(parcel);
-            localStorage.setItem('parcels', JSON.stringify(parcels));
-            
-            // Clear form
-            document.getElementById('parcelName').value = '';
-            document.getElementById('parcelLength').value = '60';
-            document.getElementById('parcelWidth').value = '45';
-            document.getElementById('parcelHeight').value = '62';
-            document.getElementById('parcelPadding').value = '2';
-            document.getElementById('parcelBoxWeight').value = '2000';
-            
-            closeParcelModal();
-            renderParcels();
-            renderParcelDropdown(); // Update dropdowns
-            renderView(); // Update dropdowns
-        }
-
-        function editParcel(parcelId) {
-            const parcel = parcels.find(p => p.id === parcelId);
-            if (!parcel) return;
-            
-            currentEditingParcel = parcelId;
-            
-            // Populate form with current values
-            document.getElementById('editParcelName').value = parcel.name;
-            document.getElementById('editParcelLength').value = parcel.length;
-            document.getElementById('editParcelWidth').value = parcel.width;
-            document.getElementById('editParcelHeight').value = parcel.height;
-            document.getElementById('editParcelPadding').value = parcel.padding;
-            document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
-            
-            // Open modal
-            document.getElementById('editParcelModal').classList.remove('hidden');
-        }
-
-        function closeEditParcelModal() {
-            document.getElementById('editParcelModal').classList.add('hidden');
-            currentEditingParcel = null;
-        }
-
-        function closeEditParcelModalOnOutsideClick(event) {
-            if (event.target.classList.contains('modal')) {
-                closeEditParcelModal();
-            }
-        }
+    parcels.push(parcel);
+    localStorage.setItem('parcels', JSON.stringify(parcels));
+    
+    closeParcelModal();
+    renderParcels();
+    updateParcelTabStats();
+    renderParcelDropdown();
+    renderView();
+}
 
         function deleteParcel(parcelId) {
             if (confirm('Are you sure you want to delete this parcel?')) {
@@ -3613,82 +4482,99 @@ function renderFormatsTable() {
                 });
                 
                 renderParcels();
+                updateParcelTabStats();
                 renderView();
             }
         }
 
-        function editParcel(parcelId) {
-            const parcel = parcels.find(p => p.id === parcelId);
-            if (!parcel) return;
-            
-            currentEditingParcel = parcelId;
-            
-            // Populate form with current values
-            document.getElementById('editParcelName').value = parcel.name;
-            document.getElementById('editParcelLength').value = parcel.length;
-            document.getElementById('editParcelWidth').value = parcel.width;
-            document.getElementById('editParcelHeight').value = parcel.height;
-            document.getElementById('editParcelPadding').value = parcel.padding;
-            document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
-            
-            // Open modal
-            document.getElementById('editParcelModal').classList.remove('hidden');
-        }
+function editParcel(parcelId) {
+    const parcel = parcels.find(p => p.id === parcelId);
+    if (!parcel) return;
+    
+    currentEditingParcel = parcelId;
+    
+    // Populate basic fields
+    document.getElementById('editParcelName').value = parcel.name;
+    document.getElementById('editParcelLength').value = parcel.length;
+    document.getElementById('editParcelWidth').value = parcel.width;
+    document.getElementById('editParcelHeight').value = parcel.height;
+    document.getElementById('editParcelPadding').value = parcel.padding;
+    document.getElementById('editParcelBoxWeight').value = parcel.boxWeight;
+    
+    // Populate shipping fields
+    document.getElementById('editParcelShippingMethod').value = parcel.shippingMethod || '';
+    document.getElementById('editParcelShippingCost').value = parcel.shippingCost || '';
+    document.getElementById('editParcelShipDate').value = parcel.shipDate || '';
+    document.getElementById('editParcelArrivalDate').value = parcel.arrivalDate || '';
+    document.getElementById('editParcelActualWeight').value = parcel.actualWeight || '';
+    document.getElementById('editParcelDeclaredValue').value = parcel.declaredValue || '';
+    document.getElementById('editParcelTrackingNumber').value = parcel.trackingNumber || '';
+    document.getElementById('editParcelTrackingURL').value = parcel.trackingURL || '';
 
-        function closeEditParcelModal() {
-            document.getElementById('editParcelModal').classList.add('hidden');
-            currentEditingParcel = null;
-        }
+    // Show edit modal
+    document.getElementById('editParcelModal').classList.remove('hidden');
+}
 
-        function closeEditParcelModalOnOutsideClick(event) {
-            if (event.target.classList.contains('modal')) {
-                closeEditParcelModal();
-            }
-        }
-
-        function saveParcelEdit() {
-            if (!currentEditingParcel) return;
-            
-            const parcelIndex = parcels.findIndex(p => p.id === currentEditingParcel);
-            if (parcelIndex === -1) return;
-            
-            const oldName = parcels[parcelIndex].name;
-            const newName = document.getElementById('editParcelName').value || `Parcel ${parcels.length}`;
-            const length = parseFloat(document.getElementById('editParcelLength').value) || 12;
-            const width = parseFloat(document.getElementById('editParcelWidth').value) || 8;
-            const height = parseFloat(document.getElementById('editParcelHeight').value) || 6;
-            const padding = parseFloat(document.getElementById('editParcelPadding').value) || 0.5;
-            const boxWeight = parseFloat(document.getElementById('editParcelBoxWeight').value) || 100;
-            
-            // Update parcel
-            parcels[parcelIndex] = {
-                ...parcels[parcelIndex],
-                name: newName,
-                length,
-                width,
-                height,
-                padding,
-                boxWeight
-            };
-            
-            localStorage.setItem('parcels', JSON.stringify(parcels));
-            
-            // If name changed, we don't need to update orders since they store parcel ID, not name
-            // The parcel dropdowns will automatically show the new name
-            
-            closeEditParcelModal();
-            renderParcels();
-            renderView(); // Update dropdowns with new parcel name
-            
-            if (oldName !== newName) {
-                alert(`Parcel renamed from "${oldName}" to "${newName}" and updated successfully!`);
-            } else {
-                alert('Parcel updated successfully!');
-            }
-        }
+function saveParcelEdit() {
+    if (!currentEditingParcel) return;
+    
+    const parcelIndex = parcels.findIndex(p => p.id === currentEditingParcel);
+    if (parcelIndex === -1) return;
+    
+    const oldName = parcels[parcelIndex].name;
+    
+    // Get basic info
+    const newName = document.getElementById('editParcelName').value || `Parcel ${parcels.length}`;
+    const length = parseFloat(document.getElementById('editParcelLength').value) || 12;
+    const width = parseFloat(document.getElementById('editParcelWidth').value) || 8;
+    const height = parseFloat(document.getElementById('editParcelHeight').value) || 6;
+    const padding = parseFloat(document.getElementById('editParcelPadding').value) || 0.5;
+    const boxWeight = parseFloat(document.getElementById('editParcelBoxWeight').value) || 100;
+    
+    // Get shipping info
+    const shippingMethod = document.getElementById('editParcelShippingMethod').value || '';
+    const shippingCost = parseFloat(document.getElementById('editParcelShippingCost').value) || 0;
+    const shipDate = document.getElementById('editParcelShipDate').value || '';
+    const arrivalDate = document.getElementById('editParcelArrivalDate').value || '';
+    const actualWeight = parseFloat(document.getElementById('editParcelActualWeight').value) || 0;
+    const declaredValue = parseFloat(document.getElementById('editParcelDeclaredValue').value) || 0;
+    const trackingNumber = document.getElementById('editParcelTrackingNumber').value || '';
+    const trackingURL = document.getElementById('editParcelTrackingURL').value || '';
+    
+    // Update parcel
+    parcels[parcelIndex] = {
+        ...parcels[parcelIndex],
+        name: newName,
+        length,
+        width,
+        height,
+        padding,
+        boxWeight,
+        shippingMethod,
+        shippingCost,
+        actualWeight,
+        declaredValue,
+        shipDate,
+        arrivalDate,
+        trackingNumber,
+        trackingURL
+    };
+    
+    localStorage.setItem('parcels', JSON.stringify(parcels));
+    
+    closeEditParcelModal();
+    renderParcels();
+    updateParcelTabStats();
+    renderView();
+    
+    alert(`Parcel "${newName}" updated successfully!`);
+}
 
 function renderParcels() {
     const parcelGrid = document.getElementById('parcelGrid');
+    
+    // Filter parcels by current tab
+    const filteredParcels = parcels.filter(parcel => parcel.status === currentParcelTab);
     
     // Always get ALL orders from localStorage, not the filtered ones
     let allOrders = [];
@@ -3699,8 +4585,18 @@ function renderParcels() {
         allOrders = [];
     }
     
-    parcelGrid.innerHTML = parcels.map(parcel => {
-        // Use allOrders instead of the filtered orders array
+    if (filteredParcels.length === 0) {
+        parcelGrid.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #6b7280; font-style: italic;">
+                ${currentParcelTab === 'planning' ? 
+                    'No parcels being planned yet. Click "Add Parcel" to get started!' : 
+                    'No shipped parcels yet. Mark parcels as shipped to see them here.'}
+            </div>
+        `;
+        return;
+    }
+    
+    parcelGrid.innerHTML = filteredParcels.map(parcel => {
         const assignedOrders = allOrders.filter(order => order.parcel === parcel.id);
         
         let totalWeight = parcel.boxWeight;
@@ -3710,13 +4606,9 @@ function renderParcels() {
         let totalValueUSD = 0;
         
         assignedOrders.forEach(order => {
-            // Get a default format if the order's format doesn't exist
             const defaultFormatName = Object.keys(bookFormats)[0] || 'Default';
             const defaultFormat = bookFormats[defaultFormatName] || {
-                width: 12.8,
-                height: 18.2,
-                thickness: 1.7,
-                weight: 190
+                width: 10.0, height: 10.0, thickness: 10.0, weight: 10.0
             };
             
             const format = bookFormats[order.bookFormat] || defaultFormat;
@@ -3727,32 +4619,77 @@ function renderParcels() {
             totalWeight += itemWeight;
             totalVolume += itemVolume;
             totalOrderVolumes += volumes * order.quantity;
-            
-            // Add up the values
             totalValueYen += order.yen || 0;
             totalValueUSD += order.usd || 0;
         });
 
-        const availableLength = parcel.length - (parcel.padding * 2);
-        const availableWidth = parcel.width - (parcel.padding * 2);
-        const availableHeight = parcel.height - (parcel.padding * 2);
-        const maxVolume = availableLength * availableWidth * availableHeight;
-        
-        const spaceUsed = (totalVolume / maxVolume * 100).toFixed(1);
-        const spaceRemaining = Math.max(0, maxVolume - totalVolume).toFixed(2);
+
+if (currentParcelTab === 'shipped' && parcel.actualWeight && parcel.actualWeight > 0) {
+    totalWeight = parcel.actualWeight; // Use actual weight for items
+}
+
+const availableLength = parcel.length - (parcel.padding * 2);
+const availableWidth = parcel.width - (parcel.padding * 2);
+const availableHeight = parcel.height - (parcel.padding * 2);
+const maxVolume = availableLength * availableWidth * availableHeight;
+
+const spaceUsed = (totalVolume / maxVolume * 100).toFixed(1);
+const spaceRemaining = Math.max(0, maxVolume - totalVolume).toFixed(2);
+
+// Calculate additional stats for shipped parcels
+let additionalStats = '';
+if (currentParcelTab === 'shipped') {
+    const perItemWithShip = totalOrderVolumes > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / totalOrderVolumes) : 0;
+    const costPerKgWithShip = totalWeight > 0 ? ((totalValueUSD + (parcel.shippingCost || 0)) / (totalWeight / 1000)) : 0;
+    
+    const currConfig = getCurrentCurrencyConfig(); // why do they do this i might as well just rename the function to currConfig instead of declaring it again but ig not
+    
+    additionalStats = `
+        <div class="stat">
+            <div class="stat-value">${currConfig.symbol}${perItemWithShip.toFixed(2)}</div>
+            <div class="stat-label">Per Item + Ship</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">${currConfig.symbol}${costPerKgWithShip.toFixed(2)}</div>
+            <div class="stat-label">Cost/kg + Ship</div>
+        </div>
+    `;
+} else if (currentParcelTab === 'planning') {
+    const estimatedShipping = (parcel.shippingCost && parcel.shippingCost > 0) ? parcel.shippingCost : 10;
+    const perItemWithEstShip = totalOrderVolumes > 0 ? ((totalValueUSD + estimatedShipping) / totalOrderVolumes) : 0;
+    const perItem = totalOrderVolumes > 0 ? (totalValueUSD / totalOrderVolumes) : 0;
+    
+    const currConfig = getCurrentCurrencyConfig();
+    
+    additionalStats = `
+        <div class="stat">
+            <div class="stat-value">${currConfig.symbol}${perItemWithEstShip.toFixed(2)}</div>
+            <div class="stat-label">Per Item + Ship</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">${currConfig.symbol}${perItem.toFixed(2)}</div>
+            <div class="stat-label">Per Item</div>
+        </div>
+    `;
+}
 
         return `
             <div class="parcel-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3>${parcel.name}</h3>
+                    <h3>${getClickableParcelName(parcel)}</h3>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-small btn-secondary" onclick="editParcel('${parcel.id}')">Edit</button>
+                        ${currentParcelTab === 'planning' ? 
+                            `<button class="btn btn-small" onclick="markAsShipped('${parcel.id}')" style="background: rgb(84 151 221);">Ship</button>` :
+                            `<button class="btn btn-small btn-secondary" onclick="markAsPlanning('${parcel.id}')">Unship</button>`
+                        }
                         <button class="btn btn-small btn-secondary" onclick="deleteParcel('${parcel.id}')" style="background: rgb(235, 137, 137); border-color: rgb(235, 137, 137); color: white;">Delete</button>
                     </div>
                 </div>
                 <div style="font-size: 12px; color: rgb(106, 92, 201); margin-bottom: 8px;">
                     Dimensions: ${parcel.length}cm × ${parcel.width}cm × ${parcel.height}cm<br>
-                    Available (After Padding): ${availableLength.toFixed(1)}cm × ${availableWidth.toFixed(1)}cm × ${availableHeight.toFixed(1)}cm
+                    ${currentParcelTab === 'shipped' && parcel.shippingMethod ? `<br>Shipped via: ${parcel.shippingMethod}` : ''} ($${(parcel.shippingCost || 0).toFixed(2)})
+                    ${currentParcelTab === 'shipped' && parcel.trackingNumber ? `<br>Tracking: <a href="${parcel.trackingURL}" target="_blank" style="color: rgb(84, 151, 221); text-decoration: none; ">${parcel.trackingNumber}` : ''}</a>
                 </div>
                 <div class="parcel-stats">
                     <div class="stat">
@@ -3765,20 +4702,20 @@ function renderParcels() {
                     </div>
                     <div class="stat">
                         <div class="stat-value">${totalWeight.toFixed(0)}g</div>
-                        <div class="stat-label">Weight</div>
+                        <div class="stat-label">${(currentParcelTab === 'shipped' && parcel.actualWeight && parcel.actualWeight > 0) ? 'Actual Weight' : 'Weight'}</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value">${spaceUsed}%</div>
                         <div class="stat-label">Space Used</div>
                     </div>
-                    <!--- <div class="stat">
-                        <div class="stat-value">¥${totalValueYen.toLocaleString()}</div>
-                        <div class="stat-label">Total Yen</div>
-                    </div> -->
                     <div class="stat">
                         <div class="stat-value">$${totalValueUSD.toFixed(2)}</div>
-                        <div class="stat-label">Total USD</div>
+                        <div class="stat-label">Total Cost</div>
                     </div>
+                </div>
+                <div class="parcel-stats">
+                    <style>.stat div {display:inline}</style>
+                    ${additionalStats}
                 </div>
 
                 <div style="margin-top: 12px; max-height: 120px; overflow-y: auto;">
@@ -3793,32 +4730,163 @@ function renderParcels() {
     }).join('');
 }
 
+// Helper function to create clickable parcel names with tracking links
+// idk why it made a function specifically for this but okay sure ;-;7
+function getClickableParcelName(parcel) {
+    if (parcel.trackingURL && parcel.trackingURL.trim()) {
+        return `<a href="${parcel.trackingURL}" target="_blank" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 6px;" title="Track this parcel">
+            ${parcel.name}
+            <span style="font-size: 12px; opacity: 0.7;">🔗</span>
+        </a>`;
+    }
+    return parcel.name;
+}
+
+// Helper function to calculate shipping days
+function calculateShipDays(shipDate, arrivalDate) {
+    if (!shipDate || !arrivalDate) return -1;
+    
+    const ship = new Date(shipDate);
+    const arrival = new Date(arrivalDate);
+    const diffTime = arrival - ship;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays > 0 ? diffDays : -1;
+}
+
+// Mark parcel as shipped
+function markAsShipped(parcelId) {
+    const parcel = parcels.find(p => p.id === parcelId);
+    if (!parcel) return;
+    
+    parcel.status = 'shipped';
+    localStorage.setItem('parcels', JSON.stringify(parcels));
+    
+    // Switch to shipped tab to show the result
+    switchParcelTab('shipped');
+    
+    // Show hybrid toast with option to add details
+    showShippingDetailsToast(parcelId, parcel.name);
+}
+
+// Mark parcel back as planning (unship)
+function markAsPlanning(parcelId) {
+        const parcel = parcels.find(p => p.id === parcelId);
+        if (!parcel) return;
+        
+        // Clear shipping data
+        parcel.status = 'planning';
+        // parcel.shippingMethod = '';
+        // parcel.shippingCost = 0;
+        // parcel.actualWeight = 0;
+        // parcel.actualDimensions = { length: 0, width: 0, height: 0 };
+        // parcel.shipDate = '';
+        // parcel.arrivalDate = '';
+        // parcel.trackingNumber = '';
+        
+        localStorage.setItem('parcels', JSON.stringify(parcels));
+        switchParcelTab('planning');
+    }
+
+
+function showShippingDetailsToast(parcelId, parcelName) {
+    // Remove any existing toast
+    const existingToast = document.getElementById('shipping-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast
+    const toast = document.createElement('div');
+    toast.id = 'shipping-toast';
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 18px;
+        padding: 16px 20px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        z-index: 1010;
+        min-width: 294px;
+        background:rgb(84 151 221);color:white;
+    `;
+    
+    toast.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+        font-weight: 800;">
+            ${parcelName} marked as shipped!
+        </div>
+        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 12px;color:white">
+            Add shipping details while it's fresh?
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="openEditParcelFromToast('${parcelId}')" style="
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                transition: all 0.2s;background:rgba(255,255,255,0.9);
+            " onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.9)'">
+                Add Details
+            </button>
+            <button onclick="dismissShippingToast()" class="btn" style="
+                padding: 6px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 11px;
+                font-weight: 600;
+                background: rgba(255,255,255,0.2);
+                transition: all 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                Maybe Later
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-dismiss after 8 seconds
+    setTimeout(() => {
+        dismissShippingToast();
+    }, 8000);
+}
+
+function openEditParcelFromToast(parcelId) {
+    dismissShippingToast();
+    editParcel(parcelId);
+}
+
+function dismissShippingToast() {
+    const toast = document.getElementById('shipping-toast');
+    if (toast) {
+        toast.style.animation = 'slideOutToRight 0.3s ease';
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+}
 
 
 function toggleViewDirect() {
     const icon = document.getElementById('viewToggleIcon');
     const tooltip = document.getElementById('viewToggleTooltip');
     const columnBtn = document.getElementById('columnToggleHamburger');
+    const gridSortControls = document.getElementById('gridSortControls');
     
     if (currentView === 'grid') {
         // Switch to table view
         currentView = 'table';
         icon.textContent = '📇';
         tooltip.textContent = 'Grid View';
-        columnBtn.style.display = 'flex'; // Show column toggle button
+        columnBtn.style.display = 'flex';
+        if (gridSortControls) gridSortControls.style.display = 'none'; // Hide grid sort
     } else {
         // Switch to grid view
         currentView = 'grid';
         icon.textContent = '📋';
         tooltip.textContent = 'Table View';
-        columnBtn.style.display = 'none'; // Hide column toggle button
-        
-        // Close column panel if it's open
-        const columnPanel = document.getElementById('columnPanel');
-        if (columnPanel && columnPanel.classList.contains('show')) {
-            columnPanel.classList.remove('show');
-            document.getElementById('columnToggleHamburger').classList.remove('active');
-        }
+        columnBtn.style.display = 'none';
+        if (gridSortControls) gridSortControls.style.display = 'flex'; // Show grid sort
     }
     
     renderView();
@@ -3942,7 +5010,6 @@ function createColumnPanel() {
     function importData(event) {
 
         // Clear all data
-        exportData();
         const file = event.target.files[0];
         if (!file) return;
 
@@ -3984,6 +5051,7 @@ function createColumnPanel() {
                 renderParcelDropdown(); // Initialize parcel dropdown
                 renderView();
                 renderParcels();
+                updateParcelTabStats();
                 updateTotals();
                 alert('Data imported successfully!');
             } catch (error) {
@@ -4818,6 +5886,197 @@ function refreshTagsUINew(orderId) {
     
     renderTagsDropdown();
 }
+
+
+function changeCurrency(newCurrency) {
+    currentCurrency = newCurrency;
+    localStorage.setItem('selectedCurrency', currentCurrency);
+    
+    const currConfig = getCurrentCurrencyConfig();
+    
+    // Update the specific total labels
+    document.getElementById('totalCurrencyLabel').textContent = `Total ${currConfig.displayName}`;
+    
+    const usdPerItemLabel = document.querySelector('[data-label="USD per Item"]');
+    if (usdPerItemLabel) {
+        usdPerItemLabel.textContent = `${currConfig.displayName} per Item`;
+    }
+    
+    // Update displays (this will refresh the values with new currency symbols)
+    updateTotals();
+    renderView();
+    renderParcels();
+    updateParcelTabStats();
+}
 </script>
+        <style>/* Updated Parcel tabs styling - Option B style */
+.parcel-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+    margin-bottom: 0px; /* No gap between tabs and stats bar */
+    overflow: hidden;
+    background: white;
+}
+
+.parcel-tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    position: relative;
+    border-bottom: 3px solid transparent;
+    flex: 1;
+    background: #f9fafb;
+    border-right: 1px solid #e5e7eb;
+}
+
+.parcel-tab:last-child {
+    border-right: none;
+}
+
+.parcel-tab.active {
+    color: rgb(106, 92, 201);
+    border-bottom-color: rgb(151 141 217);
+    background: white;
+    position: relative;
+    z-index: 1;
+}
+
+.parcel-tab:not(.active) {
+    color: #6b7280;
+}
+
+.parcel-tab:not(.active):hover {
+    color: #374151;
+    background: #f3f4f6;
+}
+
+.tab-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    justify-content: center;
+}
+
+.tab-count {
+    background: rgb(151 141 217);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+}
+
+.parcel-tab:not(.active) .tab-count {
+    background: #9ca3af;
+}
+
+.tab-stats {
+    font-size: 11px;
+    opacity: 0.8;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.parcel-tab.active .tab-stats {
+    opacity: 1;
+    color: #6366f1;
+}
+
+/* Updated Stats bar styling - cleaner Option B style */
+.parcel-stats-bar {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-top: none; /* Connects seamlessly to active tab */
+    border-radius: 0 0 8px 8px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    display: none;
+    
+}
+
+.parcel-stats-bar.active {
+    display: block;
+}
+
+
+.stats-bar-items {
+    display: grid;
+    gap: 10px;
+    /* align-items: center; */
+    grid-auto-flow: column;
+    grid-template-columns: auto;
+}
+
+.stats-bar-item {
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+    text-align: center;
+    min-width: 0; /* Allow shrinking */
+}
+
+.stats-bar-value {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+    font-size:10px !important
+}
+
+.stats-bar-label {
+    color: #64748b;
+    font-weight: 500;
+    font-size:10px !important
+}
+
+/* Remove the old slideDown animation and add a subtle fade */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutToRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.parcel-stats-bar {
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content h3 {font-weight:700}
+.modal-content label {font-size:11px !important}</style>
 </body>
 </html>
